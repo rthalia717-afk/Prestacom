@@ -180,23 +180,19 @@
             snapshot.forEach((doc) => {
                 const data = doc.data();
                 
-                // 🔍 BUSCADOR INTELIGENTE DE CAMPOS (Mapeo asegurado)
+                // Mapeo Ultra-Seguro de variables de Firebase
                 let nombreMapeado = data.nombre || data.cliente || "Sin Nombre"; 
-                
-                let mOriginal = parseFloat(data.monto_original) || parseFloat(data.monto) || parseFloat(data.montoOriginal) || 0;
+                let mOriginal = parseFloat(data.monto_original) || parseFloat(data.monto) || parseFloat(data.monto_prestado) || 0;
                 
                 let bActual = mOriginal;
                 if (data.balance_actual !== undefined && data.balance_actual !== "") {
                     bActual = parseFloat(data.balance_actual);
                 } else if (data.balance !== undefined && data.balance !== "") {
                     bActual = parseFloat(data.balance);
-                } else if (data.balanceActual !== undefined && data.balanceActual !== "") {
-                    bActual = parseFloat(data.balanceActual);
                 }
 
-                let cNum = parseInt(data.cuota_num) || parseInt(data.cuota) || parseInt(data.proxima_cuota) || parseInt(data.cuota_actual) || 1;
-                
-                let vCuota = parseFloat(data.valor_cuota) || parseFloat(data.monto_cuota) || parseFloat(data.cuota_valor) || parseFloat(data.valorCuota) || 0;
+                let cNum = parseInt(data.cuota_num) || parseInt(data.cuota) || parseInt(data.proxima_cuota) || 1;
+                let vCuota = parseFloat(data.valor_cuota) || parseFloat(data.monto_cuota) || parseFloat(data.valorCuota) || 0;
 
                 prestamosActivosBD.push({
                     id: doc.id,
@@ -208,10 +204,10 @@
                 });
             });
 
-            // Ordenar alfabéticamente por cliente
+            // Ordenar alfabéticamente
             prestamosActivosBD.sort((a, b) => a.cliente.localeCompare(b.cliente));
             
-            // Inyección limpia
+            // Inyección limpia en el HTML
             contenedor.innerHTML = ""; 
             prestamosActivosBD.forEach(p => {
                 const item = document.createElement('div');
@@ -233,26 +229,26 @@
         });
 
         function seleccionarCliente(idPrestamo) {
-            // Buscar el objeto estructurado completo en nuestro arreglo
+            // Buscamos los datos limpios en memoria externa
             clienteSeleccionado = prestamosActivosBD.find(p => p.id === idPrestamo);
             if (!clienteSeleccionado) return;
 
-            // Cambiar de vista
+            // Cambiar la vista visual
             document.getElementById('titulo-pantalla').innerText = "Procesar Cobro";
             document.getElementById('vista-listado').style.display = "none";
             document.getElementById('vista-procesar-cobro').style.display = "block";
 
-            // Pintar los datos estructurados en las etiquetas correspondientes
+            // Pintar los datos en pantalla con formato de RD$
             document.getElementById('lbl-nombre-cliente').innerText = clienteSeleccionado.cliente;
             document.getElementById('lbl-monto-original').innerText = "$" + clienteSeleccionado.monto_original.toLocaleString('es-DO', {minimumFractionDigits: 2});
             document.getElementById('lbl-balance-actual').innerText = "$" + clienteSeleccionado.balance_actual.toLocaleString('es-DO', {minimumFractionDigits: 2});
             document.getElementById('lbl-numero-cuota').innerText = "#" + clienteSeleccionado.cuota_num;
             document.getElementById('lbl-valor-cuota-sugerido').innerText = "$" + clienteSeleccionado.valor_cuota.toLocaleString('es-DO', {minimumFractionDigits: 2});
             
-            // Poner el valor sugerido en el input de cobro modificable
+            // Colocar el valor sugerido listo para cobrar
             document.getElementById('txt-monto-recibido').value = clienteSeleccionado.valor_cuota;
             
-            // Forzar el cálculo inmediato matemático de devuelta y nuevo balance
+            // Correr matemáticas internas
             calcularMatematicasSobrante();
         }
 
@@ -295,24 +291,20 @@
 
             let estadoCuota = montoCobrado >= valorCuotaSugerida ? "PAGADA" : "ABONADA";
 
-            // Transacción en Firebase dinámica usando los nombres que correspondan
             try {
                 const prestamoRef = doc(db, "clientes_prestamo", clienteSeleccionado.id);
                 
-                // Mapeo seguro para la actualización en Firebase
-                let camposAActualizar = {};
-                
-                // Actualizar balance_actual o balance según exista en el registro original
-                camposAActualizar.balance_actual = nuevoBalanceCalculado;
-                camposAActualizar.cuota_num = nuevaCuotaNumero;
-
-                await updateDoc(prestamoRef, camposAActualizar);
+                // Actualización inteligente
+                await updateDoc(prestamoRef, {
+                    balance_actual: nuevoBalanceCalculado,
+                    cuota_num: nuevaCuotaNumero
+                });
             } catch (error) {
                 console.error("Error al actualizar balance:", error);
                 alert("Error guardando en la nube. Se procederá con el ticket físico.");
             }
 
-            // Preparar string de impresión térmica nativa para RawBT
+            // Crear el formato del ticket térmico para RawBT
             const fechaActual = new Date().toLocaleDateString('es-DO');
             const horaActual = new Date().toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' });
             
@@ -336,7 +328,6 @@
             t += "    Gracias por su puntualidad   \n";
             t += "================================\n\n\n\n";
 
-            // Salida directa por Bluetooth vía RawBT app
             try {
                 let bytes = new TextEncoder().encode(t);
                 let binario = Array.from(bytes, byte => String.fromCharCode(byte)).join('');
@@ -346,7 +337,6 @@
                 console.error("Error lanzando RawBT: ", error);
             }
 
-            // Limpieza y redirección automática suave
             setTimeout(() => {
                 document.getElementById('titulo-pantalla').innerText = "Clientes Activos";
                 document.getElementById('vista-procesar-cobro').style.display = "none";
@@ -370,7 +360,7 @@
             }
         }
 
-        // Exponer alcances globales indispensables para eventos de botones inline
+        // 🚨 IMPORTANTE: Vinculación explícita al objeto WINDOW global de forma inmediata
         window.seleccionarCliente = seleccionarCliente;
         window.calcularMatematicasSobrante = calcularMatematicasSobrante;
         window.ejecutarTransaccionFinal = ejecutarTransaccionFinal;
