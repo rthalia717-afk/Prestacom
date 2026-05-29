@@ -140,42 +140,61 @@
             font-weight: bold;
         }
 
-        /* 🗺️ ESTILOS NUEVOS PARA EL BOTÓN INTERACTIVO DEL GPS */
+        /* Estilos de la barra lateral de acciones */
         .spatial-gps-action {
             display: flex;
             align-items: center;
             justify-content: center;
+            gap: 8px; /* Separación entre GPS y Borrar */
             border-left: 1px solid #E5E7EB;
-            padding-left: 15px;
+            padding-left: 12px;
             height: 40px;
         }
 
-        .btn-trigger-maps {
-            background-color: #111827; /* Negro institucional */
-            color: #FFFFFF;
-            width: 38px;
-            height: 38px;
+        .btn-trigger-maps, .btn-eliminar-client {
+            width: 36px;
+            height: 36px;
             border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             text-decoration: none;
             font-size: 1.2rem;
-            box-shadow: 0 3px 6px rgba(17, 24, 39, 0.15);
             transition: all 0.2s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        /* Estilos del botón de GPS */
+        .btn-trigger-maps {
+            background-color: #111827; /* Negro institucional */
+            color: #FFFFFF;
+            box-shadow: 0 3px 6px rgba(17, 24, 39, 0.15);
         }
 
         .btn-trigger-maps:active {
             transform: scale(0.9);
-            background-color: var(--color-primary); /* Brilla en naranja al pisarlo */
+            background-color: var(--color-primary);
         }
 
         .btn-trigger-maps.disabled {
             background-color: #F3F4F6;
             color: #9CA3AF;
             box-shadow: none;
-            pointer-events: none; /* Desactiva el clic */
+            pointer-events: none;
             border: 1px dashed #D1D5DB;
+        }
+
+        /* 🚨 NUEVOS ESTILOS PARA EL BOTÓN ELIMINAR */
+        .btn-eliminar-client {
+            background-color: #ef4444; /* Rojo vibrante */
+            color: #FFFFFF;
+            box-shadow: 0 3px 6px rgba(239, 68, 68, 0.2);
+        }
+
+        .btn-eliminar-client:active {
+            transform: scale(0.9);
+            background-color: #b91c1c; /* Rojo oscuro al pisar */
         }
 
         .no-data {
@@ -205,7 +224,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        // Añadimos deleteDoc y doc para poder realizar la baja del registro
+        import { getFirestore, collection, query, where, onSnapshot, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyC5oHQtFWzLqY3JdpV_3pKY40rx00o6Gu4",
@@ -252,20 +272,19 @@
             let htmlCards = "";
             listaClientes.forEach((cliente) => {
                 
-                // 🗺️ EVALUACIÓN DEL RADAR GPS INDIVIDUAL
+                // EVALUACIÓN DEL RADAR GPS INDIVIDUAL
                 let mapaBotonHTML = "";
                 if (cliente.latitud && cliente.longitud) {
-                    // Si el cliente fue registrado con coordenadas, el botón está en vivo
                     mapaBotonHTML = `
-                        <a href="https://www.google.com/maps/search/?api=1&query=${cliente.latitud},${cliente.longitud}" 
+                        <a href="http://googleusercontent.com/maps.google.com/?q=${cliente.latitud},${cliente.longitud}" 
                            target="_blank" 
                            class="btn-trigger-maps" 
-                           title="Lanzar GPS en Ruta">
+                           title="Lanzar GPS en Ruta"
+                           onclick="event.stopPropagation();">
                             <i class='bx bx-map-pin'></i>
                         </a>
                     `;
                 } else {
-                    // Si es un cliente viejo sin coordenadas, se deshabilita elegantemente
                     mapaBotonHTML = `
                         <div class="btn-trigger-maps disabled" title="Ubicación no fijada">
                             <i class='bx bx-map-alt'></i>
@@ -273,7 +292,7 @@
                     `;
                 }
 
-                // Separamos la tarjeta en área de información y área de acción satelital
+                // Armado de la tarjeta con el nuevo botón de eliminar integrado
                 htmlCards += `
                     <div class="client-card">
                         <a href="ficha-cliente.html?id=${cliente.id}" class="client-link-area">
@@ -289,6 +308,12 @@
                         
                         <div class="spatial-gps-action">
                             ${mapaBotonHTML}
+                            
+                            <button class="btn-eliminar-client" 
+                                    title="Eliminar Cliente" 
+                                    onclick="event.preventDefault(); event.stopPropagation(); borrarClienteSeguro('${cliente.id}', '${cliente.nombre || 'Este cliente'}')">
+                                <i class='bx bx-trash'></i>
+                            </button>
                         </div>
                     </div>
                 `;
@@ -301,6 +326,22 @@
             console.error("Error al conectar con Firestore: ", error);
             contenedor.innerHTML = '<p class="no-data">Error de conexión con la base de datos.</p>';
         });
+
+        // 🚨 FUNCIÓN PARA ELIMINAR REAL DESDE LA NUBE EN FIREBASE
+        async function borrarClienteSeguro(idCliente, nombreCliente) {
+            const confirmar = confirm(`⚠️ ¿Estás completamente seguro de que deseas eliminar a "${nombreCliente}"?\nEsta acción borrará al cliente permanentemente de Prestacom.`);
+            
+            if (confirmar) {
+                try {
+                    const docRef = doc(db, "clientes_prestamo", idCliente);
+                    await deleteDoc(docRef);
+                    alert("Cliente eliminado correctamente de la nube.");
+                } catch (error) {
+                    console.error("Error al eliminar el documento: ", error);
+                    alert("No se pudo eliminar al cliente. Inténtalo de nuevo.");
+                }
+            }
+        }
 
         function filtrarClientes() {
             const textoBuscado = buscadorInput.value.toLowerCase();
@@ -322,6 +363,9 @@
         }
 
         buscadorInput.addEventListener('keyup', filtrarClientes);
+
+        // Hacemos visible la función de borrado para el evento onclick en los módulos
+        window.borrarClienteSeguro = borrarClienteSeguro;
 
     </script>
 </body>
