@@ -178,13 +178,13 @@
             snapshot.forEach((doc) => {
                 const data = doc.data();
                 
-                // Corrección matemática segura para evitar el NaN o campos vacíos de Firebase
-                let mOriginal = parseFloat(data.monto_prestamo) || 0;
+                // MAPEO CORREGIDO: Se usan exactamente los nombres de los campos de tu versión anterior
+                let mOriginal = parseFloat(data.monto_original) || 0;
                 let bActual = (data.balance_actual !== undefined && data.balance_actual !== "") ? parseFloat(data.balance_actual) : mOriginal;
 
                 prestamosActivosBD.push({
                     id: doc.id,
-                    cliente: data.nombre || "Sin Nombre",
+                    cliente: data.cliente || "Sin Nombre",
                     monto_original: mOriginal,
                     balance_actual: bActual,
                     cuota_num: parseInt(data.cuota_num) || 1,
@@ -192,6 +192,7 @@
                 });
             });
 
+            // Ordenar alfabéticamente por nombre de cliente
             prestamosActivosBD.sort((a, b) => a.cliente.localeCompare(b.cliente));
             
             contenedor.innerHTML = ""; 
@@ -199,7 +200,6 @@
                 const item = document.createElement('div');
                 item.className = "tarjeta-cliente-item";
                 
-                // CORRECCIÓN CLAVE: Asignación limpia del evento click usando JS moderno
                 item.addEventListener('click', () => {
                     seleccionarCliente(p.id);
                 });
@@ -226,7 +226,6 @@
             document.getElementById('vista-listado').style.display = "none";
             document.getElementById('vista-procesar-cobro').style.display = "block";
 
-            // Extracción de datos formateados directamente a la vista
             document.getElementById('lbl-nombre-cliente').innerText = clienteSeleccionado.cliente;
             document.getElementById('lbl-monto-original').innerText = "$" + clienteSeleccionado.monto_original.toLocaleString('es-DO', {minimumFractionDigits: 2});
             document.getElementById('lbl-balance-actual').innerText = "$" + clienteSeleccionado.balance_actual.toLocaleString('es-DO', {minimumFractionDigits: 2});
@@ -292,7 +291,7 @@
                 alert("Hubo un problema al guardar en la nube, pero se procesará tu ticket.");
             }
 
-            // Ticket para RawBT
+            // Estructura RawBT para Impresora Térmica
             const fechaActual = new Date().toLocaleDateString('es-DO');
             const horaActual = new Date().toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' });
             
@@ -347,7 +346,7 @@
             }
         }
 
-        // Hacemos las funciones accesibles globalmente de forma segura
+        // Mapeos globales obligatorios
         window.calcularMatematicasSobrante = calcularMatematicasSobrante;
         window.ejecutarTransaccionFinal = ejecutarTransaccionFinal;
         window.manejarBotonAtras = manejarBotonAtras;
