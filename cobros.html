@@ -16,6 +16,10 @@
             --surface: #ffffff;
             --text: #334155;
             --border: #cbd5e1;
+            
+            /* Nuevos colores para la vistosidad de los datos */
+            --texto-izq-verde: #16a34a;  /* Verde llamativo para las etiquetas */
+            --texto-der-azul: #1d4ed8;   /* Azul elegante para los datos del cliente */
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
@@ -47,21 +51,26 @@
         
         .info-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 15px; padding-bottom: 8px; border-bottom: 1px dashed #f1f5f9; }
         .info-row:last-of-type { border-bottom: none; margin-bottom: 15px; }
-        .info-row span:last-child { font-weight: 600; color: #0f172a; }
+        
+        /* Letras de la izquierda en VERDE */
+        .info-row span:first-child { font-weight: 500; color: var(--texto-izq-verde); }
+        
+        /* Datos de la derecha (Cliente/Montos) en AZUL */
+        .info-row span:last-child { font-weight: 700; color: var(--texto-der-azul) !important; }
 
         /* Inputs de Cobro Modificable */
         .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; color: #475569; }
+        .form-group label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; color: var(--texto-izq-verde); }
         
         .input-wrapper { display: flex; align-items: center; background: var(--surface); border: 2px solid var(--border); border-radius: 10px; padding: 12px; transition: border-color 0.2s; }
         .input-wrapper:focus-within { border-color: var(--accent); }
         .input-wrapper span { font-size: 18px; font-weight: bold; margin-right: 5px; color: #334155; }
-        .input-wrapper input { border: none; width: 100%; font-size: 18px; outline: none; font-weight: bold; color: #0f172a; }
+        .input-wrapper input { border: none; width: 100%; font-size: 18px; outline: none; font-weight: bold; color: var(--texto-der-azul); }
 
         /* Botón de Ejecución */
         .btn-cobrar { background-color: var(--accent); color: white; border: none; width: 100%; padding: 15px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(255, 102, 0, 0.25); margin-top: 10px; }
         .btn-cobrar:active { background-color: #e05a00; }
-
+        
         .no-data { text-align: center; color: #94a3b8; padding: 20px; font-size: 14px; }
     </style>
 </head>
@@ -78,14 +87,14 @@
         <div id="vista-listado">
             <div class="seccion-titulo"><i class='bx bx-list-ul'></i> Selecciona un cliente para cobrar</div>
             <div class="lista-clientes" id="tabla-clientes-inyectar">
-                <p class="no-data">Cargando cuentas activas...</p>
+                <p class="no-data">Cargando cuentas reales de Firebase...</p>
             </div>
         </div>
 
         <div id="vista-procesar-cobro" style="display: none;">
             
             <div class="card-financiera">
-                <div class="seccion-titulo" style="margin-bottom: 15px;"><i class='bx bx-wallet'></i> Estado del Crédito</div>
+                <div class="seccion-titulo" style="margin-bottom: 15px; color: var(--primary);"><i class='bx bx-wallet'></i> Estado del Crédito</div>
                 
                 <div class="info-row">
                     <span>Cliente:</span>
@@ -97,7 +106,7 @@
                 </div>
                 <div class="info-row">
                     <span>Balance Pendiente Actual:</span>
-                    <span id="lbl-balance-actual" style="color: #ef4444;">$0.00</span>
+                    <span id="lbl-balance-actual">$0.00</span>
                 </div>
                 <div class="info-row">
                     <span>Próxima Cuota:</span>
@@ -105,7 +114,7 @@
                 </div>
                 <div class="info-row">
                     <span>Valor Sugerido Cuota:</span>
-                    <span id="lbl-valor-cuota-sugerido" style="color: #22c55e;">$0.00</span>
+                    <span id="lbl-valor-cuota-sugerido">$0.00</span>
                 </div>
 
                 <div class="form-group" style="margin-top: 15px;">
@@ -120,7 +129,7 @@
                     <label>Devuelta / Sobrante al Cliente</label>
                     <div class="input-wrapper" style="background-color: #f1f5f9; border-color: #e2e8f0;">
                         <span>$</span>
-                        <input type="text" id="txt-devuelta" value="0.00" readonly style="background-color: #f1f5f9; color: #1e293b;">
+                        <input type="text" id="txt-devuelta" value="0.00" readonly style="background-color: #f1f5f9; color: var(--texto-der-azul);">
                     </div>
                 </div>
 
@@ -139,6 +148,7 @@
     </div>
 
     <script type="module">
+        // INICIALIZACIÓN DE FIREBASE CONECTADO A TU BD REAL
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, doc, updateDoc, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
@@ -162,7 +172,7 @@
         let prestamosActivosBD = [];
         let clienteSeleccionado = null;
 
-        // Escuchar la base de datos
+        // Escucha en tiempo real de los datos reales de la Base de Datos
         const q = query(
             collection(db, "clientes_prestamo"), 
             where("id_empresa", "==", idEmpresaLogueada)
@@ -180,7 +190,7 @@
             snapshot.forEach((doc) => {
                 const data = doc.data();
                 
-                // Mapeo Ultra-Seguro de variables de Firebase
+                // Mapeo adaptativo inteligente según los campos de tu base de datos
                 let nombreMapeado = data.nombre || data.cliente || "Sin Nombre"; 
                 let mOriginal = parseFloat(data.monto_original) || parseFloat(data.monto) || parseFloat(data.monto_prestado) || 0;
                 
@@ -204,10 +214,10 @@
                 });
             });
 
-            // Ordenar alfabéticamente
+            // Ordenar por nombre del cliente
             prestamosActivosBD.sort((a, b) => a.cliente.localeCompare(b.cliente));
             
-            // Inyección limpia en el HTML
+            // Inyectar en lista principal
             contenedor.innerHTML = ""; 
             prestamosActivosBD.forEach(p => {
                 const item = document.createElement('div');
@@ -229,26 +239,26 @@
         });
 
         function seleccionarCliente(idPrestamo) {
-            // Buscamos los datos limpios en memoria externa
+            // Buscamos al cliente real en nuestro arreglo descargado de Firebase
             clienteSeleccionado = prestamosActivosBD.find(p => p.id === idPrestamo);
             if (!clienteSeleccionado) return;
 
-            // Cambiar la vista visual
+            // Transición de pantallas
             document.getElementById('titulo-pantalla').innerText = "Procesar Cobro";
             document.getElementById('vista-listado').style.display = "none";
             document.getElementById('vista-procesar-cobro').style.display = "block";
 
-            // Pintar los datos en pantalla con formato de RD$
+            // Pintar los datos reales con los estilos verde/azul seleccionados
             document.getElementById('lbl-nombre-cliente').innerText = clienteSeleccionado.cliente;
             document.getElementById('lbl-monto-original').innerText = "$" + clienteSeleccionado.monto_original.toLocaleString('es-DO', {minimumFractionDigits: 2});
             document.getElementById('lbl-balance-actual').innerText = "$" + clienteSeleccionado.balance_actual.toLocaleString('es-DO', {minimumFractionDigits: 2});
             document.getElementById('lbl-numero-cuota').innerText = "#" + clienteSeleccionado.cuota_num;
             document.getElementById('lbl-valor-cuota-sugerido').innerText = "$" + clienteSeleccionado.valor_cuota.toLocaleString('es-DO', {minimumFractionDigits: 2});
             
-            // Colocar el valor sugerido listo para cobrar
+            // El input modificable recibe el monto por defecto de la cuota sugerida
             document.getElementById('txt-monto-recibido').value = clienteSeleccionado.valor_cuota;
             
-            // Correr matemáticas internas
+            // Calcular matemáticas al instante
             calcularMatematicasSobrante();
         }
 
@@ -256,13 +266,17 @@
             if (!clienteSeleccionado) return;
 
             const montoCobrado = parseFloat(document.getElementById('txt-monto-recibido').value) || 0;
-            const valorCuotaSugerida = clienteSeleccionado.valor_cuota;
             const balanceActual = clienteSeleccionado.balance_actual;
 
-            let devuelta = montoCobrado - valorCuotaSugerida;
-            if (devuelta < 0) devuelta = 0; 
+            let devuelta = 0;
+            let montoAAplicarAlBalance = montoCobrado;
 
-            let montoAAplicarAlBalance = montoCobrado > valorCuotaSugerida ? valorCuotaSugerida : montoCobrado;
+            // Si pagan más de lo que deben por completo, se calcula devuelta limpia
+            if (montoCobrado > balanceActual) {
+                devuelta = montoCobrado - balanceActual;
+                montoAAplicarAlBalance = balanceActual;
+            }
+
             let nuevoBalance = balanceActual - montoAAplicarAlBalance;
             if (nuevoBalance < 0) nuevoBalance = 0;
 
@@ -279,32 +293,31 @@
                 return;
             }
 
-            const valorCuotaSugerida = clienteSeleccionado.valor_cuota;
             const balanceActual = clienteSeleccionado.balance_actual;
+            let devueltaCalculada = 0;
+            let montoAAplicarAlBalance = montoCobrado;
 
-            let devueltaCalculada = montoCobrado - valorCuotaSugerida;
-            if (devueltaCalculada < 0) devueltaCalculada = 0;
+            if (montoCobrado > balanceActual) {
+                devueltaCalculada = montoCobrado - balanceActual;
+                montoAAplicarAlBalance = balanceActual;
+            }
 
-            let montoAAplicarAlBalance = montoCobrado > valorCuotaSugerida ? valorCuotaSugerida : montoCobrado;
             let nuevoBalanceCalculado = balanceActual - montoAAplicarAlBalance;
             let nuevaCuotaNumero = clienteSeleccionado.cuota_num + 1;
 
-            let estadoCuota = montoCobrado >= valorCuotaSugerida ? "PAGADA" : "ABONADA";
-
+            // Guardar cambios reales en la colección de Firebase
             try {
                 const prestamoRef = doc(db, "clientes_prestamo", clienteSeleccionado.id);
-                
-                // Actualización inteligente
                 await updateDoc(prestamoRef, {
                     balance_actual: nuevoBalanceCalculado,
                     cuota_num: nuevaCuotaNumero
                 });
             } catch (error) {
-                console.error("Error al actualizar balance:", error);
-                alert("Error guardando en la nube. Se procederá con el ticket físico.");
+                console.error("Error al actualizar Firestore:", error);
+                alert("Error guardando en la nube. Se procederá únicamente con el ticket físico.");
             }
 
-            // Crear el formato del ticket térmico para RawBT
+            // Estructura del Ticket de Impresión Térmica para RawBT
             const fechaActual = new Date().toLocaleDateString('es-DO');
             const horaActual = new Date().toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' });
             
@@ -319,7 +332,6 @@
             t += "Balance Anterior: $" + balanceActual.toFixed(2) + "\n";
             t += "--------------------------------\n";
             t += "PAGO RECIBIDO (Cuota #" + clienteSeleccionado.cuota_num + ")\n";
-            t += "Estado Cuota:     " + estadoCuota + "\n";
             t += "Efectivo Cobrado: $" + montoCobrado.toFixed(2) + "\n";
             t += "Devuelta/Sobrante:$" + devueltaCalculada.toFixed(2) + "\n";
             t += "--------------------------------\n";
@@ -334,9 +346,10 @@
                 let base64Listo = btoa(binario);
                 window.location.href = "rawbt:base64," + base64Listo;
             } catch (error) {
-                console.error("Error lanzando RawBT: ", error);
+                console.error("Error lanzando la app RawBT: ", error);
             }
 
+            // Retorno suave a la lista principal limpia
             setTimeout(() => {
                 document.getElementById('titulo-pantalla').innerText = "Clientes Activos";
                 document.getElementById('vista-procesar-cobro').style.display = "none";
@@ -360,7 +373,7 @@
             }
         }
 
-        // 🚨 IMPORTANTE: Vinculación explícita al objeto WINDOW global de forma inmediata
+        // Mapeo al contexto de ventana global imprescindible debido al uso de módulos
         window.seleccionarCliente = seleccionarCliente;
         window.calcularMatematicasSobrante = calcularMatematicasSobrante;
         window.ejecutarTransaccionFinal = ejecutarTransaccionFinal;
