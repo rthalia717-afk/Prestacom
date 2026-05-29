@@ -138,9 +138,6 @@
     </div>
 
     <script type="module">
-        // =================================================================
-        // CONFIGURACIÓN DE FIREBASE EN PRODUCCIÓN
-        // =================================================================
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, doc, updateDoc, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
@@ -156,19 +153,14 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Control de Sesión Empresarial de Santo Frias
         const idEmpresaLogueada = localStorage.getItem('id_empresa');
         if (!idEmpresaLogueada) {
             window.location.href = "login.html";
         }
 
-        // Variables de Control Dinámico
         let prestamosActivosBD = [];
         let clienteSeleccionado = null;
 
-        // =================================================================
-        // ESCUCHA EN TIEMPO REAL DIRECTO DESDE FIREBASE NUBE
-        // =================================================================
         const q = query(
             collection(db, "clientes_prestamo"), 
             where("id_empresa", "==", idEmpresaLogueada)
@@ -185,26 +177,32 @@
 
             snapshot.forEach((doc) => {
                 const data = doc.data();
-                // Nos aseguramos de mapear los campos exactos de tu base de datos
+                
+                // Corrección matemática segura para evitar el NaN o campos vacíos de Firebase
+                let mOriginal = parseFloat(data.monto_prestamo) || 0;
+                let bActual = (data.balance_actual !== undefined && data.balance_actual !== "") ? parseFloat(data.balance_actual) : mOriginal;
+
                 prestamosActivosBD.push({
                     id: doc.id,
                     cliente: data.nombre || "Sin Nombre",
-                    monto_original: parseFloat(data.monto_prestamo) || 0,
-                    balance_actual: parseFloat(data.balance_actual) != null ? parseFloat(data.balance_actual) : (parseFloat(data.monto_prestamo) || 0),
+                    monto_original: mOriginal,
+                    balance_actual: bActual,
                     cuota_num: parseInt(data.cuota_num) || 1,
                     valor_cuota: parseFloat(data.valor_cuota) || 0
                 });
             });
 
-            // Ordenar alfabéticamente para facilidad del cobrador
             prestamosActivosBD.sort((a, b) => a.cliente.localeCompare(b.cliente));
             
-            // Inyectar tarjetas dinámicas
             contenedor.innerHTML = ""; 
             prestamosActivosBD.forEach(p => {
                 const item = document.createElement('div');
                 item.className = "tarjeta-cliente-item";
-                item.setAttribute('onclick', `seleccionarCliente('${p.id}')`);
+                
+                // CORRECCIÓN CLAVE: Asignación limpia del evento click usando JS moderno
+                item.addEventListener('click', () => {
+                    seleccionarCliente(p.id);
+                });
                 
                 item.innerHTML = `
                     <div class="cliente-info-principal">
@@ -220,14 +218,15 @@
             });
         });
 
-        function seleccionarCliente(idPrestamo) {
-            clienteSeleccionado = prestamosActivosBD.find(p => p.id === idPrestamo);
+        function seleccionarCliente(idIdPrestamo) {
+            clienteSeleccionado = prestamosActivosBD.find(p => p.id === idIdPrestamo);
             if (!clienteSeleccionado) return;
 
             document.getElementById('titulo-pantalla').innerText = "Procesar Cobro";
             document.getElementById('vista-listado').style.display = "none";
             document.getElementById('vista-procesar-cobro').style.display = "block";
 
+            // Extracción de datos formateados directamente a la vista
             document.getElementById('lbl-nombre-cliente').innerText = clienteSeleccionado.cliente;
             document.getElementById('lbl-monto-original').innerText = "$" + clienteSeleccionado.monto_original.toLocaleString('es-DO', {minimumFractionDigits: 2});
             document.getElementById('lbl-balance-actual').innerText = "$" + clienteSeleccionado.balance_actual.toLocaleString('es-DO', {minimumFractionDigits: 2});
@@ -281,9 +280,6 @@
             let nuevoBalanceCalculado = balanceActual - montoAAplicarAlBalance;
             let nuevaCuotaNumero = clienteSeleccionado.cuota_num + 1;
 
-            // =================================================================
-            // ACTUALIZACIÓN COMPROMETIDA EN FIREBASE NUBE (EN VIVO)
-            // =================================================================
             try {
                 const prestamoRef = doc(db, "clientes_prestamo", clienteSeleccionado.id);
                 await updateDoc(prestamoRef, {
@@ -296,7 +292,7 @@
                 alert("Hubo un problema al guardar en la nube, pero se procesará tu ticket.");
             }
 
-            // Estructura del Ticket RawBT para Impresora Térmica
+            // Ticket para RawBT
             const fechaActual = new Date().toLocaleDateString('es-DO');
             const horaActual = new Date().toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' });
             
@@ -328,7 +324,6 @@
                 console.error("Error RawBT:", error);
             }
 
-            // Regresar al listado de inmediato
             setTimeout(() => {
                 document.getElementById('titulo-pantalla').innerText = "Clientes Activos";
                 document.getElementById('vista-procesar-cobro').style.display = "none";
@@ -352,8 +347,7 @@
             }
         }
 
-        // Mapeos globales para compatibilidad de módulos
-        window.seleccionarCliente = seleccionarCliente;
+        // Hacemos las funciones accesibles globalmente de forma segura
         window.calcularMatematicasSobrante = calcularMatematicasSobrante;
         window.ejecutarTransaccionFinal = ejecutarTransaccionFinal;
         window.manejarBotonAtras = manejarBotonAtras;
