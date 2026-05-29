@@ -16,8 +16,8 @@
         }
 
         body {
-            background-color: var(--color-background);
-            color: var(--color-text-main);
+            background-color: var(--color-background, #f1f5f9);
+            color: var(--color-text-main, #334155);
             display: flex;
             justify-content: center;
             min-height: 100vh;
@@ -26,13 +26,13 @@
         .app-container {
             width: 100%;
             max-width: 480px;
-            background-color: var(--color-background);
+            background-color: var(--color-background, #f1f5f9);
             display: flex;
             flex-direction: column;
         }
 
         header {
-            background-color: var(--color-primary);
+            background-color: var(--color-primary, #1e293b);
             color: white;
             padding: 15px 20px;
             display: flex;
@@ -59,7 +59,7 @@
 
         .search-container {
             padding: 15px 20px;
-            background-color: var(--color-surface);
+            background-color: var(--color-surface, #ffffff);
             border-bottom: 1px solid #E5E7EB;
         }
 
@@ -77,7 +77,7 @@
 
         .search-input:focus {
             outline: none;
-            border-color: var(--color-primary);
+            border-color: var(--color-primary, #1e293b);
             background-color: #FFFFFF;
         }
 
@@ -89,7 +89,7 @@
         }
 
         .client-card {
-            background-color: var(--color-surface);
+            background-color: var(--color-surface, #ffffff);
             border-radius: 12px;
             padding: 15px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.02);
@@ -100,7 +100,6 @@
             color: inherit;
         }
 
-        /* Enlace interno para la información táctil */
         .client-link-area {
             text-decoration: none;
             color: inherit;
@@ -114,7 +113,7 @@
         .client-info h3 {
             font-size: 1rem;
             font-weight: 600;
-            color: var(--color-text-main);
+            color: var(--color-text-main, #334155);
             margin-bottom: 4px;
         }
 
@@ -128,7 +127,7 @@
 
         .client-badge {
             background-color: rgba(255, 102, 0, 0.1);
-            color: var(--color-primary);
+            color: var(--color-primary, #ff6600);
             padding: 2px 6px;
             border-radius: 4px;
             font-weight: 600;
@@ -140,12 +139,11 @@
             font-weight: bold;
         }
 
-        /* Estilos de la barra lateral de acciones */
         .spatial-gps-action {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px; /* Separación entre GPS y Borrar */
+            gap: 8px; 
             border-left: 1px solid #E5E7EB;
             padding-left: 12px;
             height: 40px;
@@ -165,16 +163,15 @@
             cursor: pointer;
         }
 
-        /* Estilos del botón de GPS */
         .btn-trigger-maps {
-            background-color: #111827; /* Negro institucional */
+            background-color: #111827; 
             color: #FFFFFF;
             box-shadow: 0 3px 6px rgba(17, 24, 39, 0.15);
         }
 
         .btn-trigger-maps:active {
             transform: scale(0.9);
-            background-color: var(--color-primary);
+            background-color: #ff6600;
         }
 
         .btn-trigger-maps.disabled {
@@ -185,16 +182,15 @@
             border: 1px dashed #D1D5DB;
         }
 
-        /* 🚨 NUEVOS ESTILOS PARA EL BOTÓN ELIMINAR */
         .btn-eliminar-client {
-            background-color: #ef4444; /* Rojo vibrante */
+            background-color: #ef4444; 
             color: #FFFFFF;
             box-shadow: 0 3px 6px rgba(239, 68, 68, 0.2);
         }
 
         .btn-eliminar-client:active {
             transform: scale(0.9);
-            background-color: #b91c1c; /* Rojo oscuro al pisar */
+            background-color: #b91c1c; 
         }
 
         .no-data {
@@ -224,7 +220,6 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        // Añadimos deleteDoc y doc para poder realizar la baja del registro
         import { getFirestore, collection, query, where, onSnapshot, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -263,6 +258,7 @@
                 listaClientes.push({ id: doc.id, ...doc.data() });
             });
 
+            // Ordenar alfabéticamente
             listaClientes.sort((a, b) => {
                 const nameA = (a.nombre || "").toLowerCase();
                 const nameB = (b.nombre || "").toLowerCase();
@@ -272,11 +268,11 @@
             let htmlCards = "";
             listaClientes.forEach((cliente) => {
                 
-                // EVALUACIÓN DEL RADAR GPS INDIVIDUAL
+                // CORRECCIÓN DE URL GOOGLE MAPS DIRECTA PARA COBRADORES
                 let mapaBotonHTML = "";
                 if (cliente.latitud && cliente.longitud) {
                     mapaBotonHTML = `
-                        <a href="http://googleusercontent.com/maps.google.com/?q=${cliente.latitud},${cliente.longitud}" 
+                        <a href="https://www.google.com/maps/search/?api=1&query=${cliente.latitud},${cliente.longitud}" 
                            target="_blank" 
                            class="btn-trigger-maps" 
                            title="Lanzar GPS en Ruta"
@@ -292,7 +288,6 @@
                     `;
                 }
 
-                // Armado de la tarjeta con el nuevo botón de eliminar integrado
                 htmlCards += `
                     <div class="client-card">
                         <a href="ficha-cliente.html?id=${cliente.id}" class="client-link-area">
@@ -318,8 +313,10 @@
                     </div>
                 `;
             });
+            
             contenedor.innerHTML = htmlCards;
 
+            // Ejecuta el filtro inmediatamente por si el usuario ya tenía texto escrito
             filtrarClientes();
             
         }, (error) => {
@@ -327,7 +324,6 @@
             contenedor.innerHTML = '<p class="no-data">Error de conexión con la base de datos.</p>';
         });
 
-        // 🚨 FUNCIÓN PARA ELIMINAR REAL DESDE LA NUBE EN FIREBASE
         async function borrarClienteSeguro(idCliente, nombreCliente) {
             const confirmar = confirm(`⚠️ ¿Estás completamente seguro de que deseas eliminar a "${nombreCliente}"?\nEsta acción borrará al cliente permanentemente de Prestacom.`);
             
@@ -363,10 +359,7 @@
         }
 
         buscadorInput.addEventListener('keyup', filtrarClientes);
-
-        // Hacemos visible la función de borrado para el evento onclick en los módulos
         window.borrarClienteSeguro = borrarClienteSeguro;
-
     </script>
 </body>
 </html>
