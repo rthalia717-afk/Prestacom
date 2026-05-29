@@ -14,8 +14,8 @@
             --accent: #ff6600;
             --bg: #f1f5f9;
             --surface: #ffffff;
-            --text: #334155;
-            --border: #cbd5e1;
+            --text: #0f172a; /* Color de texto más oscuro y fuerte */
+            --border: #0f172a; /* Bordes negros y marcados como en la foto */
             --texto-izq-verde: #16a34a;  
             --texto-der-azul: #1d4ed8;   
         }
@@ -27,44 +27,49 @@
         .header a { color: white; text-decoration: none; font-size: 24px; display: flex; align-items: center; }
 
         .container { padding: 15px; max-width: 500px; margin: 0 auto; }
-        .seccion-titulo { font-size: 16px; font-weight: bold; color: #475569; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .seccion-titulo { font-size: 16px; font-weight: 800; color: #0f172a; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; }
 
-        /* LISTA DE CLIENTES */
+        /* LISTA DE CLIENTES EN ALTO CONTRASTE */
         .lista-clientes { display: flex; flex-direction: column; gap: 10px; }
-        .tarjeta-cliente-item { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: transform 0.1s; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .tarjeta-cliente-item { background: var(--surface); border: 2px solid var(--border); border-radius: 14px; padding: 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: transform 0.1s; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         .tarjeta-cliente-item:active { transform: scale(0.98); background-color: #f8fafc; }
         
-        .cliente-info-principal h4 { font-size: 16px; color: #0f172a; margin-bottom: 2px; }
-        .cliente-info-principal p { font-size: 13px; color: #64748b; }
+        /* Nombres ultra resaltados y en mayúsculas */
+        .cliente-info-principal h4 { font-size: 18px; font-weight: 900; color: #0f172a; text-transform: uppercase; tracking-tight; }
+        .cliente-info-principal p { font-size: 13px; font-weight: 700; color: #475569; margin-top: 4px; }
         
         .cliente-monto-badge { text-align: right; }
-        .cliente-monto-badge .cuota-valor { font-size: 15px; font-weight: bold; color: var(--accent); }
-        .cliente-monto-badge .balance-total { font-size: 11px; color: #94a3b8; }
+        .cliente-monto-badge .cuota-valor { font-size: 18px; font-weight: 900; color: var(--accent); }
+        .cliente-monto-badge .balance-total { font-size: 12px; font-weight: 800; color: #0f172a; margin-top: 2px; }
 
-        /* FORMULARIO DE COBRO */
-        .card-financiera { background: var(--surface); border-radius: 14px; padding: 18px; border: 1px solid var(--border); box-shadow: 0 4px 10px rgba(0,0,0,0.04); margin-bottom: 15px; }
-        .info-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 15px; padding-bottom: 8px; border-bottom: 1px dashed #f1f5f9; }
+        /* FORMULARIO DE COBRO - ESTILO CAJAS RECTANGULARES CON BORDES DE LA FOTO */
+        .card-financiera { background: var(--surface); border-radius: 14px; padding: 18px; border: 2px solid var(--border); box-shadow: 0 4px 10px rgba(0,0,0,0.04); margin-bottom: 15px; }
+        .info-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 16px; padding-bottom: 8px; border-bottom: 1px dashed #cbd5e1; }
         .info-row:last-of-type { border-bottom: none; margin-bottom: 15px; }
-        .info-row span:first-child { font-weight: 500; color: var(--texto-izq-verde); }
-        .info-row span:last-child { font-weight: 700; color: var(--texto-der-azul) !important; }
-
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; color: var(--texto-izq-verde); }
         
-        .input-wrapper { display: flex; align-items: center; background: var(--surface); border: 2px solid var(--border); border-radius: 10px; padding: 12px; }
-        .input-wrapper:focus-within { border-color: var(--accent); }
-        .input-wrapper span { font-size: 18px; font-weight: bold; margin-right: 5px; color: #334155; }
-        .input-wrapper input { border: none; width: 100%; font-size: 18px; outline: none; font-weight: bold; color: var(--texto-der-azul); }
+        /* Texto izquierdo en negro fuerte y derecho en azul grueso */
+        .info-row span:first-child { font-weight: 800; color: #0f172a; }
+        .info-row span:last-child { font-weight: 900; color: var(--texto-der-azul) !important; font-size: 17px; }
 
-        .btn-cobrar { background-color: var(--accent); color: white; border: none; width: 100%; padding: 15px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(255, 102, 0, 0.25); margin-top: 10px; }
-        .no-data { text-align: center; color: #94a3b8; padding: 20px; font-size: 14px; }
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; font-size: 15px; font-weight: 800; margin-bottom: 8px; color: #0f172a; }
+        
+        /* Cajas idénticas a las de la foto image_badf5c.jpg */
+        .input-wrapper { display: flex; align-items: center; background: var(--surface); border: 2.5px solid #0f172a; border-radius: 14px; padding: 14px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); }
+        .input-wrapper span { font-size: 20px; font-weight: 900; margin-right: 6px; color: #0f172a; }
+        .input-wrapper input { border: none; width: 100%; font-size: 22px; outline: none; font-weight: 900; color: #0f172a; }
+
+        /* Botón de impresión imponente */
+        .btn-cobrar { background-color: var(--accent); color: white; border: 2.5px solid #0f172a; width: 100%; padding: 16px; border-radius: 14px; font-size: 18px; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(255, 102, 0, 0.2); margin-top: 10px; text-transform: uppercase; }
+        .btn-cobrar:active { transform: scale(0.99); }
+        .no-data { text-align: center; color: #94a3b8; padding: 20px; font-size: 14px; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div class="header">
         <a href="javascript:void(0)" id="btn-atras" onclick="manejarBotonAtras()"><i class='bx bx-chevron-left'></i></a>
-        <span id="titulo-pantalla">Clientes Activos</span>
+        <span id="titulo-pantalla" style="font-weight: 900; text-transform: uppercase;">Clientes Activos</span>
         <div style="width: 24px;"></div>
     </div>
 
@@ -102,27 +107,30 @@
                     <span id="lbl-valor-cuota-sugerido">$0.00</span>
                 </div>
 
-                <div class="form-group" style="margin-top: 15px;">
-                    <label for="txt-monto-recibido">Monto Real a Cobrar ($)</label>
+                <!-- Caja de Monto Real (Modificable) igual a la de la foto -->
+                <div class="form-group" style="margin-top: 20px;">
+                    <label for="txt-monto-recibido">Monto Real a Cobrar (Modificable)</label>
                     <div class="input-wrapper">
                         <span>$</span>
-                        <input type="number" id="txt-monto-recibido" placeholder="0.00" inputmode="decimal" oninput="calcularMatematicasSobrante()">
+                        <input type="number" id="txt-monto-recibido" placeholder="0" inputmode="decimal" oninput="calcularMatematicasSobrante()">
                     </div>
                 </div>
 
+                <!-- Caja de Devuelta igual a la de la foto -->
                 <div class="form-group">
                     <label>Devuelta / Sobrante al Cliente</label>
-                    <div class="input-wrapper" style="background-color: #f1f5f9; border-color: #e2e8f0;">
+                    <div class="input-wrapper" style="background-color: #f8fafc;">
                         <span>$</span>
-                        <input type="text" id="txt-devuelta" value="0.00" readonly style="background-color: #f1f5f9; color: var(--texto-der-azul);">
+                        <input type="text" id="txt-devuelta" value="0.00" readonly style="background-color: #f8fafc; color: #0f172a;">
                     </div>
                 </div>
 
-                <div class="info-row" style="border-top: 1px dashed var(--border); padding-top: 12px; margin-top: 10px;">
+                <div class="info-row" style="border-top: 2px solid var(--border); padding-top: 14px; margin-top: 15px;">
                     <span>Nuevo Balance Restante:</span>
-                    <span id="lbl-nuevo-balance-restante">$0.00</span>
+                    <span id="lbl-nuevo-balance-restante" style="color: #0f172a !important; font-size: 20px;">$0.00</span>
                 </div>
 
+                <!-- Botón con el texto idéntico y borde negro fuerte -->
                 <button class="btn-cobrar" onclick="ejecutarTransaccionFinal()">
                     <i class='bx bx-printer'></i> Realizar Pago e Imprimir
                 </button>
@@ -135,6 +143,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, doc, updateDoc, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
+        // Tus credenciales reales y estables de Prestacom
         const firebaseConfig = {
             apiKey: "AIzaSyC5oHQtFWzLqY3JdpV_3pKY40rx00o6Gu4",
             authDomain: "prestacom-36ebd.firebaseapp.com",
@@ -155,7 +164,6 @@
         let prestamosActivosBD = [];
         let clienteSeleccionado = null;
 
-        // APUNTANDO CORRECTAMENTE A LA COLECCIÓN "prestamos" CON ESTADO "Activo"
         const q = query(
             collection(db, "prestamos"), 
             where("id_empresa", "==", idEmpresaLogueada),
@@ -178,7 +186,6 @@
                 let mOriginal = parseFloat(data.monto_original) || 0;
                 let bActual = parseFloat(data.balance_pendiente) || 0;
                 
-                // Buscar cuál cuota le toca pagar en el array cuotas_detalle
                 let cuotasDetalle = data.cuotas_detalle || [];
                 let proximaCuotaObj = cuotasDetalle.find(c => c.status === 'Pendiente') || { numero_cuota: 1, monto_cuota: 0 };
                 
@@ -208,11 +215,11 @@
                 item.innerHTML = `
                     <div class="cliente-info-principal">
                         <h4>${p.cliente}</h4>
-                        <p>Cuota Próxima: #${p.cuota_num} de ${p.cuotas_totales}</p>
+                        <p>CUOTA PROXIMA: #${p.cuota_num} DE ${p.cuotas_totales}</p>
                     </div>
                     <div class="cliente-monto-badge">
                         <div class="cuota-valor">$${p.valor_cuota.toLocaleString('en-US', {minimumFractionDigits:2})}</div>
-                        <div class="balance-total">Debe: $${p.balance_actual.toLocaleString('en-US', {minimumFractionDigits:2})}</div>
+                        <div class="balance-total">DEBE: $${p.balance_actual.toLocaleString('en-US', {minimumFractionDigits:2})}</div>
                     </div>
                 `;
                 contenedor.appendChild(item);
@@ -264,7 +271,7 @@
 
             const montoCobrado = parseFloat(document.getElementById('txt-monto-recibido').value) || 0;
             if (montoCobrado <= 0) {
-                alert("Introduce un monto válido superior a cero.");
+                alert("Introduce un monto valido superior a cero.");
                 return;
             }
 
@@ -279,7 +286,6 @@
 
             let nuevoBalanceCalculado = balanceActual - montoAAplicarAlBalance;
             
-            // Modificar el estatus de la cuota actual en el array local de cuotas_detalle
             let copiaDetalleCuotas = [...clienteSeleccionado.cuotas_detalle_completo];
             let indiceCuotaPagada = copiaDetalleCuotas.findIndex(c => c.numero_cuota === clienteSeleccionado.cuota_num);
             
@@ -288,7 +294,6 @@
                 copiaDetalleCuotas[indiceCuotaPagada].monto_pagado = montoAAplicarAlBalance;
             }
 
-            // Si ya no queda balance, cerramos el préstamo completo
             let nuevoEstadoPrestamo = nuevoBalanceCalculado <= 0 ? 'Finalizado' : 'Activo';
 
             try {
@@ -301,29 +306,29 @@
                 });
             } catch (error) {
                 console.error("Error al actualizar Firestore:", error);
-                alert("Error guardando en la nube. Se procederá únicamente con el ticket físico.");
+                alert("Error guardando en la nube. Se procedera unicamente con el ticket fisico.");
             }
 
-            // Estructura del Ticket Térmico para la app RawBT
+            // Ticket impecable, sin acentos para evitar el error "├-" que vimos en la foto 1
             const fechaActual = new Date().toLocaleDateString('es-DO');
-            const horaActual = new Date().toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' });
+            const horaActual = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
             
             let t = "";
             t += "================================\n";
             t += "          PRESTACOM 2.0         \n";
             t += "================================\n";
             t += "Fecha: " + fechaActual + "  Hora: " + horaActual + "\n";
-            t += "Cliente: " + clienteSeleccionado.cliente + "\n";
+            t += "Cliente: " + clienteSeleccionado.cliente.toUpperCase() + "\n";
             t += "--------------------------------\n";
             t += "Monto Original:   $" + clienteSeleccionado.monto_original.toFixed(2) + "\n";
             t += "Balance Anterior: $" + balanceActual.toFixed(2) + "\n";
             t += "--------------------------------\n";
             t += "PAGO RECIBIDO (Cuota #" + clienteSeleccionado.cuota_num + ")\n";
             t += "Efectivo Cobrado: $" + montoCobrado.toFixed(2) + "\n";
-            t += "Devuelta/Sobrante:$" + devueltaCalculada.toFixed(2) + "\n";
+            t += "Devuelta/Sobrante: $" + devueltaCalculada.toFixed(2) + "\n";
             t += "--------------------------------\n";
             t += "NUEVO BALANCE:    $" + nuevoBalanceCalculado.toFixed(2) + "\n";
-            t += "Estado Crédito:   " + nuevoEstadoPrestamo + "\n";
+            t += "Estado Credito:   " + nuevoEstadoPrestamo.toUpperCase() + "\n";
             t += "================================\n";
             t += "    Gracias por su puntualidad   \n";
             t += "================================\n\n\n\n";
