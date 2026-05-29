@@ -2,19 +2,99 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=80mm">
-    <title>Imprimir Ticket</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imprimir Ticket Prestamo</title>
     <style>
-        body { font-family: 'Courier New', Courier, monospace; width: 100%; max-width: 300px; margin: 0 auto; padding: 10px; font-size: 14px; }
-        .ticket-header { text-align: center; border-bottom: 2px dashed #000; margin-bottom: 10px; padding-bottom: 5px; }
+        /* Ajuste optimizado de alto contraste para tómbolas térmicas de 80mm */
+        body { 
+            font-family: 'Courier New', Courier, monospace; 
+            width: 80mm; 
+            margin: 0 auto; 
+            padding: 8px; 
+            font-size: 14px; 
+            color: #000;
+            font-weight: 700; /* Letra base más gruesa para asegurar un quemado térmico fuerte */
+        }
+        .ticket-header { 
+            text-align: center; 
+            border-bottom: 3px solid #000; 
+            margin-bottom: 12px; 
+            padding-bottom: 6px; 
+        }
+        .ticket-header h2 { 
+            font-size: 22px; 
+            margin: 0; 
+            font-weight: 900; 
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .ticket-header p {
+            font-size: 14px;
+            margin: 4px 0 0 0;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
         .ticket-body { margin-bottom: 10px; }
         .row { display: flex; justify-content: space-between; margin-bottom: 5px; }
-        .total { border-top: 1px dashed #000; padding-top: 5px; font-weight: bold; font-size: 16px; }
-        .footer { text-align: center; font-size: 12px; margin-top: 20px; }
+        .row span:first-child { font-weight: 900; } /* Etiquetas izquierdas fuertes */
         
+        /* BLOQUE NEGRO INVERTIDO PARA EL TOTAL (MÁXIMO IMPACTO VISUAL) */
+        .total { 
+            background-color: #000; 
+            color: #fff; 
+            margin-top: 15px; 
+            padding: 8px; 
+            font-weight: 900; 
+            font-size: 18px; 
+            text-align: center;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .total span { color: #fff !important; }
+
+        /* SECCIÓN DE FIRMA PROFESIONAL */
+        .seccion-firma {
+            margin-top: 35px;
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        .campo-firma {
+            margin-top: 25px;
+        }
+        .linea-firma {
+            border-bottom: 2px solid #000;
+            width: 100%;
+            display: inline-block;
+            margin-bottom: 3px;
+        }
+        .etiqueta-firma {
+            font-size: 12px;
+            font-weight: 900;
+            text-transform: uppercase;
+            display: block;
+        }
+
+        .footer { text-align: center; font-size: 12px; margin-top: 20px; border-top: 2px dashed #000; padding-top: 10px; }
+        .footer p { font-weight: 900; text-transform: uppercase; margin-bottom: 10px; }
+        
+        .btn-volver { 
+            background-color: #111827; 
+            color: white; 
+            border: 2px solid #000; 
+            padding: 10px 20px; 
+            border-radius: 8px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            width: 100%;
+            text-transform: uppercase;
+            margin-top: 10px;
+        }
+
         @media print {
             body { margin: 0; padding: 0; }
-            .btn-volver { display: none; }
+            .btn-volver { display: none; } /* Oculta por completo el botón en el papel */
+            .total { -webkit-print-color-adjust: exact; print-color-adjust: exact; } /* Fuerza la caja negra al imprimir */
         }
     </style>
 </head>
@@ -22,17 +102,34 @@
 
     <div class="ticket-header">
         <h2>PRESTACOM 2.0</h2>
-        <p>Recibo de Préstamo</p>
-    </div>
+        <p>RECIBO DE PRESTAMO</p> </div>
 
     <div class="ticket-body">
-        <div class="row"><span>Fecha:</span> <span id="t-fecha"></span></div>
-        <div class="row"><span>Cliente:</span> <span id="t-cliente"></span></div>
-        <br>
-        <div class="row"><span>Capital:</span> <span id="t-monto"></span></div>
-        <div class="row"><span>Cant. Cuotas:</span> <span id="t-cuotas"></span></div>
-        <div class="row"><span>Valor Cuota:</span> <span id="t-valor-cuota"></span></div>
-        <div class="row total"><span>Total a Pagar:</span> <span id="t-total"></span></div>
+        <div class="row"><span>FECHA:</span> <span id="t-fecha">--/--/----</span></div>
+        <div class="row"><span>CLIENTE:</span> <span id="t-cliente">---</span></div>
+        <hr style="border: 0; border-top: 1px dashed #000; margin: 8px 0;">
+        <div class="row"><span>CAPITAL:</span> <span id="t-monto">$0.00</span></div>
+        <div class="row"><span>CANT. CUOTAS:</span> <span id="t-cuotas">0</span></div>
+        <div class="row"><span>VALOR CUOTA:</span> <span id="t-valor-cuota">$0.00</span></div>
+        
+        <div class="row total">
+            <span>TOTAL A PAGAR:</span> 
+            <span id="t-total">$0.00</span>
+        </div>
+    </div>
+
+    <div class="seccion-firma">
+        <p style="font-size: 11px; text-align: center; margin: 0; font-style: italic;">Recibí conforme el capital detallado:</p>
+        
+        <div class="campo-firma">
+            <span class="linea-firma"></span>
+            <span class="etiqueta-firma">Firma:</span>
+        </div>
+        
+        <div class="campo-firma">
+            <span class="linea-firma"></span>
+            <span class="etiqueta-firma">Cedula:</span>
+        </div>
     </div>
 
     <div class="footer">
@@ -42,24 +139,24 @@
 
     <script>
         window.onload = function() {
-            // 1. Recuperar datos
+            // 1. Recuperar los datos salvados por la pantalla anterior
             const data = JSON.parse(localStorage.getItem('ultimo_contrato'));
 
             if (data) {
-                // 2. Llenar los campos
+                // 2. Llenar los campos formateando textos y decimales correctamente
                 document.getElementById('t-fecha').innerText = data.fecha;
-                document.getElementById('t-cliente').innerText = data.cliente;
-                document.getElementById('t-monto').innerText = '$' + parseFloat(data.monto).toLocaleString();
+                document.getElementById('t-cliente').innerText = (data.cliente || "---").toUpperCase();
+                document.getElementById('t-monto').innerText = '$' + parseFloat(data.monto || 0).toLocaleString('en-US', {minimumFractionDigits: 2});
                 document.getElementById('t-cuotas').innerText = data.cuotas;
-                document.getElementById('t-valor-cuota').innerText = '$' + parseFloat(data.valor_cuota).toLocaleString();
-                document.getElementById('t-total').innerText = '$' + parseFloat(data.total_pagar).toLocaleString();
+                document.getElementById('t-valor-cuota').innerText = '$' + parseFloat(data.valor_cuota || 0).toLocaleString('en-US', {minimumFractionDigits: 2});
+                document.getElementById('t-total').innerText = '$' + parseFloat(data.total_pagar || 0).toLocaleString('en-US', {minimumFractionDigits: 2});
 
-                // 3. Imprimir automáticamente
+                // 3. Ejecutar comando de impresión automática
                 setTimeout(() => {
                     window.print();
                 }, 800);
             } else {
-                alert("No hay datos de préstamo para imprimir.");
+                alert("No hay datos de prestamo para imprimir.");
             }
         };
     </script>
