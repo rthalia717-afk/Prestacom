@@ -1,17 +1,15 @@
 {
-  "short_name": "PRESTACOM",
-  "name": "PRESTACOM 2.0 - Sistema de Préstamos",
+  "name": "PRESA FÁCIL",
+  "short_name": "PresaFácil",
+  "start_url": "login.html",
+  "display": "standalone",
+  "background_color": "#020617",
+  "theme_color": "#FF6600",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/5571/5571243.png",
-      "type": "image/png",
+      "src": "logo.png",
       "sizes": "512x512",
-      "purpose": "any maskable"
+      "type": "image/png"
     }
-  ],
-  "start_url": "/index.html",
-  "background_color": "#0f172a",
-  "theme_color": "#0f172a",
-  "display": "standalone",
-  "orientation": "portrait"
+  ]
 }
