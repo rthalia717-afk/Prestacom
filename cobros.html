@@ -16,21 +16,17 @@
             --surface: #ffffff;
             --text: #334155;
             --border: #cbd5e1;
-            
-            /* Nuevos colores para la vistosidad de los datos */
-            --texto-izq-verde: #16a34a;  /* Verde llamativo para las etiquetas */
-            --texto-der-azul: #1d4ed8;   /* Azul elegante para los datos del cliente */
+            --texto-izq-verde: #16a34a;  
+            --texto-der-azul: #1d4ed8;   
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: var(--bg); color: var(--text); padding-bottom: 30px; }
 
-        /* Cabecera dinámica */
         .header { background-color: var(--primary); color: white; padding: 15px; text-align: center; font-size: 18px; font-weight: bold; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
         .header a { color: white; text-decoration: none; font-size: 24px; display: flex; align-items: center; }
 
         .container { padding: 15px; max-width: 500px; margin: 0 auto; }
-
         .seccion-titulo { font-size: 16px; font-weight: bold; color: #475569; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
 
         /* 📋 VISTA 1: LISTA DE CLIENTES ACTIVOS */
@@ -46,30 +42,26 @@
         .cliente-monto-badge .cuota-valor { font-size: 15px; font-weight: bold; color: var(--accent); }
         .cliente-monto-badge .balance-total { font-size: 11px; color: #94a3b8; }
 
-        /* 🖼️ VISTA 2: CUADRO FINANCIERO DEL CLIENTE SELECCIONADO */
+        /* 🖼️ VISTA 2: CUADRO FINANCIERO */
         .card-financiera { background: var(--surface); border-radius: 14px; padding: 18px; border: 1px solid var(--border); box-shadow: 0 4px 10px rgba(0,0,0,0.04); margin-bottom: 15px; }
         
         .info-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 15px; padding-bottom: 8px; border-bottom: 1px dashed #f1f5f9; }
         .info-row:last-of-type { border-bottom: none; margin-bottom: 15px; }
-        
-        /* Letras de la izquierda en VERDE */
         .info-row span:first-child { font-weight: 500; color: var(--texto-izq-verde); }
-        
-        /* Datos de la derecha (Cliente/Montos) en AZUL */
         .info-row span:last-child { font-weight: 700; color: var(--texto-der-azul) !important; }
 
-        /* Inputs de Cobro Modificable */
         .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; color: var(--texto-izq-verde); } /* Label en verde */
+        .form-group label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; color: var(--texto-izq-verde); } 
         
         .input-wrapper { display: flex; align-items: center; background: var(--surface); border: 2px solid var(--border); border-radius: 10px; padding: 12px; transition: border-color 0.2s; }
         .input-wrapper:focus-within { border-color: var(--accent); }
         .input-wrapper span { font-size: 18px; font-weight: bold; margin-right: 5px; color: #334155; }
-        .input-wrapper input { border: none; width: 100%; font-size: 18px; outline: none; font-weight: bold; color: var(--texto-der-azul); } /* Input texto en azul */
+        .input-wrapper input { border: none; width: 100%; font-size: 18px; outline: none; font-weight: bold; color: var(--texto-der-azul); } 
 
-        /* Botón de Ejecución */
         .btn-cobrar { background-color: var(--accent); color: white; border: none; width: 100%; padding: 15px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(255, 102, 0, 0.25); margin-top: 10px; }
         .btn-cobrar:active { background-color: #e05a00; }
+        
+        .no-data { text-align: center; color: #9ca3af; padding: 20px; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -84,7 +76,9 @@
         
         <div id="vista-listado">
             <div class="seccion-titulo"><i class='bx bx-list-ul'></i> Selecciona un cliente para cobrar</div>
-            <div class="lista-clientes" id="tabla-clientes-inyectar"></div>
+            <div class="lista-clientes" id="tabla-clientes-inyectar">
+                <p class="no-data">Conectando a Prestacom Cloud...</p>
+            </div>
         </div>
 
         <div id="vista-procesar-cobro" style="display: none;">
@@ -145,45 +139,68 @@
 
     <script type="module">
         // =================================================================
-        // CONFIGURACIÓN DE FIREBASE (Listo para producción en la nube)
+        // CONFIGURACIÓN DE FIREBASE EN PRODUCCIÓN
         // =================================================================
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, doc, updateDoc, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // Coloca aquí tus credenciales reales de Firebase cuando vayas a conectar la base de datos real
         const firebaseConfig = {
-            apiKey: "TU_API_KEY",
-            authDomain: "TU_AUTH_DOMAIN",
-            projectId: "TU_PROJECT_ID",
-            storageBucket: "TU_STORAGE_BUCKET",
-            messagingSenderId: "TU_MESSAGING_SENDER_ID",
-            appId: "TU_APP_ID"
+            apiKey: "AIzaSyC5oHQtFWzLqY3JdpV_3pKY40rx00o6Gu4",
+            authDomain: "prestacom-36ebd.firebaseapp.com",
+            projectId: "prestacom-36ebd",
+            storageBucket: "prestacom-36ebd.firebasestorage.app",
+            messagingSenderId: "787618813060",
+            appId: "1:787618813060:web:8bbdc1bea7960cdbad5ed1"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // =================================================================
-        // BASE DE DATOS LOCAL (Array de Pruebas)
-        // =================================================================
-        const prestamosActivosBD = [
-            { id: "P-001", cliente: "Juan Pérez", monto_original: 10000, balance_actual: 4500, cuota_num: 3, valor_cuota: 1500 },
-            { id: "P-002", cliente: "María Rodríguez", monto_original: 25000, balance_actual: 12000, cuota_num: 5, valor_cuota: 2500 },
-            { id: "P-003", cliente: "Santo Sixto Frias", monto_original: 50000, balance_actual: 20000, cuota_num: 4, valor_cuota: 5000 },
-            { id: "P-004", cliente: "Scarling Frias", monto_original: 15000, balance_actual: 3000, cuota_num: 6, valor_cuota: 1500 }
-        ];
+        // Control de Sesión Empresarial de Santo Frias
+        const idEmpresaLogueada = localStorage.getItem('id_empresa');
+        if (!idEmpresaLogueada) {
+            window.location.href = "login.html";
+        }
 
+        // Variables de Control Dinámico
+        let prestamosActivosBD = [];
         let clienteSeleccionado = null;
 
-        // Cargar listado automáticamente al cargar la pantalla
-        document.addEventListener('DOMContentLoaded', () => {
-            cargarListadoClientes();
-        });
+        // =================================================================
+        // ESCUCHA EN TIEMPO REAL DIRECTO DESDE FIREBASE NUBE
+        // =================================================================
+        const q = query(
+            collection(db, "clientes_prestamo"), 
+            where("id_empresa", "==", idEmpresaLogueada)
+        );
 
-        function cargarListadoClientes() {
+        onSnapshot(q, (snapshot) => {
+            prestamosActivosBD = [];
             const contenedor = document.getElementById('tabla-clientes-inyectar');
-            contenedor.innerHTML = ""; 
+            
+            if (snapshot.empty) {
+                contenedor.innerHTML = '<p class="no-data">No hay préstamos activos registrados para cobrar.</p>';
+                return;
+            }
 
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                // Nos aseguramos de mapear los campos exactos de tu base de datos
+                prestamosActivosBD.push({
+                    id: doc.id,
+                    cliente: data.nombre || "Sin Nombre",
+                    monto_original: parseFloat(data.monto_prestamo) || 0,
+                    balance_actual: parseFloat(data.balance_actual) != null ? parseFloat(data.balance_actual) : (parseFloat(data.monto_prestamo) || 0),
+                    cuota_num: parseInt(data.cuota_num) || 1,
+                    valor_cuota: parseFloat(data.valor_cuota) || 0
+                });
+            });
+
+            // Ordenar alfabéticamente para facilidad del cobrador
+            prestamosActivosBD.sort((a, b) => a.cliente.localeCompare(b.cliente));
+            
+            // Inyectar tarjetas dinámicas
+            contenedor.innerHTML = ""; 
             prestamosActivosBD.forEach(p => {
                 const item = document.createElement('div');
                 item.className = "tarjeta-cliente-item";
@@ -196,12 +213,12 @@
                     </div>
                     <div class="cliente-monto-badge">
                         <div class="cuota-valor">$${p.valor_cuota.toLocaleString('es-DO', {minimumFractionDigits:2})}</div>
-                        <div class="balance-total">Debe: $${p.balance_actual.toLocaleString('es-DO')}</div>
+                        <div class="balance-total">Debe: $${p.balance_actual.toLocaleString('es-DO', {minimumFractionDigits:2})}</div>
                     </div>
                 `;
                 contenedor.appendChild(item);
             });
-        }
+        });
 
         function seleccionarCliente(idPrestamo) {
             clienteSeleccionado = prestamosActivosBD.find(p => p.id === idPrestamo);
@@ -264,32 +281,28 @@
             let nuevoBalanceCalculado = balanceActual - montoAAplicarAlBalance;
             let nuevaCuotaNumero = clienteSeleccionado.cuota_num + 1;
 
-            // ACTUALIZACIÓN LOCAL EN TIEMPO REAL
-            clienteSeleccionado.balance_actual = nuevoBalanceCalculado;
-            clienteSeleccionado.cuota_num = nuevaCuotaNumero;
-
             // =================================================================
-            // CÓDIGO FIREBASE (Descomentar al conectar tu Base de Datos real)
+            // ACTUALIZACIÓN COMPROMETIDA EN FIREBASE NUBE (EN VIVO)
             // =================================================================
-            /* try {
-                const prestamoRef = doc(db, "prestamos", clienteSeleccionado.id);
+            try {
+                const prestamoRef = doc(db, "clientes_prestamo", clienteSeleccionado.id);
                 await updateDoc(prestamoRef, {
                     balance_actual: nuevoBalanceCalculado,
                     cuota_num: nuevaCuotaNumero
                 });
-                console.log("Firestore actualizado.");
+                console.log("¡Firestore guardado con éxito!");
             } catch (error) {
-                console.error("Error Firestore: ", error);
-            } */
+                console.error("Error al guardar en Firestore: ", error);
+                alert("Hubo un problema al guardar en la nube, pero se procesará tu ticket.");
+            }
 
-            // Estructura del Ticket de Impresión RawBT
+            // Estructura del Ticket RawBT para Impresora Térmica
             const fechaActual = new Date().toLocaleDateString('es-DO');
             const horaActual = new Date().toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' });
             
             let t = "";
             t += "================================\n";
             t += "          PRESTACOM 2.0         \n";
-            t += "       Tel: (809) 555-0199      \n"; 
             t += "================================\n";
             t += "Fecha: " + fechaActual + "  Hora: " + horaActual + "\n";
             t += "Cliente: " + clienteSeleccionado.cliente + "\n";
@@ -312,10 +325,10 @@
                 let base64Listo = btoa(binario);
                 window.location.href = "rawbt:base64," + base64Listo;
             } catch (error) {
-                console.error("Error al codificar ticket:", error);
-                alert("Error al enviar a la impresora.");
+                console.error("Error RawBT:", error);
             }
 
+            // Regresar al listado de inmediato
             setTimeout(() => {
                 document.getElementById('titulo-pantalla').innerText = "Clientes Activos";
                 document.getElementById('vista-procesar-cobro').style.display = "none";
@@ -324,8 +337,6 @@
                 clienteSeleccionado = null;
                 document.getElementById('txt-monto-recibido').value = "";
                 document.getElementById('txt-devuelta').value = "0.00";
-                
-                cargarListadoClientes(); // Recarga la lista reflejando el descuento de la cuota
             }, 400);
         }
 
@@ -341,7 +352,7 @@
             }
         }
 
-        // Mapeo global obligatorio debido a type="module"
+        // Mapeos globales para compatibilidad de módulos
         window.seleccionarCliente = seleccionarCliente;
         window.calcularMatematicasSobrante = calcularMatematicasSobrante;
         window.ejecutarTransaccionFinal = ejecutarTransaccionFinal;
