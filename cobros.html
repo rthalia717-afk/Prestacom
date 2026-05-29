@@ -142,7 +142,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, doc, updateDoc, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // Configuración de tu base de datos Prestacom
         const firebaseConfig = {
             apiKey: "AIzaSyC5oHQtFWzLqY3JdpV_3pKY40rx00o6Gu4",
             authDomain: "prestacom-36ebd.firebaseapp.com",
@@ -155,7 +154,6 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Obtener el ID de la empresa del supervisor actual
         const idEmpresaLogueada = localStorage.getItem('id_empresa');
         if (!idEmpresaLogueada) {
             window.location.href = "login.html";
@@ -164,7 +162,7 @@
         let prestamosActivosBD = [];
         let clienteSeleccionado = null;
 
-        // Escuchar datos de Firebase filtrados por tu empresa
+        // Escuchar la base de datos mapeando los nombres reales
         const q = query(
             collection(db, "clientes_prestamo"), 
             where("id_empresa", "==", idEmpresaLogueada)
@@ -182,24 +180,29 @@
             snapshot.forEach((doc) => {
                 const data = doc.data();
                 
-                // Mapeo adaptado exactamente a tus nombres del modelo original
-                let mOriginal = parseFloat(data.monto_original) || 0;
+                // 🔍 CORRECCIÓN DE CAMPOS SEGÚN TU ESTRUCTURA REAL
+                let nombreMapeado = data.nombre || "Sin Nombre"; 
+                let mOriginal = parseFloat(data.monto_original) || parseFloat(data.monto) || 0;
+                
+                // Fallbacks automáticos por si algún balance_actual o cuotas viene vacío
                 let bActual = (data.balance_actual !== undefined && data.balance_actual !== "") ? parseFloat(data.balance_actual) : mOriginal;
+                let cNum = parseInt(data.cuota_num) || parseInt(data.cuota) || 1;
+                let vCuota = parseFloat(data.valor_cuota) || parseFloat(data.monto_cuota) || 0;
 
                 prestamosActivosBD.push({
                     id: doc.id,
-                    cliente: data.cliente || "Sin Nombre",
+                    cliente: nombreMapeado,
                     monto_original: mOriginal,
                     balance_actual: bActual,
-                    cuota_num: parseInt(data.cuota_num) || 1,
-                    valor_cuota: parseFloat(data.valor_cuota) || 0
+                    cuota_num: cNum,
+                    valor_cuota: vCuota
                 });
             });
 
-            // Ordenar alfabéticamente para facilitar la gestión en calle
+            // Ordenar alfabéticamente por cliente
             prestamosActivosBD.sort((a, b) => a.cliente.localeCompare(b.cliente));
             
-            // Inyectar en el diseño original de tarjetas HTML
+            // Inyección limpia sin ceros genéricos
             contenedor.innerHTML = ""; 
             prestamosActivosBD.forEach(p => {
                 const item = document.createElement('div');
@@ -220,7 +223,6 @@
             });
         });
 
-        // Funciones de control de flujo matemático y visual
         function seleccionarCliente(idPrestamo) {
             clienteSeleccionado = prestamosActivosBD.find(p => p.id === idPrestamo);
             if (!clienteSeleccionado) return;
@@ -279,7 +281,7 @@
 
             let estadoCuota = montoCobrado >= valorCuotaSugerida ? "PAGADA" : "ABONADA";
 
-            // Guardar en Firebase en la nube
+            // Transacción en Firebase con los nombres correctos
             try {
                 const prestamoRef = doc(db, "clientes_prestamo", clienteSeleccionado.id);
                 await updateDoc(prestamoRef, {
@@ -287,11 +289,11 @@
                     cuota_num: nuevaCuotaNumero
                 });
             } catch (error) {
-                console.error("Error al actualizar la base de datos:", error);
-                alert("Error de conexión a la nube. Se imprimirá el ticket de respaldo.");
+                console.error("Error al actualizar balance:", error);
+                alert("Error guardando en la nube. Se procederá con el ticket físico.");
             }
 
-            // Preparar e-ticket en formato RawBT para impresión térmica directa
+            // Preparar string de impresión térmica nativa para RawBT
             const fechaActual = new Date().toLocaleDateString('es-DO');
             const horaActual = new Date().toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' });
             
@@ -315,17 +317,17 @@
             t += "    Gracias por su puntualidad   \n";
             t += "================================\n\n\n\n";
 
-            // Disparo del protocolo RawBT para hardware bluetooth
+            // Salida directa por Bluetooth vía RawBT app
             try {
                 let bytes = new TextEncoder().encode(t);
                 let binario = Array.from(bytes, byte => String.fromCharCode(byte)).join('');
                 let base64Listo = btoa(binario);
                 window.location.href = "rawbt:base64," + base64Listo;
             } catch (error) {
-                console.error("Error de impresión RawBT:", error);
+                console.error("Error lanzando RawBT: ", error);
             }
 
-            // Limpiar campos y retornar al listado automáticamente
+            // Limpieza y redirección automática suave
             setTimeout(() => {
                 document.getElementById('titulo-pantalla').innerText = "Clientes Activos";
                 document.getElementById('vista-procesar-cobro').style.display = "none";
@@ -349,7 +351,7 @@
             }
         }
 
-        // Exponer las funciones para los eventos inline del HTML (onclick/oninput)
+        // Exponer alcances globales indispensables para eventos de botones inline
         window.seleccionarCliente = seleccionarCliente;
         window.calcularMatematicasSobrante = calcularMatematicasSobrante;
         window.ejecutarTransaccionFinal = ejecutarTransaccionFinal;
