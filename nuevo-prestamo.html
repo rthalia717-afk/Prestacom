@@ -4,7 +4,168 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nuevo Préstamo - PRESTACOM</title>
-    <link rel="stylesheet" href="css/estilos.css">
+    <style>
+        /* ESTILOS INTEGRADOS PARA GARANTIZAR DISEÑO MODERNO Y LIMPIO */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f3f4f6;
+            margin: 0;
+            padding: 20px;
+            color: #1f2937;
+        }
+        .container {
+            max-width: 650px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .user-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #1e293b;
+            color: #ffffff;
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        .header-nav {
+            margin-bottom: 20px;
+        }
+        h2 {
+            margin-top: 0;
+            color: #111827;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 10px;
+            font-size: 24px;
+        }
+        h3 {
+            color: #1f2937;
+            margin-top: 25px;
+            font-size: 18px;
+        }
+        .form-group {
+            margin-bottom: 18px;
+        }
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            font-size: 14px;
+            color: #374151;
+        }
+        input[type="number"],
+        input[type="text"],
+        input[type="date"],
+        select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 15px;
+            box-sizing: border-box;
+            background-color: #fff;
+            color: #1f2937;
+            transition: border-color 0.2s;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        .readonly-field {
+            background-color: #f3f4f6 !important;
+            font-weight: bold;
+            cursor: not-allowed;
+        }
+        .alerta-info {
+            background-color: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            color: #1d4ed8;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        .caja-resumen-reenganche {
+            background-color: #fff7ed;
+            border: 1px solid #ffedd5;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .caja-resumen-reenganche p { margin: 5px 0; font-size: 14px; }
+        .total-arrastre { color: #c2410c; font-size: 16px !important; border-top: 1px dashed #fed7aa; padding-top: 5px; }
+        
+        .botones-acciones {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+        .btn-primario, .btn-secundario, .btn-danger-sm {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            text-transform: uppercase;
+        }
+        .btn-primario {
+            background-color: #f97316; /* Naranja operativo */
+            color: white;
+            flex: 1;
+        }
+        .btn-primario:hover { background-color: #ea580c; }
+        .btn-primario:disabled { background-color: #cbd5e1; cursor: not-allowed; }
+        
+        .btn-secundario {
+            background-color: #4b5563;
+            color: white;
+        }
+        .btn-secundario:hover { background-color: #374151; }
+        
+        .btn-danger-sm {
+            background-color: #ef4444;
+            color: white;
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+        .btn-danger-sm:hover { background-color: #dc2626; }
+
+        /* TABLA DE PROYECCIÓN */
+        .resumen-totales-caja {
+            background-color: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            color: #166534;
+        }
+        .resumen-totales-caja p { margin: 5px 0; }
+        
+        .tabla-datos {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        .tabla-datos th, .tabla-datos td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .tabla-datos th {
+            background-color: #f8fafc;
+            color: #475569;
+            font-weight: 600;
+        }
+        .tabla-datos tr:hover { background-color: #f8fafc; }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -125,7 +286,6 @@
                     nombreUsuarioLogueado = datosUser.nombre;
                     document.getElementById('user-info').innerText = `${datosUser.nombre} (${datosUser.rol})`;
                     
-                    // Inicializar flujo detectando si viene orden de reenganche
                     evaluarParametrosURL();
                 } else {
                     window.location.href = 'login.html';
@@ -150,17 +310,15 @@
                 document.getElementById('alerta-reenganche').style.display = 'block';
                 document.getElementById('grupo-input-cliente').style.display = 'block';
                 document.getElementById('bloque-valores-reenganche').style.display = 'block';
-                document.getElementById('grupo-select-cliente').style.style = 'none';
+                document.getElementById('grupo-select-cliente').style.display = 'none';
                 document.getElementById('grupo-select-cliente').innerHTML = ''; 
                 cargarDatosPrestamoAViejo();
             } else {
-                // Modo normal: Configurar fecha por defecto a hoy y cargar selectores
                 document.getElementById('fecha-inicio').value = new Date().toISOString().split('T')[0];
                 cargarClientesSelect();
             }
         }
 
-        // Cargar clientes en el select (Modo Normal)
         async function cargarClientesSelect() {
             const select = document.getElementById('select-cliente');
             try {
@@ -179,7 +337,6 @@
             }
         }
 
-        // Extraer balances antiguos (Modo Reenganche)
         async function cargarDatosPrestamoAViejo() {
             try {
                 const docRef = doc(db, "prestamos", idPrestamoAnterior);
@@ -206,7 +363,7 @@
             }
         }
 
-        // 3. MOTOR MATEMÁTICO DE PROYECCIÓN DE PAGOS
+        // 3. MOTOR MATEMÁTICO
         function verificarCalculo() {
             const montoInput = document.getElementById('monto').value;
             const interesInput = document.getElementById('interes').value;
@@ -223,7 +380,6 @@
             const interesPorcentaje = Number(interesInput);
             const totalCuotas = parseInt(cuotasInput);
 
-            // Capital base es lo nuevo solicitado más la deuda muerta del anterior
             const capitalTotalBase = montoNuevo + saldoArrastradoMora;
             const gananciaInteres = capitalTotalBase * (interesPorcentaje / 100);
             const balanceFinalCalculado = capitalTotalBase + gananciaInteres;
@@ -276,9 +432,7 @@
 
         document.getElementById('btn-calcular').addEventListener('click', verificarCalculo);
 
-        // =================================================================
-        // 🔄 SALVADO DE DATOS + PUENTE AUTOMÁTICO HACIA EL TICKET
-        // =================================================================
+        // 4. SALVADO DE DATOS + REDIRECCIÓN AL TICKET
         document.getElementById('form-prestamo').addEventListener('submit', async (e) => {
             e.preventDefault();
 
@@ -336,10 +490,8 @@
             };
 
             try {
-                // 1. Guardar contrato en la colección "prestamos" en Firebase
                 await addDoc(collection(db, "prestamos"), nuevoPrestamo);
                 
-                // 2. Si es reenganche, cerramos el contrato viejo
                 if (esReenganche && idPrestamoAnterior) {
                     const prestamoViejoRef = doc(db, "prestamos", idPrestamoAnterior);
                     await updateDoc(prestamoViejoRef, {
@@ -349,11 +501,9 @@
                     });
                 }
 
-                // 3. Formatear la fecha para que el ticket la muestre bonita (DD-MM-AAAA)
                 const partesFecha = nuevoPrestamo.fecha_inicio.split('-');
                 const fechaFormateadaTicket = `${partesFecha[2]}-${partesFecha[1]}-${partesFecha[0]}`;
 
-                // Creamos el paquete que va a leer la pantalla de impresión
                 const infoContratoTicket = {
                     fecha: fechaFormateadaTicket,
                     cliente: nombreCliente,
@@ -363,12 +513,9 @@
                     total_pagar: balanceFinalCalculado
                 };
 
-                // Guardamos en el localStorage local del dispositivo
                 localStorage.setItem('ultimo_contrato', JSON.stringify(infoContratoTicket));
 
                 alert(`¡Préstamo para ${nombreCliente} generado con éxito! Cargando ticket...`);
-                
-                // Redirección directa hacia la pantalla del ticket térmico
                 window.location.href = "ticket_prestamo.html"; 
 
             } catch (error) {
