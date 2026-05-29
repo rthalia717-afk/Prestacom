@@ -5,35 +5,100 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recibo de Pago</title>
     <style>
-        body { font-family: 'Courier New', Courier, monospace; width: 80mm; margin: 0; padding: 10px; font-size: 13px; color: #000; }
-        .header { text-align: center; border-bottom: 2px solid #000; margin-bottom: 10px; padding-bottom: 5px; }
-        .header h2 { font-size: 18px; margin: 0; text-transform: uppercase; }
-        .header p { font-size: 12px; margin: 2px 0; font-weight: bold; }
-        .section-title { font-weight: bold; border-bottom: 1px solid #000; margin: 10px 0 5px 0; padding-bottom: 2px; }
-        .row { display: flex; justify-content: space-between; margin-bottom: 3px; }
-        .total-box { border-top: 2px solid #000; border-bottom: 2px solid #000; margin-top: 10px; padding: 5px 0; font-weight: bold; font-size: 16px; }
-        .footer { text-align: center; font-size: 11px; margin-top: 15px; border-top: 1px dashed #000; padding-top: 5px; }
-        @media print { @page { size: 80mm auto; margin: 0; } body { padding: 0; } }
+        /* Estilos optimizados para alto contraste en tómbolas térmicas de 80mm */
+        body { 
+            font-family: 'Courier New', Courier, monospace; 
+            width: 80mm; 
+            margin: 0; 
+            padding: 8px; 
+            font-size: 14px; 
+            color: #000; 
+            font-weight: 700; /* Hace que toda la letra base sea más gruesa */
+        }
+        .header { 
+            text-align: center; 
+            border-bottom: 3px solid #000; 
+            margin-bottom: 12px; 
+            padding-bottom: 6px; 
+        }
+        .header h2 { 
+            font-size: 22px; 
+            margin: 0; 
+            font-weight: 900; 
+            text-transform: uppercase; 
+            letter-spacing: 1px;
+        }
+        .header p { 
+            font-size: 13px; 
+            margin: 4px 0 0 0; 
+            font-weight: 900; 
+        }
+        .section-title { 
+            font-weight: 900; 
+            font-size: 14px;
+            border-bottom: 2px solid #000; 
+            margin: 12px 0 6px 0; 
+            padding-bottom: 2px; 
+            text-transform: uppercase;
+        }
+        .row { 
+            display: flex; 
+            justify-content: space-between; 
+            margin-bottom: 4px; 
+        }
+        .row span:first-child {
+            font-weight: 900; /* Etiquetas de la izquierda bien marcadas */
+        }
+        
+        /* CAJA DE TOTAL ULTRA RESALTADA (ALTO CONTRASTE RECOMENTADO) */
+        .total-box { 
+            background-color: #000; /* Fondo negro */
+            color: #fff; /* Letras blancas */
+            margin-top: 15px; 
+            padding: 8px; 
+            font-weight: 900; 
+            font-size: 18px; 
+            text-align: center;
+            border-radius: 4px;
+        }
+        .total-box span {
+            color: #fff !important;
+        }
+
+        .footer { 
+            text-align: center; 
+            font-size: 12px; 
+            margin-top: 20px; 
+            border-top: 2px dashed #000; 
+            padding-top: 8px; 
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+        @media print { 
+            @page { size: 80mm auto; margin: 0; } 
+            body { padding: 0; } 
+            .total-box { -webkit-print-color-adjust: exact; print-color-adjust: exact; } /* Fuerza el color negro en la impresión */
+        }
     </style>
 </head>
 <body>
 
     <div class="header">
         <h2 id="empresa-nombre">PRESTACOM 2.0</h2>
-        <p>Tel: <span id="empresa-tel">---</span></p>
+        <p>TEL: <span id="empresa-tel">---</span></p>
     </div>
 
-    <div class="section-title">DETALLES</div>
-    <div class="row"><span>Fecha:</span> <span id="lbl-fecha">---</span></div>
-    <div class="row"><span>Cliente:</span> <span id="lbl-cliente">---</span></div>
-    <div class="row"><span>Mensajero:</span> <span id="lbl-mensajero">---</span></div>
+    <div class="section-title">DETALLES DE COBRO</div>
+    <div class="row"><span>FECHA:</span> <span id="lbl-fecha">---</span></div>
+    <div class="row"><span>CLIENTE:</span> <span id="lbl-cliente">---</span></div>
+    <div class="row"><span>COBRADOR:</span> <span id="lbl-mensajero">---</span></div>
 
-    <div class="section-title">ESTADO DEL PRÉSTAMO</div>
-    <div class="row"><span>Cuota #:</span> <span id="lbl-cuota">---</span></div>
-    <div class="row"><span>Restantes:</span> <span id="lbl-restantes">---</span></div>
+    <div class="section-title">ESTADO DEL PRESTAMO</div>
+    <div class="row"><span>CUOTA #:</span> <span id="lbl-cuota">---</span></div>
+    <div class="row"><span>RESTANTES:</span> <span id="lbl-restantes">---</span></div>
     
     <div class="total-box row">
-        <span>PAGADO:</span>
+        <span>TOTAL PAGADO:</span>
         <span>RD$ <span id="lbl-monto">0.00</span></span>
     </div>
 
@@ -46,14 +111,14 @@
         
         if (ticket) {
             // 1. Carga de datos globales desde configuración
-            document.getElementById('empresa-nombre').innerText = localStorage.getItem('ticket_nombre') || "PRESTACOM 2.0";
+            document.getElementById('empresa-nombre').innerText = (localStorage.getItem('ticket_nombre') || "PRESTACOM 2.0").toUpperCase();
             document.getElementById('empresa-tel').innerText = localStorage.getItem('ticket_tel') || "---";
-            document.getElementById('footer-msg').innerText = localStorage.getItem('ticket_footer') || "Gracias por su preferencia.";
+            document.getElementById('footer-msg').innerText = (localStorage.getItem('ticket_footer') || "Gracias por su preferencia.").toUpperCase();
             
             // 2. Datos del préstamo (Extraídos del localStorage)
-            document.getElementById('lbl-cliente').innerText = ticket.cliente || "---";
+            document.getElementById('lbl-cliente').innerText = (ticket.cliente || "---").toUpperCase();
             document.getElementById('lbl-fecha').innerText = ticket.fecha || "---";
-            document.getElementById('lbl-mensajero').innerText = localStorage.getItem('nombre_usuario') || "Sistema";
+            document.getElementById('lbl-mensajero').innerText = (localStorage.getItem('nombre_usuario') || "SISTEMA").toUpperCase();
             document.getElementById('lbl-restantes').innerText = ticket.cuotas_restantes || "---";
             document.getElementById('lbl-cuota').innerText = ticket.cuota_num || "---";
             document.getElementById('lbl-monto').innerText = parseFloat(ticket.monto_pagado || 0).toLocaleString('es-DO', {minimumFractionDigits: 2});
