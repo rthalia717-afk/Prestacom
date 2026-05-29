@@ -16,17 +16,17 @@
             --surface: #ffffff;
             --text: #334155;
             --border: #cbd5e1;
-            --texto-izq-verde: #16a34a;  
-            --texto-der-azul: #1d4ed8;   
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: var(--bg); color: var(--text); padding-bottom: 30px; }
 
+        /* Cabecera dinámica */
         .header { background-color: var(--primary); color: white; padding: 15px; text-align: center; font-size: 18px; font-weight: bold; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
         .header a { color: white; text-decoration: none; font-size: 24px; display: flex; align-items: center; }
 
         .container { padding: 15px; max-width: 500px; margin: 0 auto; }
+
         .seccion-titulo { font-size: 16px; font-weight: bold; color: #475569; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
 
         /* 📋 VISTA 1: LISTA DE CLIENTES ACTIVOS */
@@ -42,26 +42,27 @@
         .cliente-monto-badge .cuota-valor { font-size: 15px; font-weight: bold; color: var(--accent); }
         .cliente-monto-badge .balance-total { font-size: 11px; color: #94a3b8; }
 
-        /* 🖼️ VISTA 2: CUADRO FINANCIERO */
+        /* 🖼️ VISTA 2: CUADRO FINANCIERO DEL CLIENTE SELECCIONADO */
         .card-financiera { background: var(--surface); border-radius: 14px; padding: 18px; border: 1px solid var(--border); box-shadow: 0 4px 10px rgba(0,0,0,0.04); margin-bottom: 15px; }
         
         .info-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 15px; padding-bottom: 8px; border-bottom: 1px dashed #f1f5f9; }
         .info-row:last-of-type { border-bottom: none; margin-bottom: 15px; }
-        .info-row span:first-child { font-weight: 500; color: var(--texto-izq-verde); }
-        .info-row span:last-child { font-weight: 700; color: var(--texto-der-azul) !important; }
+        .info-row span:last-child { font-weight: 600; color: #0f172a; }
 
+        /* Inputs de Cobro Modificable */
         .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; color: var(--texto-izq-verde); } 
+        .form-group label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; color: #475569; }
         
         .input-wrapper { display: flex; align-items: center; background: var(--surface); border: 2px solid var(--border); border-radius: 10px; padding: 12px; transition: border-color 0.2s; }
         .input-wrapper:focus-within { border-color: var(--accent); }
         .input-wrapper span { font-size: 18px; font-weight: bold; margin-right: 5px; color: #334155; }
-        .input-wrapper input { border: none; width: 100%; font-size: 18px; outline: none; font-weight: bold; color: var(--texto-der-azul); } 
+        .input-wrapper input { border: none; width: 100%; font-size: 18px; outline: none; font-weight: bold; color: #0f172a; }
 
+        /* Botón de Ejecución */
         .btn-cobrar { background-color: var(--accent); color: white; border: none; width: 100%; padding: 15px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(255, 102, 0, 0.25); margin-top: 10px; }
         .btn-cobrar:active { background-color: #e05a00; }
-        
-        .no-data { text-align: center; color: #9ca3af; padding: 20px; font-size: 14px; }
+
+        .no-data { text-align: center; color: #94a3b8; padding: 20px; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -77,14 +78,14 @@
         <div id="vista-listado">
             <div class="seccion-titulo"><i class='bx bx-list-ul'></i> Selecciona un cliente para cobrar</div>
             <div class="lista-clientes" id="tabla-clientes-inyectar">
-                <p class="no-data">Conectando a Prestacom Cloud...</p>
+                <p class="no-data">Cargando cuentas activas...</p>
             </div>
         </div>
 
         <div id="vista-procesar-cobro" style="display: none;">
             
             <div class="card-financiera">
-                <div class="seccion-titulo" style="margin-bottom: 15px; color: var(--primary);"><i class='bx bx-wallet'></i> Estado del Crédito</div>
+                <div class="seccion-titulo" style="margin-bottom: 15px;"><i class='bx bx-wallet'></i> Estado del Crédito</div>
                 
                 <div class="info-row">
                     <span>Cliente:</span>
@@ -96,7 +97,7 @@
                 </div>
                 <div class="info-row">
                     <span>Balance Pendiente Actual:</span>
-                    <span id="lbl-balance-actual">$0.00</span>
+                    <span id="lbl-balance-actual" style="color: #ef4444;">$0.00</span>
                 </div>
                 <div class="info-row">
                     <span>Próxima Cuota:</span>
@@ -104,7 +105,7 @@
                 </div>
                 <div class="info-row">
                     <span>Valor Sugerido Cuota:</span>
-                    <span id="lbl-valor-cuota-sugerido">$0.00</span>
+                    <span id="lbl-valor-cuota-sugerido" style="color: #22c55e;">$0.00</span>
                 </div>
 
                 <div class="form-group" style="margin-top: 15px;">
@@ -119,7 +120,7 @@
                     <label>Devuelta / Sobrante al Cliente</label>
                     <div class="input-wrapper" style="background-color: #f1f5f9; border-color: #e2e8f0;">
                         <span>$</span>
-                        <input type="text" id="txt-devuelta" value="0.00" readonly style="background-color: #f1f5f9; color: var(--texto-der-azul);">
+                        <input type="text" id="txt-devuelta" value="0.00" readonly style="background-color: #f1f5f9; color: #1e293b;">
                     </div>
                 </div>
 
@@ -141,6 +142,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, doc, updateDoc, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
+        // Configuración de tu base de datos Prestacom
         const firebaseConfig = {
             apiKey: "AIzaSyC5oHQtFWzLqY3JdpV_3pKY40rx00o6Gu4",
             authDomain: "prestacom-36ebd.firebaseapp.com",
@@ -153,6 +155,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        // Obtener el ID de la empresa del supervisor actual
         const idEmpresaLogueada = localStorage.getItem('id_empresa');
         if (!idEmpresaLogueada) {
             window.location.href = "login.html";
@@ -161,6 +164,7 @@
         let prestamosActivosBD = [];
         let clienteSeleccionado = null;
 
+        // Escuchar datos de Firebase filtrados por tu empresa
         const q = query(
             collection(db, "clientes_prestamo"), 
             where("id_empresa", "==", idEmpresaLogueada)
@@ -171,14 +175,14 @@
             const contenedor = document.getElementById('tabla-clientes-inyectar');
             
             if (snapshot.empty) {
-                contenedor.innerHTML = '<p class="no-data">No hay préstamos activos registrados para cobrar.</p>';
+                contenedor.innerHTML = '<p class="no-data">No se encontraron préstamos activos.</p>';
                 return;
             }
 
             snapshot.forEach((doc) => {
                 const data = doc.data();
                 
-                // MAPEO CORREGIDO: Se usan exactamente los nombres de los campos de tu versión anterior
+                // Mapeo adaptado exactamente a tus nombres del modelo original
                 let mOriginal = parseFloat(data.monto_original) || 0;
                 let bActual = (data.balance_actual !== undefined && data.balance_actual !== "") ? parseFloat(data.balance_actual) : mOriginal;
 
@@ -192,17 +196,15 @@
                 });
             });
 
-            // Ordenar alfabéticamente por nombre de cliente
+            // Ordenar alfabéticamente para facilitar la gestión en calle
             prestamosActivosBD.sort((a, b) => a.cliente.localeCompare(b.cliente));
             
+            // Inyectar en el diseño original de tarjetas HTML
             contenedor.innerHTML = ""; 
             prestamosActivosBD.forEach(p => {
                 const item = document.createElement('div');
                 item.className = "tarjeta-cliente-item";
-                
-                item.addEventListener('click', () => {
-                    seleccionarCliente(p.id);
-                });
+                item.setAttribute('onclick', `seleccionarCliente('${p.id}')`);
                 
                 item.innerHTML = `
                     <div class="cliente-info-principal">
@@ -218,8 +220,9 @@
             });
         });
 
-        function seleccionarCliente(idIdPrestamo) {
-            clienteSeleccionado = prestamosActivosBD.find(p => p.id === idIdPrestamo);
+        // Funciones de control de flujo matemático y visual
+        function seleccionarCliente(idPrestamo) {
+            clienteSeleccionado = prestamosActivosBD.find(p => p.id === idPrestamo);
             if (!clienteSeleccionado) return;
 
             document.getElementById('titulo-pantalla').innerText = "Procesar Cobro";
@@ -241,16 +244,13 @@
             if (!clienteSeleccionado) return;
 
             const montoCobrado = parseFloat(document.getElementById('txt-monto-recibido').value) || 0;
+            const valorCuotaSugerida = clienteSeleccionado.valor_cuota;
             const balanceActual = clienteSeleccionado.balance_actual;
 
-            let devuelta = 0;
-            let montoAAplicarAlBalance = montoCobrado;
+            let devuelta = montoCobrado - valorCuotaSugerida;
+            if (devuelta < 0) devuelta = 0; 
 
-            if (montoCobrado > balanceActual) {
-                devuelta = montoCobrado - balanceActual;
-                montoAAplicarAlBalance = balanceActual;
-            }
-
+            let montoAAplicarAlBalance = montoCobrado > valorCuotaSugerida ? valorCuotaSugerida : montoCobrado;
             let nuevoBalance = balanceActual - montoAAplicarAlBalance;
             if (nuevoBalance < 0) nuevoBalance = 0;
 
@@ -267,31 +267,31 @@
                 return;
             }
 
+            const valorCuotaSugerida = clienteSeleccionado.valor_cuota;
             const balanceActual = clienteSeleccionado.balance_actual;
-            let devueltaCalculada = 0;
-            let montoAAplicarAlBalance = montoCobrado;
 
-            if (montoCobrado > balanceActual) {
-                devueltaCalculada = montoCobrado - balanceActual;
-                montoAAplicarAlBalance = balanceActual;
-            }
+            let devueltaCalculada = montoCobrado - valorCuotaSugerida;
+            if (devueltaCalculada < 0) devueltaCalculada = 0;
 
+            let montoAAplicarAlBalance = montoCobrado > valorCuotaSugerida ? valorCuotaSugerida : montoCobrado;
             let nuevoBalanceCalculado = balanceActual - montoAAplicarAlBalance;
             let nuevaCuotaNumero = clienteSeleccionado.cuota_num + 1;
 
+            let estadoCuota = montoCobrado >= valorCuotaSugerida ? "PAGADA" : "ABONADA";
+
+            // Guardar en Firebase en la nube
             try {
                 const prestamoRef = doc(db, "clientes_prestamo", clienteSeleccionado.id);
                 await updateDoc(prestamoRef, {
                     balance_actual: nuevoBalanceCalculado,
                     cuota_num: nuevaCuotaNumero
                 });
-                console.log("¡Firestore guardado con éxito!");
             } catch (error) {
-                console.error("Error al guardar en Firestore: ", error);
-                alert("Hubo un problema al guardar en la nube, pero se procesará tu ticket.");
+                console.error("Error al actualizar la base de datos:", error);
+                alert("Error de conexión a la nube. Se imprimirá el ticket de respaldo.");
             }
 
-            // Estructura RawBT para Impresora Térmica
+            // Preparar e-ticket en formato RawBT para impresión térmica directa
             const fechaActual = new Date().toLocaleDateString('es-DO');
             const horaActual = new Date().toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' });
             
@@ -305,7 +305,8 @@
             t += "Monto Original:   $" + clienteSeleccionado.monto_original.toFixed(2) + "\n";
             t += "Balance Anterior: $" + balanceActual.toFixed(2) + "\n";
             t += "--------------------------------\n";
-            t += "PAGO RECIBIDO (Cuota #" + (nuevaCuotaNumero - 1) + ")\n";
+            t += "PAGO RECIBIDO (Cuota #" + clienteSeleccionado.cuota_num + ")\n";
+            t += "Estado Cuota:     " + estadoCuota + "\n";
             t += "Efectivo Cobrado: $" + montoCobrado.toFixed(2) + "\n";
             t += "Devuelta/Sobrante:$" + devueltaCalculada.toFixed(2) + "\n";
             t += "--------------------------------\n";
@@ -314,15 +315,17 @@
             t += "    Gracias por su puntualidad   \n";
             t += "================================\n\n\n\n";
 
+            // Disparo del protocolo RawBT para hardware bluetooth
             try {
                 let bytes = new TextEncoder().encode(t);
                 let binario = Array.from(bytes, byte => String.fromCharCode(byte)).join('');
                 let base64Listo = btoa(binario);
                 window.location.href = "rawbt:base64," + base64Listo;
             } catch (error) {
-                console.error("Error RawBT:", error);
+                console.error("Error de impresión RawBT:", error);
             }
 
+            // Limpiar campos y retornar al listado automáticamente
             setTimeout(() => {
                 document.getElementById('titulo-pantalla').innerText = "Clientes Activos";
                 document.getElementById('vista-procesar-cobro').style.display = "none";
@@ -346,7 +349,8 @@
             }
         }
 
-        // Mapeos globales obligatorios
+        // Exponer las funciones para los eventos inline del HTML (onclick/oninput)
+        window.seleccionarCliente = seleccionarCliente;
         window.calcularMatematicasSobrante = calcularMatematicasSobrante;
         window.ejecutarTransaccionFinal = ejecutarTransaccionFinal;
         window.manejarBotonAtras = manejarBotonAtras;
