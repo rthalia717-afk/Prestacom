@@ -49,7 +49,6 @@
         /* 🖼️ VISTA 2: CUADRO FINANCIERO DEL CLIENTE SELECCIONADO */
         .card-financiera { background: var(--surface); border-radius: 14px; padding: 18px; border: 1px solid var(--border); box-shadow: 0 4px 10px rgba(0,0,0,0.04); margin-bottom: 15px; }
         
-        /* Ajuste de colores solicitado por el usuario */
         .info-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 15px; padding-bottom: 8px; border-bottom: 1px dashed #f1f5f9; }
         .info-row:last-of-type { border-bottom: none; margin-bottom: 15px; }
         
@@ -144,8 +143,29 @@
 
     </div>
 
-    <script>
-        // 1. BASE DE DATOS DE PRÉSTAMOS ACTIVOS
+    <script type="module">
+        // =================================================================
+        // CONFIGURACIÓN DE FIREBASE (Listo para producción en la nube)
+        // =================================================================
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // Coloca aquí tus credenciales reales de Firebase cuando vayas a conectar la base de datos real
+        const firebaseConfig = {
+            apiKey: "TU_API_KEY",
+            authDomain: "TU_AUTH_DOMAIN",
+            projectId: "TU_PROJECT_ID",
+            storageBucket: "TU_STORAGE_BUCKET",
+            messagingSenderId: "TU_MESSAGING_SENDER_ID",
+            appId: "TU_APP_ID"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // =================================================================
+        // BASE DE DATOS LOCAL (Array de Pruebas)
+        // =================================================================
         const prestamosActivosBD = [
             { id: "P-001", cliente: "Juan Pérez", monto_original: 10000, balance_actual: 4500, cuota_num: 3, valor_cuota: 1500 },
             { id: "P-002", cliente: "María Rodríguez", monto_original: 25000, balance_actual: 12000, cuota_num: 5, valor_cuota: 2500 },
@@ -155,7 +175,7 @@
 
         let clienteSeleccionado = null;
 
-        // 2. INYECTAR LA LISTA AUTOMÁTICAMENTE AL CARGAR LA PANTALLA
+        // Cargar listado automáticamente al cargar la pantalla
         document.addEventListener('DOMContentLoaded', () => {
             cargarListadoClientes();
         });
@@ -183,13 +203,11 @@
             });
         }
 
-        // 3. CAMBIO DE PANTALLA AL SELECCIONAR CLIENTE
         function seleccionarCliente(idPrestamo) {
             clienteSeleccionado = prestamosActivosBD.find(p => p.id === idPrestamo);
             if (!clienteSeleccionado) return;
 
             document.getElementById('titulo-pantalla').innerText = "Procesar Cobro";
-            
             document.getElementById('vista-listado').style.display = "none";
             document.getElementById('vista-procesar-cobro').style.display = "block";
 
@@ -204,7 +222,6 @@
             calcularMatematicasSobrante();
         }
 
-        // 4. OPERACIONES MATEMÁTICAS EN TIEMPO REAL (CORREGIDO Y BLINDADO)
         function calcularMatematicasSobrante() {
             if (!clienteSeleccionado) return;
 
@@ -214,7 +231,6 @@
             let devuelta = 0;
             let montoAAplicarAlBalance = montoCobrado;
 
-            // Si el cliente paga más de la deuda total, genera devuelta real
             if (montoCobrado > balanceActual) {
                 devuelta = montoCobrado - balanceActual;
                 montoAAplicarAlBalance = balanceActual;
@@ -227,8 +243,7 @@
             document.getElementById('lbl-nuevo-balance-restante').innerText = "$" + nuevoBalance.toLocaleString('es-DO', {minimumFractionDigits: 2});
         }
 
-        // 5. ENVIAR COMANDO A TICKETERA Y RETORNAR AUTOMÁTICAMENTE (CORREGIDO Y BLINDADO)
-        function ejecutarTransaccionFinal() {
+        async function ejecutarTransaccionFinal() {
             if (!clienteSeleccionado) return;
 
             const montoCobrado = parseFloat(document.getElementById('txt-monto-recibido').value) || 0;
@@ -238,7 +253,6 @@
             }
 
             const balanceActual = clienteSeleccionado.balance_actual;
-            
             let devueltaCalculada = 0;
             let montoAAplicarAlBalance = montoCobrado;
 
@@ -248,7 +262,27 @@
             }
 
             let nuevoBalanceCalculado = balanceActual - montoAAplicarAlBalance;
+            let nuevaCuotaNumero = clienteSeleccionado.cuota_num + 1;
 
+            // ACTUALIZACIÓN LOCAL EN TIEMPO REAL
+            clienteSeleccionado.balance_actual = nuevoBalanceCalculado;
+            clienteSeleccionado.cuota_num = nuevaCuotaNumero;
+
+            // =================================================================
+            // CÓDIGO FIREBASE (Descomentar al conectar tu Base de Datos real)
+            // =================================================================
+            /* try {
+                const prestamoRef = doc(db, "prestamos", clienteSeleccionado.id);
+                await updateDoc(prestamoRef, {
+                    balance_actual: nuevoBalanceCalculado,
+                    cuota_num: nuevaCuotaNumero
+                });
+                console.log("Firestore actualizado.");
+            } catch (error) {
+                console.error("Error Firestore: ", error);
+            } */
+
+            // Estructura del Ticket de Impresión RawBT
             const fechaActual = new Date().toLocaleDateString('es-DO');
             const horaActual = new Date().toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' });
             
@@ -263,13 +297,13 @@
             t += "Monto Original:   $" + clienteSeleccionado.monto_original.toFixed(2) + "\n";
             t += "Balance Anterior: $" + balanceActual.toFixed(2) + "\n";
             t += "--------------------------------\n";
-            t += "PAGO RECIBIDO (Cuota #" + clienteSeleccionado.cuota_num + ")\n";
+            t += "PAGO RECIBIDO (Cuota #" + (nuevaCuotaNumero - 1) + ")\n";
             t += "Efectivo Cobrado: $" + montoCobrado.toFixed(2) + "\n";
             t += "Devuelta/Sobrante:$" + devueltaCalculada.toFixed(2) + "\n";
             t += "--------------------------------\n";
             t += "NUEVO BALANCE:    $" + nuevoBalanceCalculado.toFixed(2) + "\n";
             t += "================================\n";
-            t += "   Gracias por su puntualidad   \n";
+            t += "    Gracias por su puntualidad   \n";
             t += "================================\n\n\n\n";
 
             try {
@@ -291,7 +325,7 @@
                 document.getElementById('txt-monto-recibido').value = "";
                 document.getElementById('txt-devuelta').value = "0.00";
                 
-                cargarListadoClientes();
+                cargarListadoClientes(); // Recarga la lista reflejando el descuento de la cuota
             }, 400);
         }
 
@@ -306,6 +340,12 @@
                 window.location.href = "index.html";
             }
         }
+
+        // Mapeo global obligatorio debido a type="module"
+        window.seleccionarCliente = seleccionarCliente;
+        window.calcularMatematicasSobrante = calcularMatematicasSobrante;
+        window.ejecutarTransaccionFinal = ejecutarTransaccionFinal;
+        window.manejarBotonAtras = manejarBotonAtras;
     </script>
 </body>
 </html>
