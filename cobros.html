@@ -162,7 +162,7 @@
         let prestamosActivosBD = [];
         let clienteSeleccionado = null;
 
-        // Escuchar la base de datos mapeando los nombres reales
+        // Escuchar la base de datos
         const q = query(
             collection(db, "clientes_prestamo"), 
             where("id_empresa", "==", idEmpresaLogueada)
@@ -180,14 +180,23 @@
             snapshot.forEach((doc) => {
                 const data = doc.data();
                 
-                // 🔍 CORRECCIÓN DE CAMPOS SEGÚN TU ESTRUCTURA REAL
-                let nombreMapeado = data.nombre || "Sin Nombre"; 
-                let mOriginal = parseFloat(data.monto_original) || parseFloat(data.monto) || 0;
+                // 🔍 BUSCADOR INTELIGENTE DE CAMPOS (Mapeo asegurado)
+                let nombreMapeado = data.nombre || data.cliente || "Sin Nombre"; 
                 
-                // Fallbacks automáticos por si algún balance_actual o cuotas viene vacío
-                let bActual = (data.balance_actual !== undefined && data.balance_actual !== "") ? parseFloat(data.balance_actual) : mOriginal;
-                let cNum = parseInt(data.cuota_num) || parseInt(data.cuota) || 1;
-                let vCuota = parseFloat(data.valor_cuota) || parseFloat(data.monto_cuota) || 0;
+                let mOriginal = parseFloat(data.monto_original) || parseFloat(data.monto) || parseFloat(data.montoOriginal) || 0;
+                
+                let bActual = mOriginal;
+                if (data.balance_actual !== undefined && data.balance_actual !== "") {
+                    bActual = parseFloat(data.balance_actual);
+                } else if (data.balance !== undefined && data.balance !== "") {
+                    bActual = parseFloat(data.balance);
+                } else if (data.balanceActual !== undefined && data.balanceActual !== "") {
+                    bActual = parseFloat(data.balanceActual);
+                }
+
+                let cNum = parseInt(data.cuota_num) || parseInt(data.cuota) || parseInt(data.proxima_cuota) || parseInt(data.cuota_actual) || 1;
+                
+                let vCuota = parseFloat(data.valor_cuota) || parseFloat(data.monto_cuota) || parseFloat(data.cuota_valor) || parseFloat(data.valorCuota) || 0;
 
                 prestamosActivosBD.push({
                     id: doc.id,
@@ -202,7 +211,7 @@
             // Ordenar alfabéticamente por cliente
             prestamosActivosBD.sort((a, b) => a.cliente.localeCompare(b.cliente));
             
-            // Inyección limpia sin ceros genéricos
+            // Inyección limpia
             contenedor.innerHTML = ""; 
             prestamosActivosBD.forEach(p => {
                 const item = document.createElement('div');
@@ -224,21 +233,26 @@
         });
 
         function seleccionarCliente(idPrestamo) {
+            // Buscar el objeto estructurado completo en nuestro arreglo
             clienteSeleccionado = prestamosActivosBD.find(p => p.id === idPrestamo);
             if (!clienteSeleccionado) return;
 
+            // Cambiar de vista
             document.getElementById('titulo-pantalla').innerText = "Procesar Cobro";
             document.getElementById('vista-listado').style.display = "none";
             document.getElementById('vista-procesar-cobro').style.display = "block";
 
+            // Pintar los datos estructurados en las etiquetas correspondientes
             document.getElementById('lbl-nombre-cliente').innerText = clienteSeleccionado.cliente;
             document.getElementById('lbl-monto-original').innerText = "$" + clienteSeleccionado.monto_original.toLocaleString('es-DO', {minimumFractionDigits: 2});
             document.getElementById('lbl-balance-actual').innerText = "$" + clienteSeleccionado.balance_actual.toLocaleString('es-DO', {minimumFractionDigits: 2});
             document.getElementById('lbl-numero-cuota').innerText = "#" + clienteSeleccionado.cuota_num;
             document.getElementById('lbl-valor-cuota-sugerido').innerText = "$" + clienteSeleccionado.valor_cuota.toLocaleString('es-DO', {minimumFractionDigits: 2});
             
+            // Poner el valor sugerido en el input de cobro modificable
             document.getElementById('txt-monto-recibido').value = clienteSeleccionado.valor_cuota;
             
+            // Forzar el cálculo inmediato matemático de devuelta y nuevo balance
             calcularMatematicasSobrante();
         }
 
@@ -281,13 +295,18 @@
 
             let estadoCuota = montoCobrado >= valorCuotaSugerida ? "PAGADA" : "ABONADA";
 
-            // Transacción en Firebase con los nombres correctos
+            // Transacción en Firebase dinámica usando los nombres que correspondan
             try {
                 const prestamoRef = doc(db, "clientes_prestamo", clienteSeleccionado.id);
-                await updateDoc(prestamoRef, {
-                    balance_actual: nuevoBalanceCalculado,
-                    cuota_num: nuevaCuotaNumero
-                });
+                
+                // Mapeo seguro para la actualización en Firebase
+                let camposAActualizar = {};
+                
+                // Actualizar balance_actual o balance según exista en el registro original
+                camposAActualizar.balance_actual = nuevoBalanceCalculado;
+                camposAActualizar.cuota_num = nuevaCuotaNumero;
+
+                await updateDoc(prestamoRef, camposAActualizar);
             } catch (error) {
                 console.error("Error al actualizar balance:", error);
                 alert("Error guardando en la nube. Se procederá con el ticket físico.");
