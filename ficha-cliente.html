@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRESTACOM 2.0 - Ficha del Cliente</title>
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #F9FAFB;
+            color: #1F2937;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 480px;
+            background-color: #F9FAFB;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background-color: #111827;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .back-btn {
+            text-decoration: none;
+            color: white;
+            font-size: 1.5rem;
+            margin-right: 15px;
+        }
+
+        /* DISEÑO DE LA FICHA / CARNET */
+        .ficha-container {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .foto-carnet-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .foto-area-wrapper {
+            position: relative;
+            width: 140px;
+            height: 160px;
+        }
+
+        .foto-marco {
+            width: 100%;
+            height: 100%;
+            background-color: #E5E7EB;
+            border: 4px solid white;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .foto-marco img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .btn-cambiar-foto {
+            position: absolute;
+            bottom: -10px;
+            right: -10px;
+            background-color: #FF6600;
+            color: white;
+            border: 3px solid white;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            font-size: 1.1rem;
+            transition: transform 0.2s;
+        }
+
+        .btn-cambiar-foto:active {
+            transform: scale(0.9);
+        }
+
+        .cliente-nombre-main {
+            margin-top: 20px;
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #1F2937;
+            text-align: center;
+        }
+
+        .status-pill {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            background-color: #D1FAE5;
+            color: #065F46;
+            margin-top: 5px;
+        }
+
+        /* TARJETAS DE INFORMACIÓN */
+        .info-card {
+            background-color: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+            border: 1px solid rgba(0,0,0,0.03);
+        }
+
+        .info-card h3 {
+            font-size: 1rem;
+            color: #111827;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #FF6600;
+            padding-bottom: 5px;
+            display: inline-block;
+        }
+
+        .info-row {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #F3F4F6;
+            padding-bottom: 8px;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-size: 0.75rem;
+            color: #6B7280;
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+
+        .info-value {
+            font-size: 1rem;
+            color: #1F2937;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+
+        /* Inputs estilizados para el modo edición */
+        .info-input {
+            width: 100%;
+            padding: 6px 10px;
+            margin-top: 4px;
+            border: 1px solid #D1D5DB;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            color: #1F2937;
+            font-weight: 600;
+            outline: none;
+        }
+        .info-input:focus {
+            border-color: #FF6600;
+            box-shadow: 0 0 0 2px rgba(255, 102, 0, 0.2);
+        }
+
+        /* RESUMEN FINANCIERO DEL PRÉSTAMO */
+        .loan-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 5px;
+        }
+
+        .summary-item {
+            background-color: #F9FAFB;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #E5E7EB;
+        }
+
+        .summary-item span {
+            display: block;
+            font-size: 0.75rem;
+            color: #6B7280;
+        }
+
+        .summary-item strong {
+            font-size: 1rem;
+            color: #1F2937;
+        }
+
+        .mamei-text {
+            color: #FF6600 !important;
+        }
+
+        /* ACCIONES */
+        .acciones-ficha {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+            margin-bottom: 30px;
+        }
+
+        .btn-accion {
+            padding: 12px;
+            border-radius: 10px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .btn-llamada { background-color: #27AE60; color: white; }
+        .btn-whatsapp { background-color: #25D366; color: white; }
+        
+        .btn-editar { 
+            background-color: #E5E7EB; 
+            color: #374151; 
+            grid-column: span 2; 
+            transition: background-color 0.2s;
+        }
+        .btn-editar.guardando {
+            background-color: #FF6600;
+            color: white;
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            right: 4px;
+            bottom: 4px;
+            background-color: rgba(0,0,0,0.6);
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 0.8rem;
+            font-weight: bold;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <header>
+            <a href="clientes.html" class="back-btn">⬅</a>
+            <h1>Ficha de Cliente</h1>
+        </header>
+
+        <main class="ficha-container" id="ficha-datos">
+            
+            <section class="foto-carnet-section">
+                <div class="foto-area-wrapper">
+                    <div class="foto-marco" id="marco-foto">
+                        <img id="img-cliente" src="https://via.placeholder.com/140x160?text=SIN+FOTO" alt="Foto del Cliente">
+                    </div>
+                    <label for="input-foto" class="btn-cambiar-foto" title="Tomar Foto">📷</label>
+                    <input type="file" id="input-foto" accept="image/*" capture="environment" style="display: none;">
+                    <div class="loading-overlay" id="loading-foto">Subiendo...</div>
+                </div>
+                
+                <h2 class="cliente-nombre-main" id="nombre-main">Cargando...</h2>
+                <div class="status-pill" id="status-cliente">Cargando Estado...</div>
+            </section>
+
+            <div class="info-card">
+                <h3>Datos Personales</h3>
+                <div class="info-row">
+                    <span class="info-label">Nombre Completo</span>
+                    <span class="info-value" id="nombre-val">---</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Cédula / Documento</span>
+                    <span class="info-value" id="cedula-val">---</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Teléfono Principal</span>
+                    <span class="info-value" id="tel-val">---</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Dirección de Residencia</span>
+                    <span class="info-value" id="dir-val">---</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Ruta / Sector</span>
+                    <span class="info-value" id="sector-val">---</span>
+                </div>
+            </div>
+
+            <div class="info-card" id="card-financiera">
+                <h3>Resumen Financiero</h3>
+                <div id="contenido-financiero">
+                    <p style="color: #6B7280; font-size: 0.9rem;">Buscando préstamos activos...</p>
+                </div>
+            </div>
+
+            <div class="acciones-ficha">
+                <a href="#" class="btn-accion btn-llamada" id="lnk-tel">📞 Llamar</a>
+                <a href="#" class="btn-accion btn-whatsapp" id="lnk-ws">💬 WhatsApp</a>
+                <button class="btn-accion btn-editar" id="btn-editar-datos">✏️ Editar Información</button>
+            </div>
+
+        </main>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, doc, getDoc, updateDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC5oHQtFWzLqY3JdpV_3pKY40rx00o6Gu4",
+            authDomain: "prestacom-36ebd.firebaseapp.com",
+            projectId: "prestacom-36ebd",
+            storageBucket: "prestacom-36ebd.firebasestorage.app",
+            messagingSenderId: "787618813060",
+            appId: "1:787618813060:web:8bbdc1bea7960cdbad5ed1"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const params = new URLSearchParams(window.location.search);
+        const idCliente = params.get('id');
+
+        // Estado local de edición
+        let modoEdicion = false;
+        let datosOriginales = {};
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            if (!idCliente) {
+                alert("No se encontró el ID del cliente.");
+                return;
+            }
+
+            await cargarDatosCliente();
+            await cargarResumenPrestamo();
+
+            document.getElementById('input-foto').addEventListener('change', manejarCambioFoto);
+            document.getElementById('btn-editar-datos').addEventListener('click', alternarModoEdicion);
+        });
+
+        async function cargarDatosCliente() {
+            try {
+                const docRef = doc(db, "clientes_prestamo", idCliente);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    datosOriginales = data; // Respaldar datos
+
+                    // Asignar a la vista
+                    document.getElementById('nombre-main').innerText = data.nombre || "Sin Nombre";
+                    document.getElementById('nombre-val').innerText = data.nombre || "Sin Nombre";
+                    document.getElementById('cedula-val').innerText = data.cedula || "No registrada";
+                    document.getElementById('tel-val').innerText = data.telefono || "---";
+                    document.getElementById('dir-val').innerText = data.direccion || "No registrada";
+                    document.getElementById('sector-val').innerText = data.ruta_sector || "General";
+                    
+                    if (data.foto_url) {
+                        document.getElementById('img-cliente').src = data.foto_url;
+                    }
+
+                    configurarEnlacesContacto(data.telefono);
+                }
+            } catch (error) {
+                console.error("Error cargando datos del cliente:", error);
+            }
+        }
+
+        function configurarEnlacesContacto(telefono) {
+            const btnTel = document.getElementById('lnk-tel');
+            const btnWs = document.getElementById('lnk-ws');
+            if (telefono) {
+                btnTel.href = `tel:${telefono}`;
+                btnTel.style.opacity = "1";
+                btnTel.style.pointerEvents = "auto";
+
+                // Limpiar caracteres para WhatsApp
+                const numLimpio = telefono.replace(/\D/g,'');
+                btnWs.href = `https://wa.me/1${numLimpio}`;
+                btnWs.style.opacity = "1";
+                btnWs.style.pointerEvents = "auto";
+            } else {
+                btnTel.removeAttribute('href');
+                btnTel.style.opacity = "0.5";
+                btnTel.style.pointerEvents = "none";
+                
+                btnWs.removeAttribute('href');
+                btnWs.style.opacity = "0.5";
+                btnWs.style.pointerEvents = "none";
+            }
+        }
+
+        async function cargarResumenPrestamo() {
+            const contenedorFinanciero = document.getElementById('contenido-financiero');
+            const statusPill = document.getElementById('status-cliente');
+
+            try {
+                const q = query(
+                    collection(db, "prestamos"),
+                    where("id_cliente", "==", idCliente),
+                    where("status", "==", "Activo")
+                );
+
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    contenedorFinanciero.innerHTML = `<p style="color: #6B7280; font-size: 0.9rem;">Este cliente no tiene ningún préstamo activo actualmente.</p>`;
+                    statusPill.innerText = "Sin Préstamos";
+                    statusPill.style.backgroundColor = "#E5E7EB";
+                    statusPill.style.color = "#4B5563";
+                    return;
+                }
+
+                let prestamoDoc = querySnapshot.docs[0].data();
+                
+                const numMonto = Number(prestamoDoc.monto_prestado) || Number(prestamoDoc.monto) || 0;
+                const numBalance = Number(prestamoDoc.balance_pendiente) || 0;
+                const modalidadReal = prestamoDoc['modalidad de pago'] || prestamoDoc.modalidad || 'Diario';
+                
+                let cuotasTotales = 0;
+                let cuotasPagadas = 0;
+                let cuotasPendientes = 0;
+
+                if (prestamoDoc.cuotas_detalle && Array.isArray(prestamoDoc.cuotas_detalle)) {
+                    cuotasTotales = prestamoDoc.cuotas_detalle.length;
+                    cuotasPagadas = prestamoDoc.cuotas_detalle.filter(c => c.status === 'Pagada').length;
+                    cuotasPendientes = prestamoDoc.cuotas_detalle.filter(c => c.status === 'Pendiente').length;
+                }
+
+                statusPill.innerText = "Cliente Activo";
+                statusPill.style.backgroundColor = "#D1FAE5";
+                statusPill.style.color = "#065F46";
+
+                contenedorFinanciero.innerHTML = `
+                    <div class="info-row">
+                        <span class="info-label">Modalidad de Cobro</span>
+                        <span class="info-value" style="color: #FF6600;">${modalidadReal}</span>
+                    </div>
+                    <div class="loan-summary-grid">
+                        <div class="summary-item">
+                            <span>Monto Prestado</span>
+                            <strong>$${numMonto.toLocaleString('en-US', {minimumFractionDigits: 2})}</strong>
+                        </div>
+                        <div class="summary-item">
+                            <span>Balance Pendiente</span>
+                            <strong class="mamei-text">$${numBalance.toLocaleString('en-US', {minimumFractionDigits: 2})}</strong>
+                        </div>
+                        <div class="summary-item">
+                            <span>Cuotas Pagadas</span>
+                            <strong style="color: #27AE60;">${cuotasPagadas} de ${cuotasTotales}</strong>
+                        </div>
+                        <div class="summary-item">
+                            <span>Cuotas Restantes</span>
+                            <strong>${cuotasPendientes}</strong>
+                        </div>
+                    </div>
+                `;
+
+            } catch (error) {
+                console.error("Error mapeando la cartera del cliente:", error);
+                contenedorFinanciero.innerHTML = `<p style="color: #C0392B; font-size: 0.9rem;">Error al sincronizar cuentas bancarias.</p>`;
+            }
+        }
+
+        async function manejarCambioFoto(evento) {
+            const archivo = evento.target.files[0];
+            if (!archivo) return;
+
+            const overlayCarga = document.getElementById('loading-foto');
+            overlayCarga.style.display = "flex";
+
+            try {
+                const formData = new FormData();
+                formData.append("image", archivo);
+
+                const respuesta = await fetch("https://api.imgbb.com/1/upload?key=6be0e3500d43a60cbdfbf6c166d3a843", {
+                    method: "POST",
+                    body: formData
+                });
+
+                const resultadoJson = await respuesta.json();
+
+                if (resultadoJson.success) {
+                    const urlFotoGenerada = resultadoJson.data.url;
+
+                    const clienteRef = doc(db, "clientes_prestamo", idCliente);
+                    await updateDoc(clienteRef, {
+                        foto_url: urlFotoGenerada
+                    });
+
+                    document.getElementById('img-cliente').src = urlFotoGenerada;
+                    datosOriginales.foto_url = urlFotoGenerada;
+                    alert("¡Foto guardada en la nube y asignada al cliente!");
+                } else {
+                    alert("No se pudo procesar la imagen temporalmente.");
+                }
+            } catch (error) {
+                console.error("Error al subir la foto:", error);
+                alert("Error de conexión al subir la foto.");
+            } finally {
+                overlayCarga.style.display = "none";
+            }
+        }
+
+        // NUEVO: Función para alternar entre Inputs de edición y Texto estático
+        async function alternarModoEdicion() {
+            const btnEditar = document.getElementById('btn-editar-datos');
+            const campos = [
+                { id: 'nombre-val', key: 'nombre' },
+                { id: 'cedula-val', key: 'cedula' },
+                { id: 'tel-val', key: 'telefono' },
+                { id: 'dir-val', key: 'direccion' },
+                { id: 'sector-val', key: 'ruta_sector' }
+            ];
+
+            if (!modoEdicion) {
+                // Pasar a MODO EDICIÓN
+                modoEdicion = true;
+                btnEditar.innerText = "💾 Guardar Cambios";
+                btnEditar.classList.add('guardando');
+
+                campos.forEach(campo => {
+                    const elemento = document.getElementById(campo.id);
+                    const valorActual = elemento.innerText === '---' || elemento.innerText.includes('No registrada') ? '' : elemento.innerText;
+                    elemento.innerHTML = `<input type="text" class="info-input" id="input-${campo.id}" value="${valorActual}">`;
+                });
+            } else {
+                // GUARDAR CAMBIOS EN FIREBASE
+                const nuevosDatos = {};
+                let cambiosDetectados = false;
+
+                campos.forEach(campo => {
+                    const inputElem = document.getElementById(`input-${campo.id}`);
+                    if (inputElem) {
+                        const valorLimpio = inputElem.value.trim();
+                        nuevosDatos[campo.key] = valorLimpio || "No registrada";
+                        
+                        if (valorLimpio !== (datosOriginales[campo.key] || '')) {
+                            cambiosDetectados = true;
+                        }
+                    }
+                });
+
+                if (cambiosDetectados) {
+                    try {
+                        btnEditar.innerText = "Procesando...";
+                        btnEditar.disabled = true;
+
+                        const clienteRef = doc(db, "clientes_prestamo", idCliente);
+                        
+                        // Si la propiedad está vacía o dice "No registrada", la subimos limpia a la DB
+                        const dataParaSubir = {};
+                        Object.keys(nuevosDatos).forEach(k => {
+                            dataParaSubir[k] = nuevosDatos[k] === "No registrada" ? "" : nuevosDatos[k];
+                        });
+
+                        await updateDoc(clienteRef, dataParaSubir);
+
+                        // Actualizar localmente el objeto de respaldo
+                        datosOriginales = { ...datosOriginales, ...dataParaSubir };
+                        document.getElementById('nombre-main').innerText = dataParaSubir.nombre || "Sin Nombre";
+                        configurarEnlacesContacto(dataParaSubir.telefono);
+
+                        alert("¡Información del cliente actualizada correctamente!");
+                    } catch (error) {
+                        console.error("Error al actualizar cliente:", error);
+                        alert("Hubo un error al guardar los cambios.");
+                    }
+                }
+
+                // Volver a MODO VISTA ESTÁTICA
+                modoEdicion = false;
+                btnEditar.innerText = "✏️ Editar Información";
+                btnEditar.classList.remove('guardando');
+                btnEditar.disabled = false;
+
+                campos.forEach(campo => {
+                    const elemento = document.getElementById(campo.id);
+                    const valorFinal = datosOriginales[campo.key];
+                    
+                    if(campo.key === 'ruta_sector') {
+                        elemento.innerText = valorFinal || "General";
+                    } else if(campo.key === 'telefono') {
+                        elemento.innerText = valorFinal || "---";
+                    } else {
+                        elemento.innerText = valorFinal || "No registrada";
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>

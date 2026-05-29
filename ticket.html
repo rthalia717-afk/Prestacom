@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recibo de Pago</title>
+    <style>
+        body { font-family: 'Courier New', Courier, monospace; width: 80mm; margin: 0; padding: 10px; font-size: 13px; color: #000; }
+        .header { text-align: center; border-bottom: 2px solid #000; margin-bottom: 10px; padding-bottom: 5px; }
+        .header h2 { font-size: 18px; margin: 0; text-transform: uppercase; }
+        .header p { font-size: 12px; margin: 2px 0; font-weight: bold; }
+        .section-title { font-weight: bold; border-bottom: 1px solid #000; margin: 10px 0 5px 0; padding-bottom: 2px; }
+        .row { display: flex; justify-content: space-between; margin-bottom: 3px; }
+        .total-box { border-top: 2px solid #000; border-bottom: 2px solid #000; margin-top: 10px; padding: 5px 0; font-weight: bold; font-size: 16px; }
+        .footer { text-align: center; font-size: 11px; margin-top: 15px; border-top: 1px dashed #000; padding-top: 5px; }
+        @media print { @page { size: 80mm auto; margin: 0; } body { padding: 0; } }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h2 id="empresa-nombre">PRESTACOM 2.0</h2>
+        <p>Tel: <span id="empresa-tel">---</span></p>
+    </div>
+
+    <div class="section-title">DETALLES</div>
+    <div class="row"><span>Fecha:</span> <span id="lbl-fecha">---</span></div>
+    <div class="row"><span>Cliente:</span> <span id="lbl-cliente">---</span></div>
+    <div class="row"><span>Mensajero:</span> <span id="lbl-mensajero">---</span></div>
+
+    <div class="section-title">ESTADO DEL PRÉSTAMO</div>
+    <div class="row"><span>Cuota #:</span> <span id="lbl-cuota">---</span></div>
+    <div class="row"><span>Restantes:</span> <span id="lbl-restantes">---</span></div>
+    
+    <div class="total-box row">
+        <span>PAGADO:</span>
+        <span>RD$ <span id="lbl-monto">0.00</span></span>
+    </div>
+
+    <div class="footer">
+        <p id="footer-msg">Gracias por su preferencia.</p>
+    </div>
+
+    <script>
+        const ticket = JSON.parse(localStorage.getItem('ultimo_ticket'));
+        
+        if (ticket) {
+            // 1. Carga de datos globales desde configuración
+            document.getElementById('empresa-nombre').innerText = localStorage.getItem('ticket_nombre') || "PRESTACOM 2.0";
+            document.getElementById('empresa-tel').innerText = localStorage.getItem('ticket_tel') || "---";
+            document.getElementById('footer-msg').innerText = localStorage.getItem('ticket_footer') || "Gracias por su preferencia.";
+            
+            // 2. Datos del préstamo (Extraídos del localStorage)
+            document.getElementById('lbl-cliente').innerText = ticket.cliente || "---";
+            document.getElementById('lbl-fecha').innerText = ticket.fecha || "---";
+            document.getElementById('lbl-mensajero').innerText = localStorage.getItem('nombre_usuario') || "Sistema";
+            document.getElementById('lbl-restantes').innerText = ticket.cuotas_restantes || "---";
+            document.getElementById('lbl-cuota').innerText = ticket.cuota_num || "---";
+            document.getElementById('lbl-monto').innerText = parseFloat(ticket.monto_pagado || 0).toLocaleString('es-DO', {minimumFractionDigits: 2});
+
+            // 3. Impresión inmediata
+            window.print();
+            setTimeout(() => { window.history.back(); }, 1500);
+        } else {
+            alert("No hay datos de ticket para mostrar.");
+            window.history.back();
+        }
+    </script>
+</body>
+</html>

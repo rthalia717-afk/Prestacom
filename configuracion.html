@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <script>
+        if (!localStorage.getItem('id_empresa')) { window.location.href = "login.html"; }
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRESTACOM 2.0 - Ajustes</title>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        body { background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); color: #1F2937; display: flex; justify-content: center; min-height: 100vh; }
+        .app-container { width: 100%; max-width: 480px; padding: 20px; display: flex; flex-direction: column; gap: 20px; }
+        .header-box { display: flex; align-items: center; gap: 15px; }
+        .btn-back { background: white; border: 1px solid #cbd5e1; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; color: #1F2937; text-decoration: none; }
+        
+        .panel-card { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.6); border-radius: 20px; padding: 20px; display: flex; flex-direction: column; gap: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); }
+        .panel-card h3 { font-size: 1rem; color: #111827; border-bottom: 2px solid #f1f5f9; padding-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+        .panel-card h3 i { color: #FF6600; }
+        
+        .form-group { display: flex; flex-direction: column; gap: 5px; }
+        .form-group label { font-size: 0.75rem; font-weight: 700; color: #475569; text-transform: uppercase; }
+        .form-control { width: 100%; padding: 11px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 0.9rem; outline: none; }
+        .form-control:focus { border-color: #FF6600; }
+        
+        .btn-save { background: #111827; color: white; border: none; padding: 12px; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 0.9rem; margin-top: 5px; }
+        .btn-orange { background: #FF6600; box-shadow: 0 4px 10px rgba(255,102,0,0.15); }
+        
+        /* Alerta de bloqueo */
+        .lock-notice { background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 10px; padding: 12px; color: #dc2626; font-size: 0.8rem; font-weight: 600; display: none; align-items: center; gap: 8px; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="header-box">
+            <a href="index.html" class="btn-back"><i class='bx bx-left-arrow-alt'></i></a>
+            <h2>Configuración</h2>
+        </div>
+
+        <div class="panel-card">
+            <h3><i class='bx bx-printer'></i> Impresora Térmica</h3>
+            <div class="form-group">
+                <label>Dispositivo Seleccionado</label>
+                <select id="select-impresora" class="form-control">
+                    <option value="">-- Buscar ticketera Bluetooth --</option>
+                    <option value="MTP-II">MTP-II (Impresora de Bolsillo 58mm)</option>
+                    <option value="PT-210">PT-210 Portable Printer</option>
+                </select>
+            </div>
+            <button class="btn-save" onclick="probarImpresion()">Tirar Ticket de Prueba 📄</button>
+        </div>
+
+        <div class="panel-card" id="seccion-empresa">
+            <h3><i class='bx bx-store-alt'></i> Encabezado de Factura / Ticket</h3>
+            
+            <div class="lock-notice" id="alerta-bloqueo">
+                <i class='bx bx-lock-alt' style="font-size:1.1rem;"></i> Configuración bloqueada. Solo el Administrador puede editar los datos del ticket.
+            </div>
+
+            <form id="form-ticket" onsubmit="guardarDatosEmpresa(event)">
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label>Nombre del Negocio / Consorcio</label>
+                    <input type="text" id="comp-nombre" class="form-control" placeholder="Ej. Consorcio de Préstamos Frias" required>
+                </div>
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label>RNC / Cédula del Negocio</label>
+                    <input type="text" id="comp-rnc" class="form-control" placeholder="Ej. 131-XXXXX-X">
+                </div>
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label>Teléfono de Contacto</label>
+                    <input type="text" id="comp-tel" class="form-control" placeholder="Ej. 809-555-0100">
+                </div>
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label>Mensaje al pie del ticket</label>
+                    <input type="text" id="comp-footer" class="form-control" placeholder="Ej. ¡Gracias por mantener tu crédito al día!">
+                </div>
+                <button type="submit" class="btn-save btn-orange" id="btn-guardar-comp">Guardar Plantilla</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const rol = localStorage.getItem('rol_usuario') || 'Administrador';
+
+        // Cargar datos guardados previamente
+        document.getElementById('comp-nombre').value = localStorage.getItem('ticket_nombre') || '';
+        document.getElementById('comp-rnc').value = localStorage.getItem('ticket_rnc') || '';
+        document.getElementById('comp-tel').value = localStorage.getItem('ticket_tel') || '';
+        document.getElementById('comp-footer').value = localStorage.getItem('ticket_footer') || '';
+
+        // Restringir si es Mensajero
+        if (rol === 'Mensajero') {
+            document.getElementById('alerta-bloqueo').style.display = 'flex';
+            // Deshabilitar todos los campos del formulario de empresa
+            const inputs = document.querySelectorAll('#form-ticket input, #btn-guardar-comp');
+            inputs.forEach(el => el.disabled = true);
+        }
+
+        function guardarDatosEmpresa(e) {
+            e.preventDefault();
+            localStorage.setItem('ticket_nombre', document.getElementById('comp-nombre').value);
+            localStorage.setItem('ticket_rnc', document.getElementById('comp-rnc').value);
+            localStorage.setItem('ticket_tel', document.getElementById('comp-tel').value);
+            localStorage.setItem('ticket_footer', document.getElementById('comp-footer').value);
+            alert("✓ Encabezado de ticket actualizado de forma global.");
+        }
+
+        function probarImpresion() {
+            const imp = document.getElementById('select-impresora').value;
+            if(!imp) return alert("Selecciona una impresora primero.");
+            alert(`Conectando a ${imp}...\n\n[Ticket Emitido]:\n${localStorage.getItem('ticket_nombre') || 'PRESTACOM'}\nTel: ${localStorage.getItem('ticket_tel') || '000'}\n----------------\nPRUEBA DE CONEXIÓN OK\n----------------`);
+        }
+    </script>
+</body>
+</html>

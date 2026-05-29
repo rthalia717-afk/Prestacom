@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <script>
+        // 🔒 FILTRO DE SEGURIDAD CRÍTICO
+        if (!localStorage.getItem('id_empresa')) {
+            window.location.href = "login.html";
+        }
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRESTACOM 2.0 - Gestionar Mensajero</title>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            color: #1F2937;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 480px;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        /* Encabezado */
+        .header-modulo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .btn-regresar {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            color: #1F2937;
+            cursor: pointer;
+            text-decoration: none;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+        }
+
+        .header-modulo h2 {
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+
+        /* Formulario Estilo Glass */
+        .form-container {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 20px;
+            padding: 22px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            color: #1E293B;
+            background: white;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-control:focus {
+            border-color: #FF6600;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 12px;
+        }
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        /* 📸 Componente de Foto de Rostro */
+        .foto-uploader-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed #cbd5e1;
+            border-radius: 16px;
+            padding: 15px;
+            background: #f8fafc;
+            position: relative;
+            min-height: 160px;
+            text-align: center;
+            gap: 10px;
+        }
+
+        #preview-foto {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            display: none;
+            border: 3px solid #FF6600;
+            box-shadow: 0 4px 10px rgba(255,102,0,0.15);
+        }
+
+        .foto-placeholder-icon {
+            font-size: 2.5rem;
+            color: #94A3B8;
+        }
+
+        .foto-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 5px;
+        }
+
+        .btn-foto-action {
+            background: #111827;
+            color: white;
+            padding: 6px 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* 🔘 Switch para Activar/Desactivar */
+        .status-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #f8fafc;
+            padding: 12px 15px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .status-label-box h4 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #1E293B;
+        }
+        .status-label-box p {
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 26px;
+        }
+
+        .switch input { 
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #cbd5e1;
+            transition: .3s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #22c55e;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+
+        .btn-guardar-mensajero {
+            background: #FF6600;
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(255,102,0,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 5px;
+            transition: background-color 0.2s;
+        }
+
+        .btn-guardar-mensajero:active {
+            transform: scale(0.98);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <div class="header-modulo">
+            <!-- Regresa a la lista -->
+            <a href="mensajeros.html" class="btn-regresar"><i class='bx bx-left-arrow-alt'></i></a>
+            <h2 id="titulo-modulo">Nuevo Mensajero</h2>
+        </div>
+
+        <form class="form-container" id="form-mensajero" onsubmit="procesarFormulario(event)">
+            
+            <div class="form-group">
+                <label>Fotografía del Rostro</label>
+                <div class="foto-uploader-box">
+                    <i class='bx bx-user-circle foto-placeholder-icon' id="foto-icon"></i>
+                    <img id="preview-foto" src="" alt="Rostro del mensajero">
+                    
+                    <span id="foto-text" style="font-size: 0.8rem; color:#64748b;">No se ha capturado rostro</span>
+                    
+                    <div class="foto-buttons">
+                        <label class="btn-foto-action" style="background:#475569; cursor: pointer;">
+                            <i class='bx bx-image-add'></i> Galería
+                            <input type="file" id="input-archivo-foto" accept="image/*" style="display:none;" onchange="cargarFotoDesdeArchivo(event)">
+                        </label>
+                        <button type="button" class="btn-foto-action" onclick="abrirCamaraDispositivo()">
+                            <i class='bx bx-camera'></i> Cámara
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Nombre Completo</label>
+                <input type="text" id="nombre" class="form-control" placeholder="Ej. Carlos Mendoza" required>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Cédula</label>
+                    <input type="text" id="cedula" class="form-control" placeholder="001-0000000-0" required>
+                </div>
+                <div class="form-group">
+                    <label>Teléfono</label>
+                    <input type="tel" id="telefono" class="form-control" placeholder="809-555-0000" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Dirección de Residencia</label>
+                <input type="text" id="direccion" class="form-control" placeholder="Calle, Sector, Ciudad" required>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Nombre de Usuario</label>
+                    <input type="text" id="usuario_login" class="form-control" placeholder="Ej. carlos01" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label>Contraseña</label>
+                    <input type="password" id="password_login" class="form-control" placeholder="Mínimo 6 caracteres" required autocomplete="new-password">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Rol de Usuario</label>
+                <select id="rol" class="form-control" required>
+                    <option value="Mensajero" selected>Mensajero / Cobrador</option>
+                    <option value="Supervisor">Supervisor de Ruta</option>
+                    <option value="Administrador">Administrador del Sistema</option>
+                </select>
+            </div>
+
+            <div class="status-container">
+                <div class="status-label-box">
+                    <h4>Estado del Mensajero</h4>
+                    <p id="status-text">Permitir acceso inmediato al sistema</p>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="estado-activo" checked onchange="actualizarTextoEstado()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <button type="submit" class="btn-guardar-mensajero" id="btn-submit-form">
+                <i class='bx bx-save'></i> <span id="btn-texto">Registrar Mensajero</span>
+            </button>
+
+        </form>
+
+    </div>
+
+    <script>
+        let fotoBase64 = ""; 
+        let listaMensajeros = JSON.parse(localStorage.getItem('prestacom_mensajeros')) || [];
+        
+        // 🔍 LEER PARÁMETRO URL (?edit=0, ?edit=1, etc.)
+        const urlParams = new URLSearchParams(window.location.search);
+        const editIndex = urlParams.get('edit'); 
+
+        // Cuando la interfaz esté lista, verificamos si toca editar o registrar
+        window.addEventListener('DOMContentLoaded', () => {
+            if (editIndex !== null && listaMensajeros[editIndex]) {
+                llenarCamposParaEdicion(listaMensajeros[editIndex]);
+            }
+        });
+
+        // 📝 FUNCIÓN CRÍTICA: Rellena los datos de forma exacta
+        function llenarCamposParaEdicion(mensajero) {
+            document.getElementById('titulo-modulo').textContent = "Editar Mensajero";
+            document.getElementById('btn-texto').textContent = "Guardar Cambios";
+            
+            // Asignación de valores existentes
+            document.getElementById('nombre').value = mensajero.nombre;
+            document.getElementById('cedula').value = mensajero.cedula || '';
+            document.getElementById('telefono').value = mensajero.telefono || '';
+            document.getElementById('direccion').value = mensajero.direccion;
+            document.getElementById('usuario_login').value = mensajero.usuario;
+            document.getElementById('password_login').value = mensajero.password || '';
+            document.getElementById('rol').value = mensajero.rol || 'Mensajero';
+            
+            // Estado activo/inactivo
+            const checkboxEstado = document.getElementById('estado-activo');
+            checkboxEstado.checked = mensajero.activo;
+            actualizarTextoEstado();
+
+            // Cargar imagen en base64 si existe
+            if (mensajero.foto) {
+                mostrarPreviewFoto(mensajero.foto);
+            }
+        }
+
+        function actualizarTextoEstado() {
+            const checkbox = document.getElementById('estado-activo');
+            const texto = document.getElementById('status-text');
+            if (checkbox.checked) {
+                texto.textContent = "Permitir acceso inmediato al sistema";
+                texto.style.color = "#64748b";
+            } else {
+                texto.textContent = "Acceso bloqueado (Inactivo)";
+                texto.style.color = "#dc2626";
+            }
+        }
+
+        function cargarFotoDesdeArchivo(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    mostrarPreviewFoto(e.target.result);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function abrirCamaraDispositivo() {
+            const inputCamara = document.createElement('input');
+            inputCamara.type = 'file';
+            inputCamara.accept = 'image/*';
+            inputCamara.capture = 'user'; 
+            
+            inputCamara.onchange = function(event) {
+                cargarFotoDesdeArchivo(event);
+            };
+            inputCamara.click();
+        }
+
+        function mostrarPreviewFoto(srcData) {
+            fotoBase64 = srcData;
+            document.getElementById('foto-icon').style.display = 'none';
+            const img = document.getElementById('preview-foto');
+            img.src = srcData;
+            img.style.display = 'block';
+            document.getElementById('foto-text').textContent = "✓ Rostro capturado con éxito";
+            document.getElementById('foto-text').style.color = "#22c55e";
+        }
+
+        function procesarFormulario(event) {
+            event.preventDefault();
+
+            if (!fotoBase64) {
+                alert("Por favor, capture o suba una fotografía del rostro del mensajero.");
+                return;
+            }
+
+            const passwordValue = document.getElementById('password_login').value;
+            if (passwordValue.length < 6) {
+                alert("La contraseña debe tener un mínimo de 6 caracteres.");
+                return;
+            }
+
+            const nuevoUsuario = document.getElementById('usuario_login').value.trim().toLowerCase();
+
+            // Validar que el nombre de usuario no esté duplicado con otro mensajero
+            const usuarioDuplicado = listaMensajeros.some((m, idx) => {
+                if (editIndex !== null && String(idx) === String(editIndex)) return false; // Ignora su propia posición al editar
+                return m.usuario === nuevoUsuario;
+            });
+
+            if (usuarioDuplicado) {
+                alert("Este nombre de usuario ya está asignado a otro cobrador. Elige otro.");
+                return;
+            }
+
+            // Conservar el ID antiguo si se edita, o generar uno nuevo si se registra
+            let idMensajero = (editIndex !== null && listaMensajeros[editIndex].id) ? listaMensajeros[editIndex].id : 'M-' + Date.now();
+
+            const datosMensajero = {
+                id: idMensajero,
+                nombre: document.getElementById('nombre').value.trim(),
+                cedula: document.getElementById('cedula').value.trim(),
+                telefono: document.getElementById('telefono').value.trim(),
+                direccion: document.getElementById('direccion').value.trim(),
+                usuario: nuevoUsuario,
+                password: passwordValue,
+                rol: document.getElementById('rol').value,
+                activo: document.getElementById('estado-activo').checked,
+                foto: fotoBase64
+            };
+
+            if (editIndex !== null) {
+                // Actualiza exactamente la misma posición en la que estaba sin romper el array
+                listaMensajeros[editIndex] = datosMensajero;
+                alert(`Cambios aplicados correctamente al mensajero "${datosMensajero.nombre}".`);
+            } else {
+                // Añade uno nuevo
+                listaMensajeros.push(datosMensajero);
+                alert(`Mensajero "${datosMensajero.nombre}" registrado exitosamente.`);
+            }
+
+            localStorage.setItem('prestacom_mensajeros', JSON.stringify(listaMensajeros));
+            window.location.href = "mensajeros.html";
+        }
+    </script>
+</body>
+</html>

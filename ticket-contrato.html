@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=80mm">
+    <title>Imprimir Ticket</title>
+    <style>
+        body { font-family: 'Courier New', Courier, monospace; width: 100%; max-width: 300px; margin: 0 auto; padding: 10px; font-size: 14px; }
+        .ticket-header { text-align: center; border-bottom: 2px dashed #000; margin-bottom: 10px; padding-bottom: 5px; }
+        .ticket-body { margin-bottom: 10px; }
+        .row { display: flex; justify-content: space-between; margin-bottom: 5px; }
+        .total { border-top: 1px dashed #000; padding-top: 5px; font-weight: bold; font-size: 16px; }
+        .footer { text-align: center; font-size: 12px; margin-top: 20px; }
+        
+        @media print {
+            body { margin: 0; padding: 0; }
+            .btn-volver { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ticket-header">
+        <h2>PRESTACOM 2.0</h2>
+        <p>Recibo de Préstamo</p>
+    </div>
+
+    <div class="ticket-body">
+        <div class="row"><span>Fecha:</span> <span id="t-fecha"></span></div>
+        <div class="row"><span>Cliente:</span> <span id="t-cliente"></span></div>
+        <br>
+        <div class="row"><span>Capital:</span> <span id="t-monto"></span></div>
+        <div class="row"><span>Cant. Cuotas:</span> <span id="t-cuotas"></span></div>
+        <div class="row"><span>Valor Cuota:</span> <span id="t-valor-cuota"></span></div>
+        <div class="row total"><span>Total a Pagar:</span> <span id="t-total"></span></div>
+    </div>
+
+    <div class="footer">
+        <p>¡Gracias por su confianza!</p>
+        <button class="btn-volver" onclick="window.location.href='index.html'">Volver al Inicio</button>
+    </div>
+
+    <script>
+        window.onload = function() {
+            // 1. Recuperar datos
+            const data = JSON.parse(localStorage.getItem('ultimo_contrato'));
+
+            if (data) {
+                // 2. Llenar los campos
+                document.getElementById('t-fecha').innerText = data.fecha;
+                document.getElementById('t-cliente').innerText = data.cliente;
+                document.getElementById('t-monto').innerText = '$' + parseFloat(data.monto).toLocaleString();
+                document.getElementById('t-cuotas').innerText = data.cuotas;
+                document.getElementById('t-valor-cuota').innerText = '$' + parseFloat(data.valor_cuota).toLocaleString();
+                document.getElementById('t-total').innerText = '$' + parseFloat(data.total_pagar).toLocaleString();
+
+                // 3. Imprimir automáticamente
+                setTimeout(() => {
+                    window.print();
+                }, 800);
+            } else {
+                alert("No hay datos de préstamo para imprimir.");
+            }
+        };
+    </script>
+</body>
+</html>

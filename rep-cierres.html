@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <script>
+        // 🔒 FILTRO DE SEGURIDAD CRÍTICO
+        if (!localStorage.getItem('id_empresa')) {
+            window.location.href = "login.html";
+        }
+        if (localStorage.getItem('rol_usuario') === 'Mensajero') {
+            window.location.href = "index.html";
+        }
+    </script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRESTACOM 2.0 - Historial de Cierres de Caja</title>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            color: #1F2937;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 480px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background-color: #111827;
+            color: white;
+            padding: 18px 20px;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            color: #9CA3AF;
+            font-size: 1.6rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+
+        .header-title h1 {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        main {
+            padding: 15px 20px;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+            gap: 12px;
+        }
+
+        /* 📅 FILTROS DE FECHA */
+        .filter-card {
+            background: white;
+            border-radius: 16px;
+            padding: 14px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .date-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .input-group label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #6B7280;
+            text-transform: uppercase;
+        }
+
+        .input-group input {
+            padding: 9px 12px;
+            border: 1px solid #CBD5E1;
+            border-radius: 10px;
+            font-size: 0.88rem;
+            color: #1F2937;
+            outline: none;
+            background: white;
+        }
+
+        .search-btn {
+            background: #0284c7; /* Tono azul auditoría */
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .search-btn:active { transform: scale(0.98); }
+
+        /* 📊 INDICADORES */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .summary-card {
+            background: white;
+            border-radius: 14px;
+            padding: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .summary-card.full-width { grid-column: span 2; }
+
+        .summary-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .icon-blue { color: #0284c7; background: rgba(2, 132, 199, 0.1); }
+        .icon-red { color: #e74c3c; background: rgba(231, 76, 60, 0.1); }
+        .icon-dark { color: #4b5563; background: rgba(75, 85, 99, 0.1); }
+
+        .summary-data p { font-size: 0.7rem; color: #6B7280; font-weight: 600; }
+        .summary-data h3 { font-size: 1rem; font-weight: 700; color: #1E293B; }
+
+        /* 📜 LISTA DE CIERRES */
+        .section-subtitle {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #6B7280;
+            font-weight: 700;
+            margin-bottom: -4px;
+        }
+
+        .cierres-container {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding-bottom: 10px;
+        }
+
+        .cierre-card {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .cierre-left h4 { font-size: 0.88rem; font-weight: 600; color: #1E293B; }
+        .cierre-left p { font-size: 0.72rem; color: #6B7280; margin-top: 1px; }
+        
+        .badge-descuadre {
+            display: inline-block;
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 6px;
+            margin-top: 4px;
+        }
+        .quad-ok { background: rgba(46, 204, 113, 0.1); color: #2ecc71; }
+        .quad-fail { background: rgba(231, 76, 60, 0.1); color: #e74c3c; }
+
+        .cierre-right { text-align: right; }
+        .cierre-monto { font-size: 0.95rem; font-weight: 700; color: #1E293B; }
+        .cierre-usuario { font-size: 0.68rem; color: #6B7280; margin-top: 2px; }
+
+        .no-data {
+            text-align: center;
+            color: #9CA3AF;
+            font-size: 0.85rem;
+            margin-top: 25px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <header>
+            <button class="back-btn" onclick="window.location.href='reportes.html'"><i class='bx bx-left-arrow-alt'></i></button>
+            <div class="header-title">
+                <h1>Historial de Cierres</h1>
+            </div>
+        </header>
+
+        <main>
+            <!-- 📅 Filtros de Auditoría -->
+            <div class="filter-card">
+                <div class="date-inputs">
+                    <div class="input-group">
+                        <label for="fecha-desde">Desde</label>
+                        <input type="date" id="fecha-desde">
+                    </div>
+                    <div class="input-group">
+                        <label for="fecha-hasta">Hasta</label>
+                        <input type="date" id="fecha-hasta">
+                    </div>
+                </div>
+                <button class="search-btn" id="btn-buscar">
+                    <i class='bx bx-history'></i> Buscar Cierres
+                </button>
+            </div>
+
+            <!-- 📊 Métricas de Control Financiero -->
+            <div class="summary-grid">
+                <div class="summary-card full-width">
+                    <div class="summary-icon icon-blue"><i class='bx bx-archive-in'></i></div>
+                    <div class="summary-data">
+                        <p>Total Efectivo Entregado</p>
+                        <h3 id="txt-total-entregado">RD$ 0.00</h3>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-icon icon-red"><i class='bx bx-shield-quarter'></i></div>
+                    <div class="summary-data">
+                        <p>Total Descuadres</p>
+                        <h3 id="txt-total-descuadres">RD$ 0.00</h3>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-icon icon-dark"><i class='bx bx-calculator'></i></div>
+                    <div class="summary-data">
+                        <p>Cierres Evaluados</p>
+                        <h3 id="txt-cant-cierres">0</h3>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 📜 Desglose de Cierres Guardados -->
+            <h3 class="section-subtitle">Registros de Caja Sellados</h3>
+            <div class="cierres-container" id="lista-cierres">
+                <div class="no-data">Selecciona un rango de fechas para cargar el historial.</div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        // Setear rango por defecto (Hoy)
+        const hoy = new Date().toISOString().split('T')[0];
+        document.getElementById('fecha-desde').value = hoy;
+        document.getElementById('fecha-hasta').value = hoy;
+
+        document.getElementById('btn-buscar').addEventListener('click', cargarHistorial);
+
+        function cargarHistorial() {
+            const container = document.getElementById('lista-cierres');
+            container.innerHTML = '<div class="no-data"><i class="bx bx-loader-alt bx-spin"></i> Leyendo libro de caja...</div>';
+
+            setTimeout(() => {
+                // Estructura de simulación. Aquí leerás de tu tabla local de cierres en IndexedDB o MySQL remoto.
+                const cierresSimulados = [];
+
+                if (cierresSimulados.length === 0) {
+                    container.innerHTML = '<div class="no-data">No se registraron cierres de caja en este rango de fechas.</div>';
+                    document.getElementById('txt-total-entregado').textContent = "RD$ 0.00";
+                    document.getElementById('txt-total-descuadres').textContent = "RD$ 0.00";
+                    document.getElementById('txt-cant-cierres').textContent = "0";
+                    return;
+                }
+
+                container.innerHTML = "";
+                let totalEntregado = 0;
+                let totalDescuadres = 0;
+
+                cierresSimulados.forEach(item => {
+                    totalEntregado += parseFloat(item.efectivo_real);
+                    totalDescuadres += Math.abs(parseFloat(item.descuadre));
+
+                    let badgeClass = item.descuadre == 0 ? 'quad-ok' : 'quad-fail';
+                    let txtBadge = item.descuadre == 0 ? 'Cuadrado' : `Descuadre: RD$ ${parseFloat(item.descuadre).toLocaleString('es-DO')}`;
+
+                    const card = document.createElement('div');
+                    card.className = 'cierre-card';
+                    card.innerHTML = `
+                        <div class="cierre-left">
+                            <h4>${item.fecha}</h4>
+                            <p><i class="bx bx-time"></i> Hora: ${item.hora}</p>
+                            <span class="badge-descuadre ${badgeClass}">${txtBadge}</span>
+                        </div>
+                        <div class="cierre-right">
+                            <div class="cierre-monto">RD$ ${parseFloat(item.efectivo_real).toLocaleString('es-DO', {minimumFractionDigits: 2})}</div>
+                            <div class="cierre-usuario"><i class="bx bx-user"></i> ${item.usuario}</div>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+
+                // Actualizar contadores
+                document.getElementById('txt-total-entregado').textContent = `RD$ ${totalEntregado.toLocaleString('es-DO', {minimumFractionDigits: 2})}`;
+                document.getElementById('txt-total-descuadres').textContent = `RD$ ${totalDescuadres.toLocaleString('es-DO', {minimumFractionDigits: 2})}`;
+                document.getElementById('txt-cant-cierres').textContent = cierresSimulados.length;
+
+            }, 500);
+        }
+
+        // Auto-cargar datos al entrar
+        cargarHistorial();
+    </script>
+</body>
+</html>

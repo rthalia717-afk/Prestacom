@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <script>
+        // 🔒 FILTRO DE SEGURIDAD CRÍTICO
+        if (!localStorage.getItem('id_empresa')) { window.location.href = "login.html"; }
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRESTACOM 2.0 - Mensajeros</title>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        body { background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); color: #1F2937; display: flex; justify-content: center; min-height: 100vh; }
+        .app-container { width: 100%; max-width: 480px; padding: 20px; display: flex; flex-direction: column; gap: 20px; }
+        
+        .header-box { display: flex; align-items: center; justify-content: space-between; }
+        .header-left { display: flex; align-items: center; gap: 15px; }
+        .btn-back { background: white; border: 1px solid #cbd5e1; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; color: #1F2937; text-decoration: none; }
+        
+        .btn-add-m { background: #FF6600; color: white; border: none; padding: 8px 14px; border-radius: 10px; font-size: 0.85rem; font-weight: 700; text-decoration: none; display: flex; align-items: center; gap: 5px; box-shadow: 0 4px 10px rgba(255,102,0,0.15); }
+        
+        .list-container { display: flex; flex-direction: column; gap: 12px; }
+        .mensajero-row { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.6); border-radius: 16px; padding: 15px 18px; display: flex; align-items: center; gap: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.01); }
+        
+        .m-avatar { width: 45px; height: 45px; border-radius: 50%; background: rgba(255,102,0,0.1); color: #FF6600; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; border: 2px solid white; object-fit: cover; }
+        .m-details { flex: 1; }
+        .m-details h4 { font-size: 0.95rem; color: #1E293B; font-weight: 600; }
+        .m-details p { font-size: 0.78rem; color: #64748b; display: flex; align-items: center; gap: 5px; margin-top: 1px; }
+        .m-details .user-tag { font-size: 0.72rem; color: #FF6600; font-weight: bold; background: rgba(255,102,0,0.08); padding: 1px 6px; border-radius: 4px; display: inline-block; margin-top: 3px; }
+        
+        .m-actions { display: flex; align-items: center; gap: 10px; }
+        .btn-edit { color: #64748b; font-size: 1.3rem; text-decoration: none; transition: color 0.2s; display: flex; align-items: center; }
+        .btn-edit:hover { color: #FF6600; }
+
+        .badge-status { width: 8px; height: 8px; border-radius: 50%; }
+        .status-on { background: #22c55e; box-shadow: 0 0 8px #22c55e; }
+        .status-off { background: #cbd5e1; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="header-box">
+            <div class="header-left">
+                <a href="index.html" class="btn-back"><i class='bx bx-left-arrow-alt'></i></a>
+                <h2>Mensajeros</h2>
+            </div>
+            <!-- Redirección corregida a nuevo-mensajero.html -->
+            <a href="nuevo-mensajero.html" class="btn-add-m" id="btn-nuevo-disparador"><i class='bx bx-plus'></i> Nuevo</a>
+        </div>
+
+        <div class="list-container" id="contenedor-mensajeros"></div>
+    </div>
+
+    <script>
+        // Datos reales consolidados + Mock inicial adaptado si está vacío
+        let lista = JSON.parse(localStorage.getItem('prestacom_mensajeros')) || [
+            { nombre: "Carlos Mendoza", usuario: "carlos01", direccion: "Ruta 01 - Los Alcarrizos", activo: true, foto: "" },
+            { nombre: "José Alberto Gómez", usuario: "jose02", direccion: "Ruta 02 - Herrera / Las Caobas", activo: true, foto: "" },
+            { nombre: "Wilkin Rosario", usuario: "wilkin03", direccion: "Ruta 03 - Villa Mella", activo: false, foto: "" }
+        ];
+
+        const contenedor = document.getElementById('contenedor-mensajeros');
+        let html = "";
+
+        // Usamos el parámetro 'index' para identificar qué elemento se va a editar
+        lista.forEach((m, index) => {
+            // Evaluamos si tiene foto en base64 o si usamos el icono genérico
+            let avatarHTML = m.foto 
+                ? `<img src="${m.foto}" class="m-avatar">` 
+                : `<div class="m-avatar"><i class='bx bx-user'></i></div>`;
+
+            // Validar si el objeto guardado cuenta con la propiedad nueva 'usuario'
+            let usuarioHTML = m.usuario 
+                ? `<span class="user-tag"><i class='bx bx-at'></i>${m.usuario}</span>` 
+                : '';
+
+            html += `
+                <div class="mensajero-row">
+                    ${avatarHTML}
+                    <div class="m-details">
+                        <h4>${m.nombre}</h4>
+                        <p><i class='bx bx-map-pin'></i> ${m.direccion}</p>
+                        ${usuarioHTML}
+                    </div>
+                    <div class="m-actions">
+                        <!-- Botón de editar que envía el índice por la URL -->
+                        <a href="nuevo-mensajero.html?edit=${index}" class="btn-edit" title="Editar mensajero">
+                            <i class='bx bx-edit-alt'></i>
+                        </a>
+                        <div class="badge-status ${m.activo ? 'status-on' : 'status-off'}" title="${m.activo ? 'Activo en ruta' : 'Suspendido'}"></div>
+                    </div>
+                </div>
+            `;
+        });
+
+        contenedor.innerHTML = html;
+    </script>
+</body>
+</html>

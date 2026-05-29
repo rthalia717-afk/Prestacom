@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRESTACOM 2.0 - Historial de Cierres</title>
+    <link href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #FF6600;
+            --primary-dark: #cc5200;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --success: #22c55e;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--background); color: var(--text-main); padding-bottom: 60px; }
+
+        header {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+
+        header .btn-back {
+            color: white;
+            font-size: 24px;
+            text-decoration: none;
+        }
+
+        header h1 { font-size: 20px; font-weight: 600; }
+
+        .container { padding: 15px; max-width: 600px; margin: 0 auto; }
+
+        .cierre-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+        }
+
+        .cierre-card:active { transform: scale(0.98); }
+
+        .cierre-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px dashed var(--border);
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+
+        .cierre-date { font-weight: 600; font-size: 15px; color: var(--text-main); }
+        .cierre-user { font-size: 13px; color: var(--primary); background: #fff0e6; padding: 2px 8px; border-radius: 20px; font-weight: 500; }
+
+        .cierre-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            font-size: 14px;
+        }
+
+        .cierre-item { display: flex; flex-direction: column; }
+        .cierre-label { color: var(--text-muted); font-size: 12px; }
+        .cierre-value { font-weight: 600; margin-top: 2px; }
+        .cierre-value.positivo { color: var(--success); }
+
+        .loader { text-align: center; padding: 40px; color: var(--text-muted); }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="cobros.html" class="btn-back"><i class='bx bx-arrow-back'></i></a>
+        <h1>Historial de Cierres de Caja</h1>
+    </header>
+
+    <div class="container" id="contenedor-cierres">
+        <div class="loader">
+            <i class='bx bx-loader-alt bx-spin' style="font-size: 32px; color: var(--primary);"></i>
+            <p style="margin-top: 10px;">Cargando historial...</p>
+        </div>
+    </div>
+
+    <!-- 📊 CONEXIÓN FIREBASE TRANSACCIONAL -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, query, where, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC5oHQtFWzLqY3JdpV_3pKY40rx00o6Gu4",
+            authDomain: "prestacom-36ebd.firebaseapp.com",
+            projectId: "prestacom-36ebd",
+            storageBucket: "prestacom-36ebd.firebasestorage.app",
+            messagingSenderId: "787618813060",
+            appId: "1:787618813060:web:8bbdc1bea7960cdbad5ed1"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const idEmpresaLogueada = localStorage.getItem('id_empresa');
+        const contenedor = document.getElementById('contenedor-cierres');
+
+        if (!idEmpresaLogueada) {
+            window.location.href = "login.html";
+        } else {
+            cargarHistorialCierres();
+        }
+
+        function cargarHistorialCierres() {
+            // Nota: Si Firebase te pide crear un índice compuesto en la consola para este Query, haz clic en el enlace que te arrojará el error log.
+            const q = query(
+                collection(db, "cierres_caja"), 
+                where("id_empresa", "==", idEmpresaLogueada),
+                orderBy("fecha_creacion", "desc")
+            );
+
+            onSnapshot(q, (querySnapshot) => {
+                if (querySnapshot.empty) {
+                    contenedor.innerHTML = `
+                        <div style="text-align: center; padding: 40px; color: var(--text-muted);">
+                            <i class='bx bx-folder-open' style='font-size: 48px; color: #cbd5e1;'></i>
+                            <p style="margin-top: 10px;">No se han realizado cierres de caja todavía.</p>
+                        </div>`;
+                    return;
+                }
+
+                contenedor.innerHTML = "";
+
+                querySnapshot.forEach((doc) => {
+                    const cierre = doc.data();
+                    const card = document.createElement('div');
+                    card.className = "cierre-card";
+                    
+                    // Formateo dominicano de moneda
+                    const totalCobrado = parseFloat(cierre.total_cobrado || 0).toLocaleString('es-DO', { minimumFractionDigits: 2 });
+                    const baseCaja = parseFloat(cierre.base_caja || 0).toLocaleString('es-DO', { minimumFractionDigits: 2 });
+                    const entregado = parseFloat(cierre.monto_entregado || 0).toLocaleString('es-DO', { minimumFractionDigits: 2 });
+                    
+                    card.innerHTML = `
+                        <div class="cierre-header">
+                            <span class="cierre-date"><i class='bx bx-calendar'></i> ${cierre.fecha || 'Sin fecha'}</span>
+                            <span class="cierre-user"><i class='bx bx-user'></i> ${cierre.usuario_nombre || 'Cobrador'}</span>
+                        </div>
+                        <div class="cierre-grid">
+                            <div class="cierre-item">
+                                <span class="cierre-label">Fondo Inicial</span>
+                                <span class="cierre-value">$${baseCaja}</span>
+                            </div>
+                            <div class="cierre-item">
+                                <span class="cierre-label">Recaudado Hoy</span>
+                                <span class="cierre-value positivo">+$${totalCobrado}</span>
+                            </div>
+                            <div class="cierre-item" style="grid-column: span 2; margin-top: 5px; padding-top: 5px; border-top: 1px solid var(--border);">
+                                <span class="cierre-label">Monto Entregado a Supervisor</span>
+                                <span class="cierre-value" style="color: var(--primary); font-size: 16px;">$${entregado}</span>
+                            </div>
+                        </div>
+                    `;
+                    contenedor.appendChild(card);
+                });
+            }, (error) => {
+                console.error("Error cargando cierres: ", error);
+                contenedor.innerHTML = `<p style="color: red; text-align:center; padding: 20px;">Error de permisos o falta configurar el índice en Firebase.</p>`;
+            });
+        }
+    </script>
+</body>
+</html>

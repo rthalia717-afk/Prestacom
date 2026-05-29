@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <script>
+        // 🔒 FILTRO DE SEGURIDAD CRÍTICO
+        if (!localStorage.getItem('id_empresa')) { window.location.href = "login.html"; }
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRESTACOM 2.0 - Reporte Detallado</title>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        body { background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); color: #1F2937; display: flex; justify-content: center; min-height: 100vh; }
+        .app-container { width: 100%; max-width: 480px; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+        
+        /* Encabezado */
+        .header-box { display: flex; align-items: center; gap: 15px; }
+        .btn-back { background: white; border: 1px solid #cbd5e1; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; color: #1F2937; text-decoration: none; }
+        
+        /* Tarjeta Perfil Resumen */
+        .profile-mini-card { background: #111827; color: white; border-radius: 20px; padding: 18px; display: flex; align-items: center; gap: 15px; box-shadow: 0 10px 25px rgba(17,24,39,0.15); }
+        .p-avatar { width: 55px; height: 55px; border-radius: 50%; object-fit: cover; border: 2px solid #FF6600; background: rgba(255,102,0,0.1); display: flex; align-items: center; justify-content: center; font-size: 1.6rem; color: #FF6600; }
+        .p-info h3 { font-size: 1.1rem; font-weight: 600; }
+        .p-info p { font-size: 0.8rem; color: #9ca3af; margin-top: 2px; }
+        
+        .sub-titulo-modulo { font-size: 0.85rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 1px; margin-top: 5px; }
+
+        /* Filtros de Fecha Glassmorphism */
+        .filter-container { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.6); border-radius: 16px; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
+        .date-row { display: flex; gap: 10px; }
+        .date-group { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+        .date-group label { font-size: 0.72rem; font-weight: 700; color: #64748b; text-transform: uppercase; }
+        .form-date { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.88rem; outline: none; background: white; color: #1E293B; }
+        
+        .btn-filtrar { background: #FF6600; color: white; border: none; padding: 12px; border-radius: 10px; font-size: 0.9rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 12px rgba(255,102,0,0.15); }
+
+        /* Cuadrícula de Métricas */
+        .metrics-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .metric-card { background: white; border: 1px solid #e2e8f0; border-radius: 14px; padding: 15px; display: flex; flex-direction: column; gap: 5px; }
+        .metric-card.full-width { grid-column: span 2; background: #f0fdf4; border-color: #bbf7d0; }
+        .m-icon-title { display: flex; align-items: center; gap: 8px; color: #64748b; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; }
+        .m-icon-title i { font-size: 1.1rem; color: #475569; }
+        .metric-card.full-width .m-icon-title i { color: #16a34a; }
+        .m-value { font-size: 1.35rem; font-weight: 700; color: #1E293B; margin-top: 2px; }
+        .metric-card.full-width .m-value { color: #16a34a; font-size: 1.6rem; }
+
+        /* Lista de Historial de Actividad o Detalles */
+        .log-container { background: rgba(255, 255, 255, 0.8); border: 1px solid rgba(255,255,255,0.6); border-radius: 16px; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+        .log-item { display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; border-bottom: 1px dashed #e2e8f0; }
+        .log-item:last-child { padding-bottom: 0; border-bottom: none; }
+        .log-left h5 { font-size: 0.88rem; color: #1E293B; font-weight: 600; }
+        .log-left p { font-size: 0.72rem; color: #94A3B8; }
+        .log-right { text-align: right; }
+        .log-amount { font-size: 0.88rem; font-weight: 700; color: #16a34a; }
+        .log-ticket { font-size: 0.7rem; color: #FF6600; font-weight: 600; background: rgba(255,102,0,0.08); padding: 1px 5px; border-radius: 4px; display: inline-block; margin-top: 2px; }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- Encabezado de Navegación -->
+        <div class="header-box">
+            <a href="reportes-mensajeros.html" class="btn-back"><i class='bx bx-left-arrow-alt'></i></a>
+            <h2 class="sub-titulo-modulo" style="font-size: 1.1rem; margin:0;">Métricas de Auditoría</h2>
+        </div>
+
+        <!-- Perfil Dinámico del Mensajero -->
+        <div class="profile-mini-card">
+            <div id="wrapper-avatar"></div>
+            <div class="p-info">
+                <h3 id="nombre-m">Cargando...</h3>
+                <p id="ruta-m"><i class='bx bx-map-pin'></i> Ruta no especificada</p>
+            </div>
+        </div>
+
+        <h3 class="sub-titulo-modulo">Reporte Detallado</h3>
+
+        <!-- Contenedor de Filtros Cronológicos -->
+        <div class="filter-container">
+            <div class="date-row">
+                <div class="date-group">
+                    <label>Fecha Inicial</label>
+                    <input type="date" id="fecha-inicial" class="form-date">
+                </div>
+                <div class="date-group">
+                    <label>Fecha Final</label>
+                    <input type="date" id="fecha-final" class="form-date">
+                </div>
+            </div>
+            <button type="button" class="btn-filtrar" onclick="calcularMetricasFiltradas()">
+                <i class='bx bx-refresh'></i> Generar Reporte
+            </button>
+        </div>
+
+        <!-- Cuadrícula de Totales Contables -->
+        <div class="metrics-grid">
+            <div class="metric-card full-width">
+                <div class="m-icon-title"><i class='bx bx-money-withdraw'></i> Total Recaudado</div>
+                <div class="m-value" id="val-total-cobrado">RD$ 0.00</div>
+            </div>
+            <div class="metric-card">
+                <div class="m-icon-title"><i class='bx bx-printer'></i> Tickets Impresos</div>
+                <div class="m-value" id="val-tickets">0</div>
+            </div>
+            <div class="metric-card">
+                <div class="m-icon-title"><i class='bx bx-receipt'></i> Cobros Hechos</div>
+                <div class="m-value" id="val-cant-cobros">0</div>
+            </div>
+        </div>
+
+        <h3 class="sub-titulo-modulo">Auditoría de Operaciones Recientes</h3>
+
+        <!-- Registro Individual de Recibos Generados -->
+        <div class="log-container" id="historial-operaciones">
+            <!-- Simulación de datos dinámicos o reales -->
+            <div class="log-item">
+                <div class="log-left">
+                    <h5>Cobro préstamo #1024</h5>
+                    <p>Hoy, 10:14 AM • Juan Pérez</p>
+                </div>
+                <div class="log-right">
+                    <div class="log-amount">RD$ 1,500.00</div>
+                    <div class="log-ticket"><i class='bx bx-barcode'></i> Ticket #0482</div>
+                </div>
+            </div>
+            <div class="log-item">
+                <div class="log-left">
+                    <h5>Cobro préstamo #0988</h5>
+                    <p>Hoy, 08:45 AM • María Rodríguez</p>
+                </div>
+                <div class="log-right">
+                    <div class="log-amount">RD$ 800.00</div>
+                    <div class="log-ticket"><i class='bx bx-barcode'></i> Ticket #0481</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let listaMensajeros = JSON.parse(localStorage.getItem('prestacom_mensajeros')) || [];
+        
+        // Capturar índice de la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const mensajeroIndex = urlParams.get('id');
+
+        window.addEventListener('DOMContentLoaded', () => {
+            // Establecer fechas por defecto (Mes actual)
+            const hoy = new Date();
+            const primerDia = new Date(hoy.getFullYear(), hoy.getMonth(), 1).toISOString().split('T')[0];
+            const ultimoDia = hoy.toISOString().split('T')[0];
+            
+            document.getElementById('fecha-inicial').value = primerDia;
+            document.getElementById('fecha-final').value = ultimoDia;
+
+            if (mensajeroIndex !== null && listaMensajeros[mensajeroIndex]) {
+                cargarDatosPerfil(listaMensajeros[mensajeroIndex]);
+                calcularMetricasFiltradas();
+            } else {
+                alert("Mensajero no válido o inexistente.");
+                window.location.href = "reportes-mensajeros.html";
+            }
+        });
+
+        function cargarDatosPerfil(mensajero) {
+            document.getElementById('nombre-m').textContent = mensajero.nombre;
+            document.getElementById('ruta-m').innerHTML = `<i class='bx bx-map-pin'></i> ${mensajero.direccion}`;
+            
+            const wrapperAvatar = document.getElementById('wrapper-avatar');
+            if (mensajero.foto) {
+                wrapperAvatar.innerHTML = `<img src="${mensajero.foto}" class="p-avatar" alt="Rostro">`;
+            } else {
+                wrapperAvatar.innerHTML = `<div class="p-avatar"><i class='bx bx-user'></i></div>`;
+            }
+        }
+
+        function calcularMetricasFiltradas() {
+            // Aquí conectarás las colecciones de cobros o préstamos del LocalStorage en el futuro.
+            // Por el momento, inicializa en cero o simula las métricas según el rango de fecha seleccionado:
+            const fInicial = document.getElementById('fecha-inicial').value;
+            const fFinal = document.getElementById('fecha-final').value;
+
+            console.log(`Filtrando auditoría para el índice ${mensajeroIndex} desde ${fInicial} hasta ${fFinal}`);
+
+            // Simulación base de auditoría para visualización de la entrega:
+            document.getElementById('val-total-cobrado').textContent = "RD$ 2,300.00";
+            document.getElementById('val-tickets').textContent = "2";
+            document.getElementById('val-cant-cobros').textContent = "2";
+        }
+    </script>
+</body>
+</html>

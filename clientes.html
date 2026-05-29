@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRESTACOM 2.0 - Clientes</title>
+    <link class="css-link" rel="stylesheet" href="css/variable.css">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--color-background);
+            color: var(--color-text-main);
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 480px;
+            background-color: var(--color-background);
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background-color: var(--color-primary);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .back-btn {
+            text-decoration: none;
+            color: white;
+            font-size: 1.5rem;
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        header h1 {
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
+
+        .search-container {
+            padding: 15px 20px;
+            background-color: var(--color-surface);
+            border-bottom: 1px solid #E5E7EB;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 15px;
+            padding-left: 40px;
+            border: 1px solid #D1D5DB;
+            border-radius: 25px;
+            font-size: 0.95rem;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="gray" class="bi bi-search" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg>');
+            background-repeat: no-repeat;
+            background-position: 15px center;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            background-color: #FFFFFF;
+        }
+
+        .client-list {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .client-card {
+            background-color: var(--color-surface);
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+            border: 1px solid rgba(0,0,0,0.03);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: inherit;
+        }
+
+        /* Enlace interno para la información táctil */
+        .client-link-area {
+            text-decoration: none;
+            color: inherit;
+            flex: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-right: 10px;
+        }
+
+        .client-info h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--color-text-main);
+            margin-bottom: 4px;
+        }
+
+        .client-meta {
+            font-size: 0.8rem;
+            color: #6B7280;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .client-badge {
+            background-color: rgba(255, 102, 0, 0.1);
+            color: var(--color-primary);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .arrow-icon {
+            color: #9CA3AF;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        /* 🗺️ ESTILOS NUEVOS PARA EL BOTÓN INTERACTIVO DEL GPS */
+        .spatial-gps-action {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-left: 1px solid #E5E7EB;
+            padding-left: 15px;
+            height: 40px;
+        }
+
+        .btn-trigger-maps {
+            background-color: #111827; /* Negro institucional */
+            color: #FFFFFF;
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            font-size: 1.2rem;
+            box-shadow: 0 3px 6px rgba(17, 24, 39, 0.15);
+            transition: all 0.2s ease;
+        }
+
+        .btn-trigger-maps:active {
+            transform: scale(0.9);
+            background-color: var(--color-primary); /* Brilla en naranja al pisarlo */
+        }
+
+        .btn-trigger-maps.disabled {
+            background-color: #F3F4F6;
+            color: #9CA3AF;
+            box-shadow: none;
+            pointer-events: none; /* Desactiva el clic */
+            border: 1px dashed #D1D5DB;
+        }
+
+        .no-data {
+            text-align: center;
+            color: #9CA3AF;
+            font-size: 0.95rem;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <header>
+            <a href="index.html" class="back-btn">⬅</a>
+            <h1>Mis Clientes</h1>
+        </header>
+
+        <div class="search-container">
+            <input type="text" id="buscador" class="search-input" placeholder="Buscar cliente por nombre o sector...">
+        </div>
+
+        <main class="client-list" id="lista-clientes-container">
+            <p class="no-data" id="cargando-txt">Conectando a la base de datos...</p>
+        </main>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC5oHQtFWzLqY3JdpV_3pKY40rx00o6Gu4",
+            authDomain: "prestacom-36ebd.firebaseapp.com",
+            projectId: "prestacom-36ebd",
+            storageBucket: "prestacom-36ebd.firebasestorage.app",
+            messagingSenderId: "787618813060",
+            appId: "1:787618813060:web:8bbdc1bea7960cdbad5ed1"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const idEmpresaLogueada = localStorage.getItem('id_empresa');
+        if (!idEmpresaLogueada) {
+            window.location.href = "login.html";
+        }
+
+        const contenedor = document.getElementById('lista-clientes-container');
+        const buscadorInput = document.getElementById('buscador');
+
+        const q = query(
+            collection(db, "clientes_prestamo"), 
+            where("id_empresa", "==", idEmpresaLogueada)
+        );
+
+        onSnapshot(q, (snapshot) => {
+            if (snapshot.empty) {
+                contenedor.innerHTML = '<p class="no-data">No tienes clientes registrados aún en la nube.</p>';
+                return;
+            }
+
+            let listaClientes = [];
+            snapshot.forEach((doc) => {
+                listaClientes.push({ id: doc.id, ...doc.data() });
+            });
+
+            listaClientes.sort((a, b) => {
+                const nameA = (a.nombre || "").toLowerCase();
+                const nameB = (b.nombre || "").toLowerCase();
+                return nameA.localeCompare(nameB);
+            });
+
+            let htmlCards = "";
+            listaClientes.forEach((cliente) => {
+                
+                // 🗺️ EVALUACIÓN DEL RADAR GPS INDIVIDUAL
+                let mapaBotonHTML = "";
+                if (cliente.latitud && cliente.longitud) {
+                    // Si el cliente fue registrado con coordenadas, el botón está en vivo
+                    mapaBotonHTML = `
+                        <a href="https://www.google.com/maps/search/?api=1&query=${cliente.latitud},${cliente.longitud}" 
+                           target="_blank" 
+                           class="btn-trigger-maps" 
+                           title="Lanzar GPS en Ruta">
+                            <i class='bx bx-map-pin'></i>
+                        </a>
+                    `;
+                } else {
+                    // Si es un cliente viejo sin coordenadas, se deshabilita elegantemente
+                    mapaBotonHTML = `
+                        <div class="btn-trigger-maps disabled" title="Ubicación no fijada">
+                            <i class='bx bx-map-alt'></i>
+                        </div>
+                    `;
+                }
+
+                // Separamos la tarjeta en área de información y área de acción satelital
+                htmlCards += `
+                    <div class="client-card">
+                        <a href="ficha-cliente.html?id=${cliente.id}" class="client-link-area">
+                            <div class="client-info">
+                                <h3>${cliente.nombre || 'Sin Nombre'}</h3>
+                                <div class="client-meta">
+                                    <span>📞 ${cliente.telefono || 'Sin número'}</span>
+                                    <span class="client-badge">${cliente.ruta_sector || 'Sin Zona'}</span>
+                                </div>
+                            </div>
+                            <div class="arrow-icon">➔</div>
+                        </a>
+                        
+                        <div class="spatial-gps-action">
+                            ${mapaBotonHTML}
+                        </div>
+                    </div>
+                `;
+            });
+            contenedor.innerHTML = htmlCards;
+
+            filtrarClientes();
+            
+        }, (error) => {
+            console.error("Error al conectar con Firestore: ", error);
+            contenedor.innerHTML = '<p class="no-data">Error de conexión con la base de datos.</p>';
+        });
+
+        function filtrarClientes() {
+            const textoBuscado = buscadorInput.value.toLowerCase();
+            const tarjetas = contenedor.getElementsByClassName('client-card');
+
+            for (let i = 0; i < tarjetas.length; i++) {
+                const elNombre = tarjetas[i].querySelector('h3');
+                const elSector = tarjetas[i].querySelector('.client-badge');
+
+                const nombreCliente = elNombre ? elNombre.innerText.toLowerCase() : "";
+                const sectorCliente = elSector ? elSector.innerText.toLowerCase() : "";
+
+                if (nombreCliente.includes(textoBuscado) || sectorCliente.includes(textoBuscado)) {
+                    tarjetas[i].style.display = "flex";
+                } else {
+                    tarjetas[i].style.display = "none";
+                }
+            }
+        }
+
+        buscadorInput.addEventListener('keyup', filtrarClientes);
+
+    </script>
+</body>
+</html>

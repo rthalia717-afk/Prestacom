@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRESTACOM 2.0 - Registrar Cobro</title>
+    <link href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1e293b">
+    
+    <style>
+        :root {
+            --primary: #1e293b;
+            --accent: #ff6600;
+            --bg: #f1f5f9;
+            --surface: #ffffff;
+            --text: #334155;
+            --border: #cbd5e1;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg); color: var(--text); padding-bottom: 30px; }
+
+        /* Cabecera dinámica */
+        .header { background-color: var(--primary); color: white; padding: 15px; text-align: center; font-size: 18px; font-weight: bold; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+        .header a { color: white; text-decoration: none; font-size: 24px; display: flex; align-items: center; }
+
+        .container { padding: 15px; max-width: 500px; margin: 0 auto; }
+
+        .seccion-titulo { font-size: 16px; font-weight: bold; color: #475569; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+
+        /* 📋 VISTA 1: LISTA DE CLIENTES ACTIVOS */
+        .lista-clientes { display: flex; flex-direction: column; gap: 10px; }
+        
+        .tarjeta-cliente-item { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: transform 0.1s; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .tarjeta-cliente-item:active { transform: scale(0.98); background-color: #f8fafc; }
+        
+        .cliente-info-principal h4 { font-size: 16px; color: #0f172a; margin-bottom: 2px; }
+        .cliente-info-principal p { font-size: 13px; color: #64748b; }
+        
+        .cliente-monto-badge { text-align: right; }
+        .cliente-monto-badge .cuota-valor { font-size: 15px; font-weight: bold; color: var(--accent); }
+        .cliente-monto-badge .balance-total { font-size: 11px; color: #94a3b8; }
+
+        /* 🖼️ VISTA 2: CUADRO FINANCIERO DEL CLIENTE SELECCIONADO */
+        .card-financiera { background: var(--surface); border-radius: 14px; padding: 18px; border: 1px solid var(--border); box-shadow: 0 4px 10px rgba(0,0,0,0.04); margin-bottom: 15px; }
+        
+        .info-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 15px; padding-bottom: 8px; border-bottom: 1px dashed #f1f5f9; }
+        .info-row:last-of-type { border-bottom: none; margin-bottom: 15px; }
+        .info-row span:last-child { font-weight: 600; color: #0f172a; }
+
+        /* Inputs de Cobro Modificable */
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; color: #475569; }
+        
+        .input-wrapper { display: flex; align-items: center; background: var(--surface); border: 2px solid var(--border); border-radius: 10px; padding: 12px; transition: border-color 0.2s; }
+        .input-wrapper:focus-within { border-color: var(--accent); }
+        .input-wrapper span { font-size: 18px; font-weight: bold; margin-right: 5px; color: #334155; }
+        .input-wrapper input { border: none; width: 100%; font-size: 18px; outline: none; font-weight: bold; color: #0f172a; }
+
+        /* Botón de Ejecución */
+        .btn-cobrar { background-color: var(--accent); color: white; border: none; width: 100%; padding: 15px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(255, 102, 0, 0.25); margin-top: 10px; }
+        .btn-cobrar:active { background-color: #e05a00; }
+    </style>
+</head>
+<body>
+
+    <!-- Cabecera con Control de Navegación Dinámica -->
+    <div class="header">
+        <a href="javascript:void(0)" id="btn-atras" onclick="manejarBotonAtras()"><i class='bx bx-chevron-left'></i></a>
+        <span id="titulo-pantalla">Clientes Activos</span>
+        <div style="width: 24px;"></div>
+    </div>
+
+    <div class="container">
+        
+        <!-- 📋 CONTENEDOR VISTA 1: LISTADO DE PRÉSTAMOS ACTIVOS -->
+        <div id="vista-listado">
+            <div class="seccion-titulo"><i class='bx bx-list-ul'></i> Selecciona un cliente para cobrar</div>
+            <div class="lista-clientes" id="tabla-clientes-inyectar">
+                <!-- Los clientes de Firebase se pintan aquí automáticamente -->
+            </div>
+        </div>
+
+        <!-- 🖼️ CONTENEDOR VISTA 2: PROCESAMIENTO DEL COBRO (OCULTO POR DEFECTO) -->
+        <div id="vista-procesar-cobro" style="display: none;">
+            
+            <div class="card-financiera">
+                <div class="seccion-titulo" style="margin-bottom: 15px;"><i class='bx bx-wallet'></i> Estado del Crédito</div>
+                
+                <div class="info-row">
+                    <span>Cliente:</span>
+                    <span id="lbl-nombre-cliente">--</span>
+                </div>
+                <div class="info-row">
+                    <span>Monto Original:</span>
+                    <span id="lbl-monto-original">$0.00</span>
+                </div>
+                <div class="info-row">
+                    <span>Balance Pendiente Actual:</span>
+                    <span id="lbl-balance-actual" style="color: #ef4444;">$0.00</span>
+                </div>
+                <div class="info-row">
+                    <span>Próxima Cuota:</span>
+                    <span id="lbl-numero-cuota">#0</span>
+                </div>
+                <div class="info-row">
+                    <span>Valor Sugerido Cuota:</span>
+                    <span id="lbl-valor-cuota-sugerido" style="color: #22c55e;">$0.00</span>
+                </div>
+
+                <!-- Cuadro de Modificación de Monto -->
+                <div class="form-group" style="margin-top: 15px;">
+                    <label for="txt-monto-recibido">Monto Real a Cobrar (Modificable)</label>
+                    <div class="input-wrapper">
+                        <span>$</span>
+                        <input type="number" id="txt-monto-recibido" placeholder="0.00" inputmode="decimal" oninput="calcularMatematicasSobrante()">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Devuelta / Sobrante al Cliente</label>
+                    <div class="input-wrapper" style="background-color: #f1f5f9; border-color: #e2e8f0;">
+                        <span>$</span>
+                        <input type="text" id="txt-devuelta" value="0.00" readonly style="background-color: #f1f5f9; color: #1e293b;">
+                    </div>
+                </div>
+
+                <div class="info-row" style="border-top: 1px dashed var(--border); padding-top: 12px; margin-top: 10px;">
+                    <span>Nuevo Balance Restante:</span>
+                    <span id="lbl-nuevo-balance-restante">$0.00</span>
+                </div>
+
+                <!-- Botón de Ejecución Física -->
+                <button class="btn-cobrar" onclick="ejecutarTransaccionFinal()">
+                    <i class='bx bx-printer'></i> Realizar Pago e Imprimir
+                </button>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        // 1. BASE DE DATOS DE PRÉSTAMOS ACTIVOS
+        // (Aquí es donde se mapearán tus datos reales traídos de Firebase)
+        const prestamosActivosBD = [
+            { id: "P-001", cliente: "Juan Pérez", monto_original: 10000, balance_actual: 4500, cuota_num: 3, valor_cuota: 1500 },
+            { id: "P-002", cliente: "María Rodríguez", monto_original: 25000, balance_actual: 12000, cuota_num: 5, valor_cuota: 2500 },
+            { id: "P-003", cliente: "Santo Sixto Frias", monto_original: 50000, balance_actual: 20000, cuota_num: 4, valor_cuota: 5000 },
+            { id: "P-004", cliente: "Scarling Frias", monto_original: 15000, balance_actual: 3000, cuota_num: 6, valor_cuota: 1500 }
+        ];
+
+        let clienteSeleccionado = null;
+
+        // 2. INYECTAR LA LISTA AUTOMÁTICAMENTE AL CARGAR LA PANTALLA
+        document.addEventListener('DOMContentLoaded', () => {
+            cargarListadoClientes();
+        });
+
+        function cargarListadoClientes() {
+            const contenedor = document.getElementById('tabla-clientes-inyectar');
+            contenedor.innerHTML = ""; // Limpiar
+
+            prestamosActivosBD.forEach(p => {
+                const item = document.createElement('div');
+                item.className = "tarjeta-cliente-item";
+                item.setAttribute('onclick', `seleccionarCliente('${p.id}')`);
+                
+                item.innerHTML = `
+                    <div class="cliente-info-principal">
+                        <h4>${p.cliente}</h4>
+                        <p>Cuota Próxima: #${p.cuota_num}</p>
+                    </div>
+                    <div class="cliente-monto-badge">
+                        <div class="cuota-valor">$${p.valor_cuota.toLocaleString('es-DO', {minimumFractionDigits:2})}</div>
+                        <div class="balance-total">Debe: $${p.balance_actual.toLocaleString('es-DO')}</div>
+                    </div>
+                `;
+                contenedor.appendChild(item);
+            });
+        }
+
+        // 3. CAMBIO DE PANTALLA AL SELECCIONAR CLIENTE
+        function seleccionarCliente(idPrestamo) {
+            clienteSeleccionado = prestamosActivosBD.find(p => p.id === idPrestamo);
+            if (!clienteSeleccionado) return;
+
+            // Cambiar textos del Header
+            document.getElementById('titulo-pantalla').innerText = "Procesar Cobro";
+            
+            // Ocultar lista, mostrar panel financiero
+            document.getElementById('vista-listado').style.display = "none";
+            document.getElementById('vista-procesar-cobro').style.display = "block";
+
+            // Inyectar la información crediticia en el cuadro
+            document.getElementById('lbl-nombre-cliente').innerText = clienteSeleccionado.cliente;
+            document.getElementById('lbl-monto-original').innerText = "$" + clienteSeleccionado.monto_original.toLocaleString('es-DO', {minimumFractionDigits: 2});
+            document.getElementById('lbl-balance-actual').innerText = "$" + clienteSeleccionado.balance_actual.toLocaleString('es-DO', {minimumFractionDigits: 2});
+            document.getElementById('lbl-numero-cuota').innerText = "#" + clienteSeleccionado.cuota_num;
+            document.getElementById('lbl-valor-cuota-sugerido').innerText = "$" + clienteSeleccionado.valor_cuota.toLocaleString('es-DO', {minimumFractionDigits: 2});
+            
+            // Setear el input de cobro con el valor sugerido de la cuota automáticamente
+            document.getElementById('txt-monto-recibido').value = clienteSeleccionado.valor_cuota;
+            
+            // Forzar primer cálculo matemático inicial
+            calcularMatematicasSobrante();
+        }
+
+        // 4. OPERACIONES MATEMÁTICAS EN TIEMPO REAL
+        function calcularMatematicasSobrante() {
+            if (!clienteSeleccionado) return;
+
+            const montoCobrado = parseFloat(document.getElementById('txt-monto-recibido').value) || 0;
+            const valorCuotaSugerida = clienteSeleccionado.valor_cuota;
+            const balanceActual = clienteSeleccionado.balance_actual;
+
+            // Calcular devuelta física solo si pagan con un billete mayor a la cuota fija
+            let devuelta = montoCobrado - valorCuotaSugerida;
+            if (devuelta < 0) devuelta = 0; 
+
+            // Reducción del balance pendiente real en la base de datos
+            // Si es un abono menor, resta el abono. Si es el pago total, resta la cuota.
+            let montoAAplicarAlBalance = montoCobrado > valorCuotaSugerida ? valorCuotaSugerida : montoCobrado;
+            let nuevoBalance = balanceActual - montoAAplicarAlBalance;
+            if (nuevoBalance < 0) nuevoBalance = 0;
+
+            // Inyectar en pantalla
+            document.getElementById('txt-devuelta').value = devuelta.toFixed(2);
+            document.getElementById('lbl-nuevo-balance-restante').innerText = "$" + nuevoBalance.toLocaleString('es-DO', {minimumFractionDigits: 2});
+        }
+
+        // 5. GUARDAR TRANSACCIÓN Y REDIRIGIR AL TICKET
+        function ejecutarTransaccionFinal() {
+            if (!clienteSeleccionado) return;
+
+            const montoCobrado = parseFloat(document.getElementById('txt-monto-recibido').value) || 0;
+            if (montoCobrado <= 0) {
+                alert("Introduce un monto válido superior a cero.");
+                return;
+            }
+
+            const devueltaCalculada = parseFloat(document.getElementById('txt-devuelta').value) || 0;
+            let estadoCuota = montoCobrado >= clienteSeleccionado.valor_cuota ? "PAGADA" : "ABONADA";
+
+            // Estructura limpia que devora ticket.html
+            const ticketData = {
+                empresa: "PRESTACOM 2.0",
+                fecha: new Date().toLocaleDateString('es-DO'),
+                hora: new Date().toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' }),
+                cliente: clienteSeleccionado.cliente,
+                cuota_num: clienteSeleccionado.cuota_num,
+                estado_cuota: estadoCuota,
+                monto_pagado: montoCobrado,
+                sobrante_devuelta: devueltaCalculada
+            };
+
+            // Aquí es donde harías tu db.collection('prestamos').doc().update() para Firebase usando 'nuevoBalance'
+            
+            // Guardamos en la memoria y disparamos la ticketera
+            localStorage.setItem('ultimo_ticket', JSON.stringify(ticketData));
+            window.location.href = "ticket.html";
+        }
+
+        // CONTROL DE NAVEGACIÓN RETROACTIVA EN MÓVIL
+        function manejarBotonAtras() {
+            const vistaCobro = document.getElementById('vista-procesar-cobro');
+            if (vistaCobro.style.display === "block") {
+                // Si está en la pantalla de cobro, el botón de atrás lo regresa a la lista
+                document.getElementById('titulo-pantalla').innerText = "Clientes Activos";
+                document.getElementById('vista-procesar-cobro').style.display = "none";
+                document.getElementById('vista-listado').style.display = "block";
+                clienteSeleccionado = null;
+            } else {
+                // Si ya está en la lista, lo regresa al menú principal del sistema
+                window.location.href = "index.html";
+            }
+        }
+    </script>
+</body>
+</html>

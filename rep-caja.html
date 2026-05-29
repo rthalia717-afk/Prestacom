@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRESTACOM 2.0 - Reporte de Caja</title>
+    <!-- Iconos profesionales -->
+    <link href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <!-- Vinculación estricta al Manifest de la PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <style>
+        :root {
+            --primary: #FF6600;
+            --primary-dark: #cc5200;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --success: #22c55e;
+            --danger: #ef4444;
+        }
+
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+        }
+        
+        body { 
+            background-color: var(--background); 
+            color: var(--text-main); 
+            padding-bottom: 30px; 
+        }
+
+        header {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+
+        header .btn-back {
+            color: white;
+            font-size: 24px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        header h1 { 
+            font-size: 20px; 
+            font-weight: 600; 
+        }
+
+        .container { 
+            padding: 15px; 
+            max-width: 600px; 
+            margin: 0 auto; 
+        }
+
+        .cierre-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .cierre-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px dashed var(--border);
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+
+        .cierre-date { 
+            font-weight: 600; 
+            font-size: 14px; 
+            color: var(--text-main); 
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .cierre-user { 
+            font-size: 12px; 
+            color: var(--primary); 
+            background: #fff0e6; 
+            padding: 4px 10px; 
+            border-radius: 20px; 
+            font-weight: 500; 
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .cierre-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            font-size: 14px;
+        }
+
+        .cierre-item { 
+            display: flex; 
+            flex-direction: column; 
+        }
+        
+        .cierre-label { 
+            color: var(--text-muted); 
+            font-size: 12px; 
+        }
+        
+        .cierre-value { 
+            font-weight: 600; 
+            margin-top: 2px; 
+        }
+        
+        .cierre-value.positivo { 
+            color: var(--success); 
+        }
+
+        .total-entregado-row {
+            grid-column: span 2; 
+            margin-top: 6px; 
+            padding-top: 8px; 
+            border-top: 1px solid var(--border);
+        }
+
+        .loader { 
+            text-align: center; 
+            padding: 40px; 
+            color: var(--text-muted); 
+        }
+
+        .error-box {
+            color: var(--danger);
+            text-align: center;
+            padding: 25px;
+            background: #fff5f5;
+            border: 1px solid #fee2e2;
+            border-radius: 12px;
+            font-size: 14px;
+        }
+        
+        .error-code {
+            background: #fee2e2;
+            padding: 8px;
+            border-radius: 6px;
+            margin-top: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="cobros.html" class="btn-back"><i class='bx bx-arrow-back'></i></a>
+        <h1>Reporte Historial de Caja</h1>
+    </header>
+
+    <div class="container" id="contenedor-cierres">
+        <div class="loader">
+            <i class='bx bx-loader-alt bx-spin' style="font-size: 32px; color: var(--primary);"></i>
+            <p style="margin-top: 10px;">Cargando registros de caja...</p>
+        </div>
+    </div>
+
+    <!-- 📊 CONTROLADOR CENTRAL FIREBASE -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        // Credenciales oficiales de PRESTACOM
+        const firebaseConfig = {
+            apiKey: "AIzaSyC5oHQtFWzLqY3JdpV_3pKY40rx00o6Gu4",
+            authDomain: "prestacom-36ebd.firebaseapp.com",
+            projectId: "prestacom-36ebd",
+            storageBucket: "prestacom-36ebd.firebasestorage.app",
+            messagingSenderId: "787618813060",
+            appId: "1:787618813060:web:8bbdc1bea7960cdbad5ed1"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const idEmpresaLogueada = localStorage.getItem('id_empresa');
+        const contenedor = document.getElementById('contenedor-cierres');
+
+        // Control de Sesión Estricto
+        if (!idEmpresaLogueada) {
+            window.location.href = "login.html";
+        } else {
+            cargarHistorialCierres();
+        }
+
+        function cargarHistorialCierres() {
+            // Consulta directa optimizada por ID de empresa para evitar choques de índices
+            const q = query(
+                collection(db, "cierres_caja"), 
+                where("id_empresa", "==", idEmpresaLogueada)
+            );
+
+            onSnapshot(q, (querySnapshot) => {
+                if (querySnapshot.empty) {
+                    contenedor.innerHTML = `
+                        <div style="text-align: center; padding: 40px; color: var(--text-muted);">
+                            <i class='bx bx-folder-open' style='font-size: 48px; color: #cbd5e1;'></i>
+                            <p style="margin-top: 10px;">No se han encontrado reportes de caja para esta empresa.</p>
+                        </div>`;
+                    return;
+                }
+
+                // Extracción de datos en memoria local
+                const listaCierres = [];
+                querySnapshot.forEach((doc) => {
+                    listaCierres.push(doc.data());
+                });
+
+                // Ordenamiento local descendente por fecha de creación (El más reciente arriba)
+                listaCierres.sort((a, b) => {
+                    const campoA = a.fecha_creacion ? a.fecha_creacion.toString() : "";
+                    const campoB = b.fecha_creacion ? b.fecha_creacion.toString() : "";
+                    return campoB.localeCompare(campoA);
+                });
+
+                contenedor.innerHTML = "";
+
+                // Renderizado iterativo de tarjetas de cierre
+                listaCierres.forEach((cierre) => {
+                    const card = document.createElement('div');
+                    card.className = "cierre-card";
+                    
+                    // Formateo de moneda local dominicana (es-DO)
+                    const totalCobrado = parseFloat(cierre.total_cobrado || 0).toLocaleString('es-DO', { minimumFractionDigits: 2 });
+                    const baseCaja = parseFloat(cierre.base_caja || 0).toLocaleString('es-DO', { minimumFractionDigits: 2 });
+                    const entregado = parseFloat(cierre.monto_entregado || 0).toLocaleString('es-DO', { minimumFractionDigits: 2 });
+                    
+                    card.innerHTML = `
+                        <div class="cierre-header">
+                            <span class="cierre-date"><i class='bx bx-calendar'></i> ${cierre.fecha || 'Sin fecha'}</span>
+                            <span class="cierre-user"><i class='bx bx-user'></i> ${cierre.usuario_nombre || 'Cobrador'}</span>
+                        </div>
+                        <div class="cierre-grid">
+                            <div class="cierre-item">
+                                <span class="cierre-label">Fondo Inicial</span>
+                                <span class="cierre-value">$${baseCaja}</span>
+                            </div>
+                            <div class="cierre-item">
+                                <span class="cierre-label">Recaudado</span>
+                                <span class="cierre-value positivo">+$${totalCobrado}</span>
+                            </div>
+                            <div class="cierre-item total-entregado-row">
+                                <span class="cierre-label">Monto Entregado a Supervisor</span>
+                                <span class="cierre-value" style="color: var(--primary); font-size: 16px;">$${entregado}</span>
+                            </div>
+                        </div>
+                    `;
+                    contenedor.appendChild(card);
+                });
+            }, (error) => {
+                console.error("Error crítico de Firestore:", error);
+                // Diagnóstico en vivo en pantalla si la base de datos rechaza la lectura
+                contenedor.innerHTML = `
+                    <div class="error-box">
+                        <i class='bx bx-error-circle' style='font-size: 36px;'></i>
+                        <p style="margin-top: 8px; font-weight: 600;">Error de acceso a Base de Datos</p>
+                        <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">
+                            Firebase rechazó la solicitud de lectura. Revisa el código de error abajo:
+                        </p>
+                        <div class="error-code">
+                            ${error.code} - ${error.message}
+                        </div>
+                    </div>`;
+            });
+        }
+    </script>
+</body>
+</html>

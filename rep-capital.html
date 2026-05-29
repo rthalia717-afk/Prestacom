@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <script>
+        // 🔒 FILTRO DE SEGURIDAD CRÍTICO
+        if (!localStorage.getItem('id_empresa')) {
+            window.location.href = "login.html";
+        }
+        if (localStorage.getItem('rol_usuario') === 'Mensajero') {
+            window.location.href = "index.html";
+        }
+    </script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRESTACOM 2.0 - Capital en la Calle</title>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            color: #1F2937;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 480px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background-color: #111827;
+            color: white;
+            padding: 18px 20px;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            color: #9CA3AF;
+            font-size: 1.6rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+
+        .header-title h1 {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        main {
+            padding: 15px 20px;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+            gap: 15px;
+        }
+
+        /* 📊 TARJETA PRINCIPAL DEL BALANCE */
+        .balance-card {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: white;
+            border-radius: 16px;
+            padding: 18px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .balance-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #94a3b8;
+            font-weight: 700;
+        }
+
+        .balance-amount {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #2ecc71;
+        }
+
+        /* 📈 BARRA DE PROGRESO */
+        .progress-container {
+            margin-top: 2px;
+        }
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.7rem;
+            color: #94a3b8;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+        .progress-bar-bg {
+            background: #334155;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            background: #2ecc71;
+            height: 100%;
+            width: 0%; /* Cambia dinámicamente */
+            transition: width 0.5s ease-in-out;
+        }
+
+        /* 👥 SUB-TOTALES DISTRIBUIDOS */
+        .mini-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .mini-card {
+            background: white;
+            border-radius: 12px;
+            padding: 10px 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        }
+        .mini-card p { font-size: 0.7rem; color: #6B7280; font-weight: 600; }
+        .mini-card h4 { font-size: 0.95rem; font-weight: 700; color: #1E293B; margin-top: 2px; }
+        .txt-blue { color: #3498db !important; }
+
+        /* 🔍 BUSCADOR INTERNO */
+        .search-box {
+            position: relative;
+            flex-shrink: 0;
+        }
+        .search-box input {
+            width: 100%;
+            padding: 10px 15px 10px 40px;
+            border: 1px solid #CBD5E1;
+            border-radius: 12px;
+            font-size: 0.88rem;
+            outline: none;
+            background: white;
+        }
+        .search-box i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94A3B8;
+            font-size: 1.1rem;
+        }
+
+        /* 📜 LISTA DE DEUDORES */
+        .list-container {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding-bottom: 10px;
+        }
+
+        .debtor-card {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .debtor-left h4 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #1E293B;
+        }
+        .debtor-left p {
+            font-size: 0.72rem;
+            color: #6B7280;
+            margin-top: 1px;
+        }
+
+        .debtor-right {
+            text-align: right;
+        }
+        .debtor-pending {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #1E293B;
+        }
+        .debtor-progress-text {
+            font-size: 0.68rem;
+            color: #6B7280;
+            margin-top: 1px;
+        }
+
+        .no-data {
+            text-align: center;
+            color: #9CA3AF;
+            font-size: 0.85rem;
+            margin-top: 30px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <header>
+            <button class="back-btn" onclick="window.location.href='reportes.html'"><i class='bx bx-left-arrow-alt'></i></button>
+            <div class="header-title">
+                <h1>Capital en la Calle</h1>
+            </div>
+        </header>
+
+        <main>
+            <!-- 📊 Tarjeta de Balance General en la Calle -->
+            <div class="balance-card">
+                <div>
+                    <div class="balance-title">Capital Neto Pendiente</div>
+                    <div class="balance-amount" id="txt-capital-calle">RD$ 0.00</div>
+                </div>
+                
+                <!-- Barra de Cobro Colectado vs Pendiente -->
+                <div class="progress-container">
+                    <div class="progress-label">
+                        <span>Progreso de Retorno</span>
+                        <span id="txt-porcentaje-retorno">0%</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" id="bar-progreso"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 👥 Sub Indicadores -->
+            <div class="mini-stats">
+                <div class="mini-card">
+                    <p>Total Capital Prestado</p>
+                    <h4 id="txt-total-invertido">RD$ 0.00</h4>
+                </div>
+                <div class="mini-card">
+                    <p>Total Capital Cobrado</p>
+                    <h4 id="txt-total-recuperado" class="txt-blue">RD$ 0.00</h4>
+                </div>
+            </div>
+
+            <!-- 🔍 Buscador de Clientes Deudores -->
+            <div class="search-box">
+                <i class='bx bx-search'></i>
+                <input type="text" id="input-buscar" placeholder="Buscar cliente con balance activo...">
+            </div>
+
+            <!-- 📜 Desglose por deudor -->
+            <div class="list-container" id="lista-deudores">
+                <div class="no-data"><i class="bx bx-loader-alt bx-spin"></i> Calculando cartera activa...</div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        document.getElementById('input-buscar').addEventListener('input', filtrarClientes);
+        
+        let deudoresBase = []; // Almacén local de datos para el buscador
+
+        function calcularCartera() {
+            // Simulación de los datos reales extraídos de tu base de datos local o remota
+            // Cada objeto representa el estado de capital de un préstamo activo de un cliente
+            setTimeout(() => {
+                deudoresBase = []; 
+
+                if (deudoresBase.length === 0) {
+                    document.getElementById('lista-deudores').innerHTML = '<div class="no-data">No hay ningún capital activo en la calle.</div>';
+                    return;
+                }
+
+                renderizarLista(deudoresBase);
+                actualizarDashboard(deudoresBase);
+            }, 500);
+        }
+
+        function renderizarLista(datos) {
+            const container = document.getElementById('lista-deudores');
+            container.innerHTML = "";
+
+            if(datos.length === 0) {
+                container.innerHTML = '<div class="no-data">No se encontraron clientes coincidentes.</div>';
+                return;
+            }
+
+            datos.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'debtor-card';
+                card.innerHTML = `
+                    <div class="debtor-left">
+                        <h4>${item.cliente}</h4>
+                        <p>Prestado: RD$ ${parseFloat(item.original).toLocaleString('es-DO')}</p>
+                    </div>
+                    <div class="debtor-right">
+                        <div class="debtor-pending">RD$ ${parseFloat(item.pendiente).toLocaleString('es-DO', {minimumFractionDigits: 2})}</div>
+                        <div class="debtor-progress-text">Cobrado: ${item.pct}%</div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function actualizarDashboard(datos) {
+            let totalInvertido = 0;
+            let totalPendiente = 0;
+
+            datos.forEach(item => {
+                totalInvertido += item.original;
+                totalPendiente += item.pendiente;
+            });
+
+            let totalRecuperado = totalInvertido - totalPendiente;
+            let pctRetorno = totalInvertido > 0 ? Math.round((totalRecuperado / totalInvertido) * 100) : 0;
+
+            // Actualizar textos en pantalla
+            document.getElementById('txt-capital-calle').textContent = `RD$ ${totalPendiente.toLocaleString('es-DO', {minimumFractionDigits: 2})}`;
+            document.getElementById('txt-total-invertido').textContent = `RD$ ${totalInvertido.toLocaleString('es-DO', {minimumFractionDigits: 2})}`;
+            document.getElementById('txt-total-recuperado').textContent = `RD$ ${totalRecuperado.toLocaleString('es-DO', {minimumFractionDigits: 2})}`;
+            document.getElementById('txt-porcentaje-retorno').textContent = `${pctRetorno}%`;
+            
+            // Animación de la barra de progreso
+            document.getElementById('bar-progreso').style.width = `${pctRetorno}%`;
+        }
+
+        function filtrarClientes(e) {
+            const busqueda = e.target.value.toLowerCase().trim();
+            const filtrados = deudoresBase.filter(item => 
+                item.cliente.toLowerCase().includes(busqueda)
+            );
+            renderizarLista(filtrados);
+        }
+
+        // Ejecutar el cálculo automático al entrar
+        calcularCartera();
+    </script>
+</body>
+</html>
