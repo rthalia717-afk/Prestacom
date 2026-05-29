@@ -3,154 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRESTACOM 2.0 - Registrar Cobro</title>
+    <title>PRESTACOM 2.0 - Diagnóstico</title>
     <link href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#1e293b">
-    
     <style>
-        :root {
-            --primary: #1e293b;
-            --accent: #ff6600;
-            --bg: #f1f5f9;
-            --surface: #ffffff;
-            --text: #334155;
-            --border: #cbd5e1;
-            
-            /* Nuevos colores para la vistosidad de los datos */
-            --texto-izq-verde: #16a34a;  /* Verde llamativo para las etiquetas */
-            --texto-der-azul: #1d4ed8;   /* Azul elegante para los datos del cliente */
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: var(--bg); color: var(--text); padding-bottom: 30px; }
-
-        /* Cabecera dinámica */
-        .header { background-color: var(--primary); color: white; padding: 15px; text-align: center; font-size: 18px; font-weight: bold; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
-        .header a { color: white; text-decoration: none; font-size: 24px; display: flex; align-items: center; }
-
-        .container { padding: 15px; max-width: 500px; margin: 0 auto; }
-
-        .seccion-titulo { font-size: 16px; font-weight: bold; color: #475569; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
-
-        /* 📋 VISTA 1: LISTA DE CLIENTES ACTIVOS */
-        .lista-clientes { display: flex; flex-direction: column; gap: 10px; }
-        
-        .tarjeta-cliente-item { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: transform 0.1s; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-        .tarjeta-cliente-item:active { transform: scale(0.98); background-color: #f8fafc; }
-        
-        .cliente-info-principal h4 { font-size: 16px; color: #0f172a; margin-bottom: 2px; }
-        .cliente-info-principal p { font-size: 13px; color: #64748b; }
-        
-        .cliente-monto-badge { text-align: right; }
-        .cliente-monto-badge .cuota-valor { font-size: 15px; font-weight: bold; color: var(--accent); }
-        .cliente-monto-badge .balance-total { font-size: 11px; color: #94a3b8; }
-
-        /* 🖼️ VISTA 2: CUADRO FINANCIERO DEL CLIENTE SELECCIONADO */
-        .card-financiera { background: var(--surface); border-radius: 14px; padding: 18px; border: 1px solid var(--border); box-shadow: 0 4px 10px rgba(0,0,0,0.04); margin-bottom: 15px; }
-        
-        .info-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 15px; padding-bottom: 8px; border-bottom: 1px dashed #f1f5f9; }
-        .info-row:last-of-type { border-bottom: none; margin-bottom: 15px; }
-        
-        /* Letras de la izquierda en VERDE */
-        .info-row span:first-child { font-weight: 500; color: var(--texto-izq-verde); }
-        
-        /* Datos de la derecha (Cliente/Montos) en AZUL */
-        .info-row span:last-child { font-weight: 700; color: var(--texto-der-azul) !important; }
-
-        /* Inputs de Cobro Modificable */
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; color: var(--texto-izq-verde); }
-        
-        .input-wrapper { display: flex; align-items: center; background: var(--surface); border: 2px solid var(--border); border-radius: 10px; padding: 12px; transition: border-color 0.2s; }
-        .input-wrapper:focus-within { border-color: var(--accent); }
-        .input-wrapper span { font-size: 18px; font-weight: bold; margin-right: 5px; color: #334155; }
-        .input-wrapper input { border: none; width: 100%; font-size: 18px; outline: none; font-weight: bold; color: var(--texto-der-azul); }
-
-        /* Botón de Ejecución */
-        .btn-cobrar { background-color: var(--accent); color: white; border: none; width: 100%; padding: 15px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(255, 102, 0, 0.25); margin-top: 10px; }
-        .btn-cobrar:active { background-color: #e05a00; }
-        
-        .no-data { text-align: center; color: #94a3b8; padding: 20px; font-size: 14px; }
+        body { font-family: sans-serif; background: #f1f5f9; padding: 15px; color: #334155; }
+        .card-debug { background: white; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #cbd5e1; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        h3 { margin-bottom: 5px; color: #1e293b; }
+        pre { background: #1e293b; color: #f8fafc; padding: 10px; border-radius: 6px; overflow-x: auto; font-size: 13px; }
+        .info { background: #e0f2fe; padding: 10px; border-radius: 8px; color: #0369a1; font-weight: bold; margin-bottom: 15px; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <a href="javascript:void(0)" id="btn-atras" onclick="manejarBotonAtras()"><i class='bx bx-chevron-left'></i></a>
-        <span id="titulo-pantalla">Clientes Activos</span>
-        <div style="width: 24px;"></div>
-    </div>
+    <h2>🛠️ Modo Diagnóstico de Campos</h2>
+    <p class="info">Sube este código temporal. Aquí abajo verás cómo están escritos tus datos internamente en Firebase. Dime qué campos te salen.</p>
 
-    <div class="container">
-        
-        <div id="vista-listado">
-            <div class="seccion-titulo"><i class='bx bx-list-ul'></i> Selecciona un cliente para cobrar</div>
-            <div class="lista-clientes" id="tabla-clientes-inyectar">
-                <p class="no-data">Cargando cuentas reales de Firebase...</p>
-            </div>
-        </div>
-
-        <div id="vista-procesar-cobro" style="display: none;">
-            
-            <div class="card-financiera">
-                <div class="seccion-titulo" style="margin-bottom: 15px; color: var(--primary);"><i class='bx bx-wallet'></i> Estado del Crédito</div>
-                
-                <div class="info-row">
-                    <span>Cliente:</span>
-                    <span id="lbl-nombre-cliente">--</span>
-                </div>
-                <div class="info-row">
-                    <span>Monto Original:</span>
-                    <span id="lbl-monto-original">$0.00</span>
-                </div>
-                <div class="info-row">
-                    <span>Balance Pendiente Actual:</span>
-                    <span id="lbl-balance-actual">$0.00</span>
-                </div>
-                <div class="info-row">
-                    <span>Próxima Cuota:</span>
-                    <span id="lbl-numero-cuota">#0</span>
-                </div>
-                <div class="info-row">
-                    <span>Valor Sugerido Cuota:</span>
-                    <span id="lbl-valor-cuota-sugerido">$0.00</span>
-                </div>
-
-                <div class="form-group" style="margin-top: 15px;">
-                    <label for="txt-monto-recibido">Monto Real a Cobrar (Modificable)</label>
-                    <div class="input-wrapper">
-                        <span>$</span>
-                        <input type="number" id="txt-monto-recibido" placeholder="0.00" inputmode="decimal" oninput="calcularMatematicasSobrante()">
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>Devuelta / Sobrante al Cliente</label>
-                    <div class="input-wrapper" style="background-color: #f1f5f9; border-color: #e2e8f0;">
-                        <span>$</span>
-                        <input type="text" id="txt-devuelta" value="0.00" readonly style="background-color: #f1f5f9; color: var(--texto-der-azul);">
-                    </div>
-                </div>
-
-                <div class="info-row" style="border-top: 1px dashed var(--border); padding-top: 12px; margin-top: 10px;">
-                    <span>Nuevo Balance Restante:</span>
-                    <span id="lbl-nuevo-balance-restante">$0.00</span>
-                </div>
-
-                <button class="btn-cobrar" onclick="ejecutarTransaccionFinal()">
-                    <i class='bx bx-printer'></i> Realizar Pago e Imprimir
-                </button>
-            </div>
-
-        </div>
-
+    <div id="pantalla-debug">
+        <p>Cargando estructura de datos...</p>
     </div>
 
     <script type="module">
-        // INICIALIZACIÓN DE FIREBASE CONECTADO A TU BD REAL
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, doc, updateDoc, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyC5oHQtFWzLqY3JdpV_3pKY40rx00o6Gu4",
@@ -165,219 +39,35 @@
         const db = getFirestore(app);
 
         const idEmpresaLogueada = localStorage.getItem('id_empresa');
-        if (!idEmpresaLogueada) {
-            window.location.href = "login.html";
-        }
 
-        let prestamosActivosBD = [];
-        let clienteSeleccionado = null;
-
-        // Escucha en tiempo real de los datos reales de la Base de Datos
         const q = query(
             collection(db, "clientes_prestamo"), 
             where("id_empresa", "==", idEmpresaLogueada)
         );
 
         onSnapshot(q, (snapshot) => {
-            prestamosActivosBD = [];
-            const contenedor = document.getElementById('tabla-clientes-inyectar');
-            
+            const contenedor = document.getElementById('pantalla-debug');
+            contenedor.innerHTML = "";
+
             if (snapshot.empty) {
-                contenedor.innerHTML = '<p class="no-data">No se encontraron préstamos activos.</p>';
+                contenedor.innerHTML = "<p>No se encontraron documentos en 'clientes_prestamo' para esta empresa.</p>";
                 return;
             }
 
             snapshot.forEach((doc) => {
                 const data = doc.data();
+                const card = document.createElement('div');
+                card.className = "card-debug";
                 
-                // Mapeo adaptativo inteligente según los campos de tu base de datos
-                let nombreMapeado = data.nombre || data.cliente || "Sin Nombre"; 
-                let mOriginal = parseFloat(data.monto_original) || parseFloat(data.monto) || parseFloat(data.monto_prestado) || 0;
-                
-                let bActual = mOriginal;
-                if (data.balance_actual !== undefined && data.balance_actual !== "") {
-                    bActual = parseFloat(data.balance_actual);
-                } else if (data.balance !== undefined && data.balance !== "") {
-                    bActual = parseFloat(data.balance);
-                }
-
-                let cNum = parseInt(data.cuota_num) || parseInt(data.cuota) || parseInt(data.proxima_cuota) || 1;
-                let vCuota = parseFloat(data.valor_cuota) || parseFloat(data.monto_cuota) || parseFloat(data.valorCuota) || 0;
-
-                prestamosActivosBD.push({
-                    id: doc.id,
-                    cliente: nombreMapeado,
-                    monto_original: mOriginal,
-                    balance_actual: bActual,
-                    cuota_num: cNum,
-                    valor_cuota: vCuota
-                });
-            });
-
-            // Ordenar por nombre del cliente
-            prestamosActivosBD.sort((a, b) => a.cliente.localeCompare(b.cliente));
-            
-            // Inyectar en lista principal
-            contenedor.innerHTML = ""; 
-            prestamosActivosBD.forEach(p => {
-                const item = document.createElement('div');
-                item.className = "tarjeta-cliente-item";
-                item.setAttribute('onclick', `seleccionarCliente('${p.id}')`);
-                
-                item.innerHTML = `
-                    <div class="cliente-info-principal">
-                        <h4>${p.cliente}</h4>
-                        <p>Cuota Próxima: #${p.cuota_num}</p>
-                    </div>
-                    <div class="cliente-monto-badge">
-                        <div class="cuota-valor">$${p.valor_cuota.toLocaleString('es-DO', {minimumFractionDigits:2})}</div>
-                        <div class="balance-total">Debe: $${p.balance_actual.toLocaleString('es-DO', {minimumFractionDigits:2})}</div>
-                    </div>
+                // Mostramos el nombre del cliente y la estructura exacta de sus campos
+                card.innerHTML = `
+                    <h3>👤 Cliente: ${data.nombre || data.cliente || "Sin nombre explícito"}</h3>
+                    <p><strong>Campos reales en tu base de datos:</strong></p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
                 `;
-                contenedor.appendChild(item);
+                contenedor.appendChild(card);
             });
         });
-
-        function seleccionarCliente(idPrestamo) {
-            // Buscamos al cliente real en nuestro arreglo descargado de Firebase
-            clienteSeleccionado = prestamosActivosBD.find(p => p.id === idPrestamo);
-            if (!clienteSeleccionado) return;
-
-            // Transición de pantallas
-            document.getElementById('titulo-pantalla').innerText = "Procesar Cobro";
-            document.getElementById('vista-listado').style.display = "none";
-            document.getElementById('vista-procesar-cobro').style.display = "block";
-
-            // Pintar los datos reales con los estilos verde/azul seleccionados
-            document.getElementById('lbl-nombre-cliente').innerText = clienteSeleccionado.cliente;
-            document.getElementById('lbl-monto-original').innerText = "$" + clienteSeleccionado.monto_original.toLocaleString('es-DO', {minimumFractionDigits: 2});
-            document.getElementById('lbl-balance-actual').innerText = "$" + clienteSeleccionado.balance_actual.toLocaleString('es-DO', {minimumFractionDigits: 2});
-            document.getElementById('lbl-numero-cuota').innerText = "#" + clienteSeleccionado.cuota_num;
-            document.getElementById('lbl-valor-cuota-sugerido').innerText = "$" + clienteSeleccionado.valor_cuota.toLocaleString('es-DO', {minimumFractionDigits: 2});
-            
-            // El input modificable recibe el monto por defecto de la cuota sugerida
-            document.getElementById('txt-monto-recibido').value = clienteSeleccionado.valor_cuota;
-            
-            // Calcular matemáticas al instante
-            calcularMatematicasSobrante();
-        }
-
-        function calcularMatematicasSobrante() {
-            if (!clienteSeleccionado) return;
-
-            const montoCobrado = parseFloat(document.getElementById('txt-monto-recibido').value) || 0;
-            const balanceActual = clienteSeleccionado.balance_actual;
-
-            let devuelta = 0;
-            let montoAAplicarAlBalance = montoCobrado;
-
-            // Si pagan más de lo que deben por completo, se calcula devuelta limpia
-            if (montoCobrado > balanceActual) {
-                devuelta = montoCobrado - balanceActual;
-                montoAAplicarAlBalance = balanceActual;
-            }
-
-            let nuevoBalance = balanceActual - montoAAplicarAlBalance;
-            if (nuevoBalance < 0) nuevoBalance = 0;
-
-            document.getElementById('txt-devuelta').value = devuelta.toFixed(2);
-            document.getElementById('lbl-nuevo-balance-restante').innerText = "$" + nuevoBalance.toLocaleString('es-DO', {minimumFractionDigits: 2});
-        }
-
-        async function ejecutarTransaccionFinal() {
-            if (!clienteSeleccionado) return;
-
-            const montoCobrado = parseFloat(document.getElementById('txt-monto-recibido').value) || 0;
-            if (montoCobrado <= 0) {
-                alert("Introduce un monto válido superior a cero.");
-                return;
-            }
-
-            const balanceActual = clienteSeleccionado.balance_actual;
-            let devueltaCalculada = 0;
-            let montoAAplicarAlBalance = montoCobrado;
-
-            if (montoCobrado > balanceActual) {
-                devueltaCalculada = montoCobrado - balanceActual;
-                montoAAplicarAlBalance = balanceActual;
-            }
-
-            let nuevoBalanceCalculado = balanceActual - montoAAplicarAlBalance;
-            let nuevaCuotaNumero = clienteSeleccionado.cuota_num + 1;
-
-            // Guardar cambios reales en la colección de Firebase
-            try {
-                const prestamoRef = doc(db, "clientes_prestamo", clienteSeleccionado.id);
-                await updateDoc(prestamoRef, {
-                    balance_actual: nuevoBalanceCalculado,
-                    cuota_num: nuevaCuotaNumero
-                });
-            } catch (error) {
-                console.error("Error al actualizar Firestore:", error);
-                alert("Error guardando en la nube. Se procederá únicamente con el ticket físico.");
-            }
-
-            // Estructura del Ticket de Impresión Térmica para RawBT
-            const fechaActual = new Date().toLocaleDateString('es-DO');
-            const horaActual = new Date().toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' });
-            
-            let t = "";
-            t += "================================\n";
-            t += "          PRESTACOM 2.0         \n";
-            t += "================================\n";
-            t += "Fecha: " + fechaActual + "  Hora: " + horaActual + "\n";
-            t += "Cliente: " + clienteSeleccionado.cliente + "\n";
-            t += "--------------------------------\n";
-            t += "Monto Original:   $" + clienteSeleccionado.monto_original.toFixed(2) + "\n";
-            t += "Balance Anterior: $" + balanceActual.toFixed(2) + "\n";
-            t += "--------------------------------\n";
-            t += "PAGO RECIBIDO (Cuota #" + clienteSeleccionado.cuota_num + ")\n";
-            t += "Efectivo Cobrado: $" + montoCobrado.toFixed(2) + "\n";
-            t += "Devuelta/Sobrante:$" + devueltaCalculada.toFixed(2) + "\n";
-            t += "--------------------------------\n";
-            t += "NUEVO BALANCE:    $" + nuevoBalanceCalculado.toFixed(2) + "\n";
-            t += "================================\n";
-            t += "    Gracias por su puntualidad   \n";
-            t += "================================\n\n\n\n";
-
-            try {
-                let bytes = new TextEncoder().encode(t);
-                let binario = Array.from(bytes, byte => String.fromCharCode(byte)).join('');
-                let base64Listo = btoa(binario);
-                window.location.href = "rawbt:base64," + base64Listo;
-            } catch (error) {
-                console.error("Error lanzando la app RawBT: ", error);
-            }
-
-            // Retorno suave a la lista principal limpia
-            setTimeout(() => {
-                document.getElementById('titulo-pantalla').innerText = "Clientes Activos";
-                document.getElementById('vista-procesar-cobro').style.display = "none";
-                document.getElementById('vista-listado').style.display = "block";
-                
-                clienteSeleccionado = null;
-                document.getElementById('txt-monto-recibido').value = "";
-                document.getElementById('txt-devuelta').value = "0.00";
-            }, 400);
-        }
-
-        function manejarBotonAtras() {
-            const vistaCobro = document.getElementById('vista-procesar-cobro');
-            if (vistaCobro.style.display === "block") {
-                document.getElementById('titulo-pantalla').innerText = "Clientes Activos";
-                document.getElementById('vista-procesar-cobro').style.display = "none";
-                document.getElementById('vista-listado').style.display = "block";
-                clienteSeleccionado = null;
-            } else {
-                window.location.href = "index.html";
-            }
-        }
-
-        // Mapeo al contexto de ventana global imprescindible debido al uso de módulos
-        window.seleccionarCliente = seleccionarCliente;
-        window.calcularMatematicasSobrante = calcularMatematicasSobrante;
-        window.ejecutarTransaccionFinal = ejecutarTransaccionFinal;
-        window.manejarBotonAtras = manejarBotonAtras;
     </script>
 </body>
 </html>
