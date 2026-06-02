@@ -12,9 +12,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PRESAFACIL - Panel Principal</title>
     
+    <!-- PWA CONFIGURATION -->
     <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#FF6600">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="logo.png">
+    
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 
     <style>
@@ -315,7 +319,15 @@
     </div>
 
     <script type="module">
-        // Control de Sesión y Roles
+        // 1. REGISTRO DEL SERVICE WORKER (PWA)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                .catch(err => console.log('SW error:', err));
+            });
+        }
+
+        // 2. Control de Sesión y Roles
         const nombreEmpresa = localStorage.getItem('nombre_company') || localStorage.getItem('nombre_empresa') || 'Ruta General';
         const rolUsuario = localStorage.getItem('rol_usuario') || 'Administrador';
         
@@ -334,7 +346,7 @@
             window.location.href = "login.html";
         });
 
-        // 🕒 FUNCIÓN DEL RELOJ Y FECHA DIGITAL
+        // 3. 🕒 FUNCIÓN DEL RELOJ Y FECHA DIGITAL
         function initClock() {
             const clockEl = document.getElementById('digital-clock');
             const dateEl = document.getElementById('current-date');
