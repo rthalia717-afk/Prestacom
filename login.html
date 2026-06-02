@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PRESA FÁCIL - Iniciar Sesión</title>
+    
+    <!-- PWA AGREGADO -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#FF6600">
+    <!-- FIN PWA -->
+
     <link rel="stylesheet" href="css/variable.css">
     
     <style>
@@ -201,6 +207,26 @@
             color: #ffffff;
         }
 
+        /* BOTÓN INSTALAR PWA (NUEVO) */
+        #btn-install {
+            width: 100%;
+            background: transparent;
+            color: #FF6600;
+            border: 1px solid #FF6600;
+            padding: 13px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 18px;
+            display: none; /* Se muestra vía JS */
+            transition: all 0.2s ease;
+        }
+
+        #btn-install:hover {
+            background: rgba(255, 102, 0, 0.1);
+        }
+
         /* MENSAJE DE ERROR MODERNO */
         .error-message {
             color: #ff8585;
@@ -248,7 +274,6 @@
             color: #cbd5e1;
         }
     </style>
-    <!-- Importación de fuente moderna para darle el toque final -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -274,6 +299,9 @@
             <button type="submit" class="btn-login" id="btn-submit">Ingresar al Sistema</button>
             
             <button type="button" class="btn-demo" id="btn-guest">✨ Explorar Demo de Prueba</button>
+
+            <!-- BOTÓN PWA AGREGADO -->
+            <button type="button" id="btn-install">📥 Instalar Aplicación</button>
         </form>
     </div>
 
@@ -284,6 +312,33 @@
     </div>
 
     <script type="module">
+        // --- CÓDIGO PWA ---
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                .catch(err => console.log('SW error:', err));
+            });
+        }
+
+        let deferredPrompt;
+        const btnInstall = document.getElementById('btn-install');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            btnInstall.style.display = 'block';
+        });
+
+        btnInstall.addEventListener('click', () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then(() => {
+                    deferredPrompt = null;
+                });
+            }
+        });
+        // --- FIN PWA ---
+
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
@@ -301,7 +356,6 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // LOGIN MANUAL POR FORMULARIO
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
 
@@ -358,7 +412,6 @@
             }
         });
 
-        // ACCESO DIRECTO PARA LA DEMO PÚBLICA
         document.getElementById('btn-guest').addEventListener('click', () => {
             localStorage.setItem('id_empresa', 'empresa_demo_general');
             localStorage.setItem('nombre_usuario', 'Inversionista de Prueba');
@@ -366,6 +419,5 @@
             window.location.href = "index.html";
         });
     </script>
-
 </body>
 </html>
