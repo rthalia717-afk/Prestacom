@@ -8,88 +8,110 @@
     <style>
         :root { --primary: #1e293b; --accent: #ff6600; --bg: #f1f5f9; }
         body { background-color: var(--bg); font-family: sans-serif; margin: 0; }
-        .header { background-color: var(--primary); color: white; padding: 15px; text-align: center; font-weight: bold; display: flex; align-items: center; justify-content: space-between; }
+        .header { background-color: var(--primary); color: white; padding: 15px; text-align: center; font-weight: bold; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
         .container { padding: 15px; max-width: 500px; margin: 0 auto; }
         .grid-modalidades { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
-        .opcion-pago { padding: 30px 10px; border-radius: 15px; text-align: center; font-weight: 900; cursor: pointer; border: 2px solid #ccc; text-transform: uppercase; }
-        .tarjeta-cliente-item { background: white; border-radius: 10px; padding: 15px; margin-bottom: 10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .opcion-pago { padding: 25px 10px; border-radius: 15px; text-align: center; font-weight: 900; cursor: pointer; border: 2px solid #334155; text-transform: uppercase; display: flex; flex-direction: column; align-items: center; gap: 10px; transition: transform 0.1s; }
+        .opcion-pago i { font-size: 2rem; }
+        .tarjeta-cliente-item { background: white; border-radius: 10px; padding: 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border-left: 5px solid var(--accent); }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <i class='bx bx-chevron-left' onclick="manejarBotonAtras()" style="font-size:24px; cursor:pointer;"></i>
+    <i class='bx bx-chevron-left' onclick="manejarBotonAtras()" style="font-size:28px; cursor:pointer;"></i>
     <span id="titulo-pantalla">Seleccionar Modalidad</span>
-    <div style="width: 24px;"></div>
+    <div style="width: 28px;"></div>
 </div>
 
 <div class="container">
     <div id="vista-modalidad">
         <div class="grid-modalidades">
-            <div class="opcion-pago" style="background:#d1e3ff" onclick="filtrarPorModalidad('Diario')">Diario</div>
-            <div class="opcion-pago" style="background:#d7edc9" onclick="filtrarPorModalidad('Semanal')">Semanal</div>
-            <div class="opcion-pago" style="background:#fff3c4" onclick="filtrarPorModalidad('Quincenal')">Quincenal</div>
-            <div class="opcion-pago" style="background:#e6dcf7" onclick="filtrarPorModalidad('Mensual')">Mensual</div>
+            <div class="opcion-pago" style="background:#d1e3ff" onclick="filtrarPorModalidad('Diario')"><i class='bx bx-calendar-check'></i>Diario</div>
+            <div class="opcion-pago" style="background:#d7edc9" onclick="filtrarPorModalidad('Semanal')"><i class='bx bx-briefcase'></i>Semanal</div>
+            <div class="opcion-pago" style="background:#fff3c4" onclick="filtrarPorModalidad('Quincenal')"><i class='bx bx-calendar-event'></i>Quincenal</div>
+            <div class="opcion-pago" style="background:#e6dcf7" onclick="filtrarPorModalidad('Mensual')"><i class='bx bx-calendar-alt'></i>Mensual</div>
         </div>
+        
+        <button onclick="window.location.href='index.html'" style="width:100%; margin-top:30px; padding:15px; background:#475569; color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">
+            <i class='bx bx-home-alt'></i> Volver al Dashboard
+        </button>
     </div>
 
     <div id="vista-listado" style="display: none;">
         <div id="tabla-clientes-inyectar"></div>
+        <button onclick="window.location.href='index.html'" style="width:100%; margin-top:20px; padding:15px; background:#475569; color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">
+            <i class='bx bx-home-alt'></i> Volver al Dashboard
+        </button>
+    </div>
+</div>
+
+<div id="modal-cobro" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:200; justify-content:center; align-items:center;">
+    <div style="background:white; padding:20px; border-radius:15px; width:90%; max-width:400px; position: relative;">
+        <i class='bx bx-arrow-back' onclick="cerrarModal()" style="position:absolute; top:15px; left:15px; font-size:24px; cursor:pointer; color:#64748b;"></i>
+        <h3 id="nombre-cliente-modal" style="margin-top: 25px; text-align: center;">Registrar Pago</h3>
+        <p id="balance-actual-modal" style="text-align: center; color: #475569; font-weight: bold;"></p>
+        <input type="number" id="input-monto-pago" placeholder="Monto a pagar ($)" style="width:100%; padding:15px; margin:10px 0; border:2px solid #e2e8f0; border-radius:8px; font-size:1rem; box-sizing:border-box;">
+        <div style="display:flex; gap:10px; margin-top: 15px;">
+            <button onclick="cerrarModal()" style="flex:1; padding:12px; background:#e2e8f0; border:none; border-radius:8px; font-weight:bold;">Cancelar</button>
+            <button onclick="guardarPago()" style="flex:1; padding:12px; background:#ff6600; color:white; border:none; border-radius:8px; font-weight:bold;">Confirmar</button>
+        </div>
     </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, collection, query, where, onSnapshot, doc, increment, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-    // --- COPIA TU CONFIGURACIÓN AQUÍ ---
-    const firebaseConfig = {
-        // ... pega aquí lo que tienes en tu otro archivo ...
-    };
-
+    const firebaseConfig = { /* Pega aquí tu configuración */ };
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const idEmpresaLogueada = localStorage.getItem('id_empresa');
+    const nombreUsuarioLogueado = localStorage.getItem('nombre_usuario') || "Admin";
 
     let todosLosPrestamos = [];
+    let clienteSeleccionado = null;
 
-    // Escucha en tiempo real todos los préstamos activos de la empresa
     onSnapshot(query(collection(db, "prestamos"), where("id_empresa", "==", idEmpresaLogueada), where("status", "==", "Activo")), (snapshot) => {
         todosLosPrestamos = [];
         snapshot.forEach(doc => todosLosPrestamos.push({ id: doc.id, ...doc.data() }));
     });
 
     window.filtrarPorModalidad = (frecuenciaTexto) => {
-        // Mapeamos el nombre a los números que guardaste en el otro código
         const mapeo = { 'Diario': 1, 'Semanal': 7, 'Quincenal': 15, 'Mensual': 30 };
-        const valorBuscado = mapeo[frecuenciaTexto];
-        
-        const filtrados = todosLosPrestamos.filter(p => p.modalidad_dias === valorBuscado);
+        const filtrados = todosLosPrestamos.filter(p => p.modalidad_dias === mapeo[frecuenciaTexto]);
         
         document.getElementById('vista-modalidad').style.display = "none";
         document.getElementById('vista-listado').style.display = "block";
         document.getElementById('titulo-pantalla').innerText = "Cobros: " + frecuenciaTexto;
 
         const contenedor = document.getElementById('tabla-clientes-inyectar');
-        contenedor.innerHTML = filtrados.length ? "" : `<p>No hay préstamos pendientes en ${frecuenciaTexto}.</p>`;
+        contenedor.innerHTML = filtrados.length ? "" : `<p style="text-align:center;">No hay préstamos.</p>`;
         
         filtrados.forEach(p => {
             const item = document.createElement('div');
             item.className = "tarjeta-cliente-item";
-            item.innerHTML = `<div><strong>${p.nombre_cliente}</strong></div><div>$${Number(p.balance_pendiente).toLocaleString()}</div>`;
-            item.onclick = () => alert("Redirigiendo a cobro de: " + p.id);
+            const pString = JSON.stringify(p).replace(/"/g, '&quot;');
+            item.innerHTML = `<div><strong>${p.nombre_cliente}</strong><br><small>$${Number(p.balance_pendiente).toLocaleString()}</small></div>
+            <button onclick="abrirModal(${pString})" style="background:#ff6600; color:white; border:none; padding:10px 15px; border-radius:8px; font-weight:bold;">Cobrar</button>`;
             contenedor.appendChild(item);
         });
     };
 
-    window.manejarBotonAtras = () => {
-        if (document.getElementById('vista-listado').style.display === "block") {
-            document.getElementById('vista-listado').style.display = "none";
-            document.getElementById('vista-modalidad').style.display = "block";
-            document.getElementById('titulo-pantalla').innerText = "Seleccionar Modalidad";
-        } else {
-            window.location.href = "index.html";
-        }
+    window.abrirModal = (p) => { clienteSeleccionado = p; document.getElementById('nombre-cliente-modal').innerText = p.nombre_cliente; document.getElementById('balance-actual-modal').innerText = "Pendiente: $" + Number(p.balance_pendiente).toLocaleString(); document.getElementById('modal-cobro').style.display = "flex"; };
+    window.cerrarModal = () => { document.getElementById('modal-cobro').style.display = "none"; };
+    window.guardarPago = async () => {
+        const monto = parseFloat(document.getElementById('input-monto-pago').value);
+        if (!monto) return;
+        await runTransaction(db, async (t) => { t.update(doc(db, "prestamos", clienteSeleccionado.id), { balance_pendiente: increment(-monto) }); t.add(collection(db, "pagos"), { id_prestamo: clienteSeleccionado.id, monto, fecha: new Date().toISOString() }); });
+        alert("Pago registrado"); cerrarModal();
+    };
+    window.manejarBotonAtras = () => { 
+        if(document.getElementById('vista-listado').style.display === "block") { 
+            document.getElementById('vista-listado').style.display = "none"; 
+            document.getElementById('vista-modalidad').style.display = "block"; 
+            document.getElementById('titulo-pantalla').innerText = "Seleccionar Modalidad"; 
+        } else { window.location.href = "index.html"; } 
     };
 </script>
 </body>
