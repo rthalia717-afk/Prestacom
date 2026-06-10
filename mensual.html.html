@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Préstamos Mensuales - PRESAFACIL</title>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; padding: 20px; color: #1F2937; }
+        .app-container { max-width: 480px; margin: auto; }
+        .card { background: white; padding: 16px; margin-bottom: 12px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        h2 { font-size: 1.5rem; margin-bottom: 20px; }
+        .btn-pago { background: #8B5CF6; color: white; border: none; padding: 12px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-pago:active { transform: scale(0.98); }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <h2>Préstamos Mensuales</h2>
+        <div id="lista-mensual">Cargando clientes...</div>
+    </div>
+
+    <script type="module">
+        import { db } from "./firebase-init.js";
+        import { collection, query, where, getDocs, writeBatch, doc, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        const idEmpresa = localStorage.getItem('id_empresa');
+        const nombreEmpresa = localStorage.getItem('nombre_company') || 'PRESAFACIL';
+        const container = document.getElementById('lista-mensual');
+
+        // 1. Cargar clientes mensuales
+        async function cargarMensuales() {
+            try {
+                const q = query(collection(db, "prestamos"), 
+                    where("id_empresa", "==", idEmpresa),
+                    where("modalidad_dias", "==", 30),
+                    where("status", "==", "Activo")
+                );
+
+                const snapshot = await getDocs(q);
+                container.innerHTML = "";
+
+                if (snapshot.empty) {
+                    container.innerHTML = "<p style='text-align:center;'>No hay préstamos mensuales activos.</p>";
+                    return;
+                }
+
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.innerHTML = `
+                        <h3>${data.nombre_cliente}</h3>
+                        <p>Pendientes: <b>${data.cuotas_restantes}</b> cuotas</p>
+                        <button class="btn-pago">💵 Registrar Pago</button>
+                    `;
+                    card.querySelector('button').onclick = () => procesarCobro(doc.id, data);
+                    container.appendChild(card);
+                });
+            } catch (error) {
+                container.innerHTML = "<p>Error de conexión.</p>";
+            }
+        }
+
+        // 2. Procesar pago
+        window.procesarCobro = async (idPrestamo, data) => {
+            const monto = prompt(`Cobro a: ${data.nombre_cliente}\nIngrese el monto:`);
+            if (!monto || isNaN(monto)) return;
+
+            try {
+                const batch = writeBatch(db);
+                const prestamoRef = doc(db, "prestamos", idPrestamo);
+                const pagoRef = doc(collection(db, "pagos"));
+
+                batch.update(prestamoRef, { 
+                    cuotas_restantes: increment(-1),
+                    ultima_actualizacion: serverTimestamp() 
+                });
+                batch.set(pagoRef, { 
+                    id_prestamo: idPrestamo, monto: parseFloat(monto), 
+                    fecha: serverTimestamp(), id_empresa: idEmpresa 
+                });
+
+                await batch.commit();
+                
+                generarTicket(data.nombre_cliente, monto, data.cuotas_restantes - 1);
+                alert("¡Pago registrado!");
+                cargarMensuales();
+            } catch (e) {
+                alert("Error al guardar.");
+            }
+        };
+
+        // 3. Imprimir Ticket
+        function generarTicket(nombre, monto, restantes) {
+            const ticketWindow = window.open('', '_blank', 'width=300,height=500');
+            ticketWindow.document.write(`
+                <div style="font-family: monospace; text-align: center; width: 280px;">
+                    <h2>${nombreEmpresa}</h2>
+                    <p>Recibo de Pago</p>
+                    <div style="border-bottom: 1px dashed #000;"></div>
+                    <p style="text-align: left;">Cliente: ${nombre}</p>
+                    <p style="text-align: left;">Monto: $${monto}</p>
+                    <p style="text-align: left;">Cuotas Restantes: ${restantes}</p>
+                    <p style="text-align: left;">Fecha: ${new Date().toLocaleDateString()}</p>
+                    <div style="border-bottom: 1px dashed #000;"></div>
+                    <p>¡Gracias por su pago!</p>
+                </div>
+            `);
+            ticketWindow.document.close();
+            ticketWindow.print();
+        }
+
+        cargarMensuales();
+    </script>
+</body>
+</html>
