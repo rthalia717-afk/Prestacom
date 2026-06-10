@@ -3,116 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRESTACOM 2.0 - Cobros</title>
-    <link href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <title>Registrar Cobro - PRESTACOM</title>
     <style>
-        :root { --primary: #1e293b; --accent: #ff6600; --bg: #f1f5f9; }
-        body { background-color: var(--bg); font-family: sans-serif; margin: 0; }
-        .header { background-color: var(--primary); color: white; padding: 15px; text-align: center; font-weight: bold; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
-        .container { padding: 15px; max-width: 500px; margin: 0 auto; }
-        .grid-modalidades { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
-        .opcion-pago { padding: 25px 10px; border-radius: 15px; text-align: center; font-weight: 900; cursor: pointer; border: 2px solid #334155; text-transform: uppercase; display: flex; flex-direction: column; align-items: center; gap: 10px; transition: transform 0.1s; }
-        .opcion-pago i { font-size: 2rem; }
-        .tarjeta-cliente-item { background: white; border-radius: 10px; padding: 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border-left: 5px solid var(--accent); }
+        * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: #F9FAFB; padding: 20px; max-width: 500px; margin: auto; }
+        
+        /* Botón Volver */
+        .btn-volver { display: flex; align-items: center; text-decoration: none; color: #6B7280; font-weight: 600; margin-bottom: 20px; }
+
+        /* Grid Modalidades */
+        .grid-modalidades { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
+        .btn-modalidad { 
+            padding: 25px 10px; border-radius: 18px; border: none; color: white; 
+            font-weight: bold; font-size: 0.9rem; cursor: pointer; transition: transform 0.2s; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .btn-diario { background: #3B82F6; }
+        .btn-semanal { background: #10B981; }
+        .btn-quincenal { background: #F59E0B; }
+        .btn-mensual { background: #8B5CF6; }
+        .btn-modalidad:active { transform: scale(0.95); }
+
+        /* Estilo de las Tarjetas (v2-card) */
+        .v2-card {
+            background: #FFFFFF; border-radius: 20px; padding: 18px; margin-bottom: 15px;
+            display: flex; align-items: center; gap: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #F0F0F0;
+        }
+        .indicator { width: 6px; height: 50px; border-radius: 4px; }
+        .bg-diario { background: #3B82F6; }
+        .bg-semanal { background: #10B981; }
+        .bg-quincenal { background: #F59E0B; }
+        .bg-mensual { background: #8B5CF6; }
+        .user-info h3 { margin: 0; font-size: 1rem; color: #1F2937; }
+        .user-info p { margin: 0; font-size: 0.8rem; color: #6B7280; }
     </style>
 </head>
 <body>
 
-<div class="header">
-    <i class='bx bx-chevron-left' onclick="manejarBotonAtras()" style="font-size:28px; cursor:pointer;"></i>
-    <span id="titulo-pantalla">Seleccionar Modalidad</span>
-    <div style="width: 28px;"></div>
-</div>
+    <a href="index.html" class="btn-volver">⬅ Volver al Menú</a>
 
-<div class="container">
-    <div id="vista-modalidad">
-        <div class="grid-modalidades">
-            <div class="opcion-pago" style="background:#d1e3ff" onclick="filtrarPorModalidad('Diario')"><i class='bx bx-calendar-check'></i>Diario</div>
-            <div class="opcion-pago" style="background:#d7edc9" onclick="filtrarPorModalidad('Semanal')"><i class='bx bx-briefcase'></i>Semanal</div>
-            <div class="opcion-pago" style="background:#fff3c4" onclick="filtrarPorModalidad('Quincenal')"><i class='bx bx-calendar-event'></i>Quincenal</div>
-            <div class="opcion-pago" style="background:#e6dcf7" onclick="filtrarPorModalidad('Mensual')"><i class='bx bx-calendar-alt'></i>Mensual</div>
-        </div>
-        
-        <button onclick="window.location.href='index.html'" style="width:100%; margin-top:30px; padding:15px; background:#475569; color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">
-            <i class='bx bx-home-alt'></i> Volver al Dashboard
-        </button>
+    <h2>Registrar Cobro</h2>
+    <div class="grid-modalidades">
+        <button class="btn-modalidad btn-diario" onclick="cargarCobros(1, 'diario')">DIARIO</button>
+        <button class="btn-modalidad btn-semanal" onclick="cargarCobros(7, 'semanal')">SEMANAL</button>
+        <button class="btn-modalidad btn-quincenal" onclick="cargarCobros(15, 'quincenal')">QUINCENAL</button>
+        <button class="btn-modalidad btn-mensual" onclick="cargarCobros(30, 'mensual')">MENSUAL</button>
     </div>
 
-    <div id="vista-listado" style="display: none;">
-        <div id="tabla-clientes-inyectar"></div>
-        <button onclick="window.location.href='index.html'" style="width:100%; margin-top:20px; padding:15px; background:#475569; color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">
-            <i class='bx bx-home-alt'></i> Volver al Dashboard
-        </button>
-    </div>
-</div>
+    <div id="lista-clientes"></div>
 
-<div id="modal-cobro" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:200; justify-content:center; align-items:center;">
-    <div style="background:white; padding:20px; border-radius:15px; width:90%; max-width:400px; position: relative;">
-        <i class='bx bx-arrow-back' onclick="cerrarModal()" style="position:absolute; top:15px; left:15px; font-size:24px; cursor:pointer; color:#64748b;"></i>
-        <h3 id="nombre-cliente-modal" style="margin-top: 25px; text-align: center;">Registrar Pago</h3>
-        <p id="balance-actual-modal" style="text-align: center; color: #475569; font-weight: bold;"></p>
-        <input type="number" id="input-monto-pago" placeholder="Monto a pagar ($)" style="width:100%; padding:15px; margin:10px 0; border:2px solid #e2e8f0; border-radius:8px; font-size:1rem; box-sizing:border-box;">
-        <div style="display:flex; gap:10px; margin-top: 15px;">
-            <button onclick="cerrarModal()" style="flex:1; padding:12px; background:#e2e8f0; border:none; border-radius:8px; font-weight:bold;">Cancelar</button>
-            <button onclick="guardarPago()" style="flex:1; padding:12px; background:#ff6600; color:white; border:none; border-radius:8px; font-weight:bold;">Confirmar</button>
-        </div>
-    </div>
-</div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getFirestore, collection, query, where, onSnapshot, doc, increment, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        // PEGA AQUÍ TU CONFIGURACIÓN DE FIREBASE
+        const firebaseConfig = {
+            // ... (Tu objeto firebaseConfig de index.html)
+        };
 
-    const firebaseConfig = { /* Pega aquí tu configuración */ };
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const idEmpresaLogueada = localStorage.getItem('id_empresa');
-    const nombreUsuarioLogueado = localStorage.getItem('nombre_usuario') || "Admin";
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const idEmpresa = localStorage.getItem('id_empresa');
 
-    let todosLosPrestamos = [];
-    let clienteSeleccionado = null;
+        window.cargarCobros = async (dias, clase) => {
+            const container = document.getElementById('lista-clientes');
+            container.innerHTML = "Cargando...";
 
-    onSnapshot(query(collection(db, "prestamos"), where("id_empresa", "==", idEmpresaLogueada), where("status", "==", "Activo")), (snapshot) => {
-        todosLosPrestamos = [];
-        snapshot.forEach(doc => todosLosPrestamos.push({ id: doc.id, ...doc.data() }));
-    });
+            try {
+                const q = query(collection(db, "prestamos"), 
+                    where("id_empresa", "==", idEmpresa),
+                    where("modalidad_dias", "==", dias), 
+                    where("status", "==", "Activo")
+                );
+                const snapshot = await getDocs(q);
+                
+                container.innerHTML = "";
+                if(snapshot.empty) container.innerHTML = "<p>No hay préstamos activos en esta modalidad.</p>";
 
-    window.filtrarPorModalidad = (frecuenciaTexto) => {
-        const mapeo = { 'Diario': 1, 'Semanal': 7, 'Quincenal': 15, 'Mensual': 30 };
-        const filtrados = todosLosPrestamos.filter(p => p.modalidad_dias === mapeo[frecuenciaTexto]);
-        
-        document.getElementById('vista-modalidad').style.display = "none";
-        document.getElementById('vista-listado').style.display = "block";
-        document.getElementById('titulo-pantalla').innerText = "Cobros: " + frecuenciaTexto;
-
-        const contenedor = document.getElementById('tabla-clientes-inyectar');
-        contenedor.innerHTML = filtrados.length ? "" : `<p style="text-align:center;">No hay préstamos.</p>`;
-        
-        filtrados.forEach(p => {
-            const item = document.createElement('div');
-            item.className = "tarjeta-cliente-item";
-            const pString = JSON.stringify(p).replace(/"/g, '&quot;');
-            item.innerHTML = `<div><strong>${p.nombre_cliente}</strong><br><small>$${Number(p.balance_pendiente).toLocaleString()}</small></div>
-            <button onclick="abrirModal(${pString})" style="background:#ff6600; color:white; border:none; padding:10px 15px; border-radius:8px; font-weight:bold;">Cobrar</button>`;
-            contenedor.appendChild(item);
-        });
-    };
-
-    window.abrirModal = (p) => { clienteSeleccionado = p; document.getElementById('nombre-cliente-modal').innerText = p.nombre_cliente; document.getElementById('balance-actual-modal').innerText = "Pendiente: $" + Number(p.balance_pendiente).toLocaleString(); document.getElementById('modal-cobro').style.display = "flex"; };
-    window.cerrarModal = () => { document.getElementById('modal-cobro').style.display = "none"; };
-    window.guardarPago = async () => {
-        const monto = parseFloat(document.getElementById('input-monto-pago').value);
-        if (!monto) return;
-        await runTransaction(db, async (t) => { t.update(doc(db, "prestamos", clienteSeleccionado.id), { balance_pendiente: increment(-monto) }); t.add(collection(db, "pagos"), { id_prestamo: clienteSeleccionado.id, monto, fecha: new Date().toISOString() }); });
-        alert("Pago registrado"); cerrarModal();
-    };
-    window.manejarBotonAtras = () => { 
-        if(document.getElementById('vista-listado').style.display === "block") { 
-            document.getElementById('vista-listado').style.display = "none"; 
-            document.getElementById('vista-modalidad').style.display = "block"; 
-            document.getElementById('titulo-pantalla').innerText = "Seleccionar Modalidad"; 
-        } else { window.location.href = "index.html"; } 
-    };
-</script>
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    container.innerHTML += `
+                        <div class="v2-card">
+                            <div class="indicator bg-${clase}"></div>
+                            <div class="user-info">
+                                <h3>${data.nombre_cliente}</h3>
+                                <p>Pendientes: <strong>${data.cuotas_restantes}</strong> | Modalidad: ${clase.toUpperCase()}</p>
+                            </div>
+                        </div>
+                    `;
+                });
+            } catch (e) {
+                container.innerHTML = "Error al cargar los datos.";
+            }
+        }
+    </script>
 </body>
 </html>
