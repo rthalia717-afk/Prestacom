@@ -3,98 +3,155 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cobros Diarios - PRESTACOM</title>
+    <title>PRESA FACIL - Registrar Cobro</title>
+    <link href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1e293b">
+    
     <style>
-        * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body { background-color: #F9FAFB; padding: 20px; max-width: 500px; margin: auto; }
-        .btn-volver { display: flex; align-items: center; text-decoration: none; color: #6B7280; font-weight: 600; margin-bottom: 20px; }
-        .v2-card { background: #FFFFFF; border-radius: 20px; padding: 18px; margin-bottom: 15px; display: flex; align-items: center; gap: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #F0F0F0; cursor: pointer; transition: 0.2s; }
-        .v2-card:hover { background: #F9FAFB; }
-        .indicator { width: 6px; height: 50px; border-radius: 4px; background: #3B82F6; }
-        .user-info h3 { margin: 0; font-size: 1rem; color: #1F2937; }
-        .user-info p { margin: 0; font-size: 0.8rem; color: #6B7280; }
+        :root {
+            --primary: #1e293b;
+            --accent: #ff6600;
+            --bg: #f1f5f9;
+            --surface: #ffffff;
+            --text: #0f172a;
+            --border: #0f172a;
+            --texto-izq-verde: #16a34a;  
+            --texto-der-azul: #1d4ed8;   
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg); color: var(--text); padding-bottom: 30px; }
+
+        .header { background-color: var(--primary); color: white; padding: 15px; text-align: center; font-size: 18px; font-weight: bold; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+        .header a { color: white; text-decoration: none; font-size: 24px; display: flex; align-items: center; }
+
+        .container { padding: 15px; max-width: 500px; margin: 0 auto; }
+        .seccion-titulo { font-size: 16px; font-weight: 800; color: #0f172a; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; }
+
+        .lista-clientes { display: flex; flex-direction: column; gap: 10px; }
+        .tarjeta-cliente-item { background: var(--surface); border: 2px solid var(--border); border-radius: 14px; padding: 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: transform 0.1s; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .tarjeta-cliente-item:active { transform: scale(0.98); background-color: #f8fafc; }
+        
+        .cliente-info-principal h4 { font-size: 18px; font-weight: 900; color: #0f172a; text-transform: uppercase; }
+        .cliente-info-principal p { font-size: 13px; font-weight: 700; color: #475569; margin-top: 4px; }
+        
+        .cliente-monto-badge { text-align: right; }
+        .cliente-monto-badge .cuota-valor { font-size: 18px; font-weight: 900; color: var(--accent); }
+        .cliente-monto-badge .balance-total { font-size: 12px; font-weight: 800; color: #0f172a; margin-top: 2px; }
+
+        .card-financiera { background: var(--surface); border-radius: 14px; padding: 18px; border: 2px solid var(--border); box-shadow: 0 4px 10px rgba(0,0,0,0.04); margin-bottom: 15px; }
+        .info-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 16px; padding-bottom: 8px; border-bottom: 1px dashed #cbd5e1; }
+        .info-row:last-of-type { border-bottom: none; margin-bottom: 15px; }
+        
+        .info-row span:first-child { font-weight: 800; color: #0f172a; }
+        .info-row span:last-child { font-weight: 900; color: var(--texto-der-azul) !important; font-size: 17px; }
+
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; font-size: 15px; font-weight: 800; margin-bottom: 8px; color: #0f172a; }
+        
+        .input-wrapper { display: flex; align-items: center; background: var(--surface); border: 2.5px solid #0f172a; border-radius: 14px; padding: 14px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); }
+        .input-wrapper span { font-size: 20px; font-weight: 900; margin-right: 6px; color: #0f172a; }
+        .input-wrapper input { border: none; width: 100%; font-size: 22px; outline: none; font-weight: 900; color: #0f172a; }
+
+        .btn-cobrar { background-color: var(--accent); color: white; border: 2.5px solid #0f172a; width: 100%; padding: 16px; border-radius: 14px; font-size: 18px; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(255, 102, 0, 0.2); margin-top: 10px; text-transform: uppercase; }
+        .btn-cobrar:active { transform: scale(0.99); }
+        .no-data { text-align: center; color: #94a3b8; padding: 20px; font-size: 14px; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <a href="cobros.html" class="btn-volver">⬅ Volver a Modalidades</a>
-    <h2>Cobros Diarios</h2>
-    <div id="lista-diaria">Cargando préstamos diarios...</div>
+    <div class="header">
+        <a href="javascript:void(0)" id="btn-atras" onclick="manejarBotonAtras()"><i class='bx bx-chevron-left'></i></a>
+        <span id="titulo-pantalla" style="font-weight: 900; text-transform: uppercase;">Cobros Diarios</span>
+        <div style="width: 24px;"></div>
+    </div>
+
+    <div class="container">
+        <div id="vista-listado">
+            <div class="seccion-titulo"><i class='bx bx-list-ul'></i> Clientes Diarios Activos</div>
+            <div class="lista-clientes" id="tabla-clientes-inyectar">
+                <p class="no-data">Cargando...</p>
+            </div>
+        </div>
+
+        <div id="vista-procesar-cobro" style="display: none;">
+            <div class="card-financiera">
+                <div class="info-row"><span>Cliente:</span><span id="lbl-nombre-cliente">--</span></div>
+                <div class="info-row"><span>Monto Original:</span><span id="lbl-monto-original">$0.00</span></div>
+                <div class="info-row"><span>Balance Pendiente:</span><span id="lbl-balance-actual">$0.00</span></div>
+                <div class="info-row"><span>Próxima Cuota:</span><span id="lbl-numero-cuota">--</span></div>
+                <div class="info-row"><span>Valor Cuota:</span><span id="lbl-valor-cuota-sugerido">$0.00</span></div>
+                <div class="form-group">
+                    <label>Monto Real a Cobrar</label>
+                    <div class="input-wrapper"><span>$</span><input type="number" id="txt-monto-recibido" oninput="calcularMatematicasSobrante()"></div>
+                </div>
+                <div class="form-group">
+                    <label>Devuelta</label>
+                    <div class="input-wrapper" style="background-color: #f8fafc;"><input type="text" id="txt-devuelta" readonly></div>
+                </div>
+                <button class="btn-cobrar" onclick="ejecutarTransaccionFinal()"><i class='bx bx-printer'></i> Realizar Pago</button>
+            </div>
+        </div>
+    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, collection, query, where, getDocs, writeBatch, doc, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, doc, updateDoc, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // PEGA TU CONFIGURACIÓN AQUÍ
-        const firebaseConfig = { /* ... */ };
+        const firebaseConfig = { /* Tus credenciales */ };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        const idEmpresa = localStorage.getItem('id_empresa');
+        const idEmpresaLogueada = localStorage.getItem('id_empresa');
 
-        async function cargarDiarios() {
-            const container = document.getElementById('lista-diaria');
-            try {
-                // Filtro específico para DIARIO (modalidad_dias == 1)
-                const q = query(collection(db, "prestamos"), 
-                    where("id_empresa", "==", idEmpresa),
-                    where("modalidad_dias", "==", 1), 
-                    where("status", "==", "Activo")
-                );
-                const snapshot = await getDocs(q);
-                container.innerHTML = "";
+        let prestamosActivosBD = [];
+        let clienteSeleccionado = null;
+
+        // FILTRO APLICADO AQUÍ
+        const q = query(
+            collection(db, "prestamos"), 
+            where("id_empresa", "==", idEmpresaLogueada),
+            where("status", "==", "Activo"),
+            where("modalidad_dias", "==", 1) 
+        );
+
+        onSnapshot(q, (snapshot) => {
+            prestamosActivosBD = [];
+            const contenedor = document.getElementById('tabla-clientes-inyectar');
+            
+            if (snapshot.empty) {
+                contenedor.innerHTML = '<p class="no-data">No hay préstamos diarios activos.</p>';
+                return;
+            }
+
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                let cuotasDetalle = data.cuotas_detalle || [];
+                let proximaCuotaObj = cuotasDetalle.find(c => c.status === 'Pendiente') || { numero_cuota: 1, monto_cuota: 0 };
                 
-                if(snapshot.empty) container.innerHTML = "<p>No hay préstamos diarios activos.</p>";
-
-                snapshot.forEach(docSnap => {
-                    const data = docSnap.data();
-                    const card = document.createElement('div');
-                    card.className = 'v2-card';
-                    card.innerHTML = `
-                        <div class="indicator"></div>
-                        <div class="user-info">
-                            <h3>${data.nombre_cliente}</h3>
-                            <p>Cuotas pendientes: <strong>${data.cuotas_restantes}</strong></p>
-                        </div>
-                    `;
-                    card.onclick = () => procesarPago(docSnap.id, data);
-                    container.appendChild(card);
+                prestamosActivosBD.push({
+                    id: doc.id,
+                    cliente: data.nombre_cliente,
+                    monto_original: data.monto_original,
+                    balance_actual: data.balance_pendiente,
+                    cuota_num: proximaCuotaObj.numero_cuota,
+                    valor_cuota: proximaCuotaObj.monto_cuota,
+                    cuotas_totales: data.cuotas_totales,
+                    cuotas_detalle_completo: cuotasDetalle
                 });
-            } catch (e) { container.innerHTML = "Error al conectar con la base de datos."; }
-        }
+            });
 
-        window.procesarPago = async (id, data) => {
-            const monto = prompt(`Cobro a: ${data.nombre_cliente}\nIngrese monto recibido:`);
-            if (!monto || isNaN(monto)) return;
+            contenedor.innerHTML = ""; 
+            prestamosActivosBD.forEach(p => {
+                const item = document.createElement('div');
+                item.className = "tarjeta-cliente-item";
+                item.setAttribute('onclick', `seleccionarCliente('${p.id}')`);
+                item.innerHTML = `<div><h4>${p.cliente}</h4><p>Cuota #${p.cuota_num}</p></div><div class="cliente-monto-badge"><div class="cuota-valor">$${p.valor_cuota}</div></div>`;
+                contenedor.appendChild(item);
+            });
+        });
 
-            try {
-                const batch = writeBatch(db);
-                batch.update(doc(db, "prestamos", id), { cuotas_restantes: increment(-1), ultima_actualizacion: serverTimestamp() });
-                batch.set(doc(collection(db, "pagos")), { id_prestamo: id, monto: parseFloat(monto), fecha: serverTimestamp(), id_empresa: idEmpresa });
-                await batch.commit();
-
-                // Imprimir Ticket
-                const win = window.open('', '_blank', 'width=300,height=400');
-                win.document.write(`
-                    <div style="font-family: monospace; text-align: center; width: 250px;">
-                        <h3>PRESTACOM</h3>
-                        <p>Recibo de Pago - Diario</p>
-                        <hr>
-                        <p style="text-align:left;">Cliente: ${data.nombre_cliente}</p>
-                        <p style="text-align:left;">Monto: $${monto}</p>
-                        <p style="text-align:left;">Restan: ${data.cuotas_restantes - 1}</p>
-                        <hr>
-                        <p>${new Date().toLocaleString()}</p>
-                    </div>
-                `);
-                win.document.close();
-                win.print();
-
-                alert("✅ Pago registrado");
-                location.reload(); 
-            } catch (e) { alert("Error al guardar."); }
-        };
-
-        cargarDiarios();
+        // ... (Mantén tus funciones: seleccionarCliente, calcularMatematicasSobrante, ejecutarTransaccionFinal, etc.)
     </script>
 </body>
 </html>
