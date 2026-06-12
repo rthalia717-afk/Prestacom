@@ -14,7 +14,7 @@
         .btn-semanal { background: #10B981; }
         .btn-quincenal { background: #F59E0B; }
         .btn-mensual { background: #8B5CF6; }
-        .v2-card { background: #FFFFFF; border-radius: 20px; padding: 18px; margin-bottom: 15px; display: flex; align-items: center; gap: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #F0F0F0; cursor: pointer; transition: 0.2s; }
+        .v2-card { background: #FFFFFF; border-radius: 20px; padding: 18px; margin-bottom: 15px; display: flex; align-items: center; gap: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #F0F0F0; cursor: pointer; }
         .indicator { width: 6px; height: 50px; border-radius: 4px; }
         .bg-diario { background: #3B82F6; }
         .bg-semanal { background: #10B981; }
@@ -59,17 +59,21 @@
             const container = document.getElementById('lista-clientes');
             container.innerHTML = "Cargando...";
             
+            console.log("DEBUG: Buscando empresa:", idEmpresa, "| Modalidad:", dias);
+
             try {
+                // Consulta con filtros
                 const q = query(collection(db, "prestamos"), 
                     where("id_empresa", "==", idEmpresa),
                     where("modalidad_dias", "==", dias), 
                     where("status", "==", "Activo")
                 );
+                
                 const snapshot = await getDocs(q);
                 container.innerHTML = "";
                 
                 if(snapshot.empty) {
-                    container.innerHTML = "<p>No hay préstamos activos para esta modalidad.</p>";
+                    container.innerHTML = `<p>No hay préstamos activos para modalidad ${dias} (Empresa: ${idEmpresa}). Revisa la consola (F12).</p>`;
                     return;
                 }
 
@@ -88,8 +92,8 @@
                     container.appendChild(card);
                 });
             } catch (e) { 
-                console.error(e);
-                container.innerHTML = "Error al conectar con la base de datos."; 
+                console.error("ERROR FIREBASE:", e);
+                container.innerHTML = "Error al conectar. Revisa la consola (F12)."; 
             }
         };
 
@@ -99,21 +103,12 @@
 
             try {
                 const batch = writeBatch(db);
-                batch.update(doc(db, "prestamos", id), { 
-                    cuotas_restantes: increment(-1), 
-                    ultima_actualizacion: serverTimestamp() 
-                });
-                batch.set(doc(collection(db, "pagos")), { 
-                    id_prestamo: id, 
-                    monto: parseFloat(monto), 
-                    fecha: serverTimestamp(), 
-                    id_empresa: idEmpresa 
-                });
+                batch.update(doc(db, "prestamos", id), { cuotas_restantes: increment(-1), ultima_actualizacion: serverTimestamp() });
+                batch.set(doc(collection(db, "pagos")), { id_prestamo: id, monto: parseFloat(monto), fecha: serverTimestamp(), id_empresa: idEmpresa });
                 await batch.commit();
-
-                alert("✅ Pago registrado correctamente.");
+                alert("✅ Pago registrado.");
                 window.cargarCobros(dias, clase);
-            } catch (e) { alert("Error al guardar: " + e.message); } 
+            } catch (e) { alert("Error: " + e.message); } 
         };
     </script>
 </body>
