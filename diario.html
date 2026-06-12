@@ -3,27 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRESA FACIL - Registrar Cobro</title>
-    <link href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <title>Cobros Diarios</title>
     <style>
-        :root { --primary: #1e293b; --accent: #ff6600; --bg: #f1f5f9; --surface: #ffffff; --text: #0f172a; --border: #0f172a; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
-        body { background-color: var(--bg); color: var(--text); padding-bottom: 30px; }
-        .header { background-color: var(--primary); color: white; padding: 15px; text-align: center; font-weight: bold; }
-        .container { padding: 15px; max-width: 500px; margin: 0 auto; }
-        .tarjeta-cliente-item { background: var(--surface); border: 2px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 10px; display: flex; justify-content: space-between; cursor: pointer; }
-        .no-data { text-align: center; color: #94a3b8; padding: 20px; font-weight: bold; }
+        body { font-family: sans-serif; background: #f1f5f9; padding: 20px; }
+        .tarjeta { background: white; padding: 15px; border-radius: 10px; border: 2px solid #0f172a; margin-bottom: 10px; }
+        h2 { color: #1e293b; text-align: center; }
     </style>
 </head>
 <body>
 
-    <div class="header">CLIENTES ACTIVOS</div>
-
-    <div class="container">
-        <div class="lista-clientes" id="tabla-clientes-inyectar">
-            <p class="no-data">Cargando...</p>
-        </div>
-    </div>
+    <h2>PRÉSTAMOS DIARIOS (Modalidad 1)</h2>
+    <div id="lista-cobros">Cargando préstamos...</div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
@@ -38,39 +28,32 @@
             appId: "1:787618813060:web:8bbdc1bea7960cdbad5ed1"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        const db = getFirestore(initializeApp(firebaseConfig));
+        const listaDiv = document.getElementById('lista-cobros');
 
-        const idEmpresaLogueada = localStorage.getItem('id_empresa');
-        console.log("Buscando para empresa:", idEmpresaLogueada);
-
-        // CONSULTA: He quitado el filtro 'status' para ver si aparecen los clientes
+        // LA CONSULTA FILTRADA
         const q = query(
             collection(db, "prestamos"), 
-            where("id_empresa", "==", idEmpresaLogueada)
+            where("id_empresa", "==", "EMP-101"),
+            where("modalidad_dias", "==", 1),  // FILTRO POR MODALIDAD 1
+            where("status", "==", "Activo")
         );
 
         onSnapshot(q, (snapshot) => {
-            const contenedor = document.getElementById('tabla-clientes-inyectar');
-            contenedor.innerHTML = "";
-            
+            listaDiv.innerHTML = "";
             if (snapshot.empty) {
-                contenedor.innerHTML = '<p class="no-data">No se encontraron préstamos para la empresa: ' + idEmpresaLogueada + '</p>';
+                listaDiv.innerHTML = "<p>No hay préstamos diarios activos.</p>";
                 return;
             }
-
             snapshot.forEach((doc) => {
                 const data = doc.data();
-                // Dibujamos el cliente aunque no tenga status "Activo"
-                const item = document.createElement('div');
-                item.className = "tarjeta-cliente-item";
-                item.innerHTML = `
-                    <div>
-                        <h4>${data.nombre_cliente || "Sin nombre"}</h4>
-                        <p>Status en BD: <b>${data.status || "N/A"}</b></p>
-                    </div>
+                const card = document.createElement('div');
+                card.className = "tarjeta";
+                card.innerHTML = `
+                    <h3>${data.nombre_cliente}</h3>
+                    <p>Balance: $${data.balance_pendiente}</p>
                 `;
-                contenedor.appendChild(item);
+                listaDiv.appendChild(card);
             });
         });
     </script>
