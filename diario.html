@@ -7,25 +7,15 @@
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; padding: 20px; margin: 0; }
         h2 { color: #1e293b; text-align: center; margin-bottom: 20px; }
-        
         .tarjeta { 
-            background: white; 
-            padding: 15px; 
-            border-radius: 15px; 
-            border: 2px solid #0f172a; 
-            margin-bottom: 15px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center;
-            cursor: pointer;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            background: white; padding: 15px; border-radius: 15px; border: 2px solid #0f172a; 
+            margin-bottom: 15px; display: flex; justify-content: space-between; 
+            align-items: center; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
-        
         .nombre { font-size: 1.2rem; font-weight: 900; color: #0f172a; }
         .datos-der { text-align: right; }
         .monto-cuota { font-weight: 900; color: #f97316; font-size: 1.1rem; }
         .info-cuota { font-size: 0.85rem; font-weight: bold; color: #334155; }
-        
         .btn-volver { 
             display: block; text-align: center; margin-top: 20px; padding: 15px; 
             background: #ef4444; color: white; border-radius: 15px; 
@@ -37,21 +27,24 @@
 
     <h2>PRÉSTAMOS DIARIOS</h2>
     <div id="lista-cobros">Cargando clientes...</div>
-    
     <a href="menu.html" class="btn-volver">VOLVER AL MENÚ</a>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // CONFIGURACIÓN (Asegúrate de tener tus datos aquí)
-        const firebaseConfig = { 
-            /* Tu configuración aquí */ 
+        const firebaseConfig = {
+            apiKey: "AIzaSyDlVPO8P6oceu2RyVZA_bjak7bvAEXxvQk",
+            authDomain: "prestacom-sistema.firebaseapp.com",
+            projectId: "prestacom-sistema",
+            storageBucket: "prestacom-sistema.firebasestorage.app",
+            messagingSenderId: "263392324772",
+            appId: "1:263392324772:web:2d83308890ddaef7e84a31"
         };
+        
         const db = getFirestore(initializeApp(firebaseConfig));
         const listaDiv = document.getElementById('lista-cobros');
 
-        // CONSULTA: Filtrado por empresa, modalidad 1 (DIARIO) y activos
         const q = query(
             collection(db, "prestamos"), 
             where("id_empresa", "==", "EMP-101"),
@@ -71,7 +64,6 @@
                 const card = document.createElement('div');
                 card.className = "tarjeta";
                 
-                // Estructura visual basada en tu diseño profesional
                 card.innerHTML = `
                     <div>
                         <div class="nombre">${data.nombre_cliente}</div>
@@ -83,9 +75,10 @@
                     </div>
                 `;
                 
-                // Al hacer clic, redirigir a procesar_pago.html pasando el ID
+                // IMPORTANTE: Guardamos todo el objeto data para que la siguiente página lo use
                 card.onclick = () => {
-                    localStorage.setItem('id_prestamo_seleccionado', doc.id);
+                    localStorage.setItem('cliente_data', JSON.stringify(data));
+                    localStorage.setItem('prestamo_id', doc.id);
                     window.location.href = "procesar_pago.html";
                 };
                 
