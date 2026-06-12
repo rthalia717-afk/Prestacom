@@ -29,12 +29,22 @@
 
     <a href="index.html" class="btn-volver">⬅ Volver al Menú</a>
     <h2>Registrar Cobro</h2>
-    <div class="grid-modalidades">
-        <button class="btn-modalidad btn-diario" onclick="cargarCobros(1, 'diario')">DIARIO</button>
-        <button class="btn-modalidad btn-semanal" onclick="cargarCobros(7, 'semanal')">SEMANAL</button>
-        <button class="btn-modalidad btn-quincenal" onclick="cargarCobros(15, 'quincenal')">QUINCENAL</button>
-        <button class="btn-modalidad btn-mensual" onclick="cargarCobros(30, 'mensual')">MENSUAL</button>
-    </div>
+  
+
+<div class="grid-modalidades" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
+    <button class="btn-modalidad" onclick="cargarCobros(1, 'DIARIO')">DIARIO</button>
+    <button class="btn-modalidad" onclick="cargarCobros(7, 'SEMANAL')">SEMANAL</button>
+    <button class="btn-modalidad" onclick="cargarCobros(15, 'QUINCENAL')">QUINCENAL</button>
+    <button class="btn-modalidad" onclick="cargarCobros(30, 'MENSUAL')">MENSUAL</button>
+</div>
+
+
+
+
+
+
+
+    
     <div id="lista-clientes">Seleccione una modalidad para comenzar.</div>
 
     <script type="module">
