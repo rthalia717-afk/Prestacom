@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PROCESAR COBRO</title>
+    <style>
+        body { font-family: sans-serif; background: #f1f5f9; padding: 20px; margin: 0; }
+        .card { background: white; padding: 20px; border-radius: 20px; border: 2px solid #0f172a; max-width: 400px; margin: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed #ccc; font-weight: bold; color: #1e293b; }
+        input { width: 100%; padding: 15px; margin: 15px 0; border: 2px solid #0f172a; border-radius: 10px; font-size: 1.5rem; font-weight: bold; box-sizing: border-box; text-align: center; }
+        .btn-pay { width: 100%; padding: 18px; background: #f97316; color: white; border: none; border-radius: 10px; font-weight: 900; font-size: 1.1rem; cursor: pointer; transition: transform 0.1s; }
+        .btn-pay:active { transform: scale(0.98); }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2 style="text-align:center; color: #1e293b;">PROCESAR COBRO</h2>
+        <div id="info-credito">Cargando datos...</div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDlVPO8P6oceu2RyVZA_bjak7bvAEXxvQk",
+            authDomain: "prestacom-sistema.firebaseapp.com",
+            projectId: "prestacom-sistema",
+            storageBucket: "prestacom-sistema.firebasestorage.app",
+            messagingSenderId: "263392324772",
+            appId: "1:263392324772:web:2d83308890ddaef7e84a31"
+        };
+
+        const db = getFirestore(initializeApp(firebaseConfig));
+        
+        // Recuperamos los datos del cliente seleccionado
+        const data = JSON.parse(localStorage.getItem('cliente_data'));
+        const prestamoId = localStorage.getItem('prestamo_id');
+        
+        const infoDiv = document.getElementById('info-credito');
+        
+        // Renderizamos la info con seguridad ante datos faltantes
+        infoDiv.innerHTML = `
+            <div class="row"><span>Cliente:</span> <span>${data.nombre_cliente}</span></div>
+            <div class="row"><span>Monto Original:</span> <span>$${data.monto_original || '0'}</span></div>
+            <div class="row"><span>Balance Pendiente:</span> <span>$${data.balance_pendiente || '0'}</span></div>
+            <div class="row"><span>Próxima Cuota:</span> <span>#${data.numero_cuota || '1'} de ${data.total_cuotas || 'N/A'}</span></div>
+            <div class="row"><span>Valor Cuota:</span> <span>$${data.valor_cuota || '0'}</span></div>
+            <div class="row"><span>Fecha:</span> <span>${data.fecha_prestamo || 'N/A'}</span></div>
+            <input type="number" id="monto-pagar" value="${data.valor_cuota || ''}">
+            <button class="btn-pay" id="btn-procesar">REALIZAR PAGO E IMPRIMIR</button>
+        `;
+
+        document.getElementById('btn-procesar').onclick = async () => {
+            const btn = document.getElementById('btn-procesar');
+            btn.innerText = "Procesando...";
+            btn.disabled = true;
+
+            const montoPagado = parseFloat(document.getElementById('monto-pagar').value);
+            const balanceActual = parseFloat(data.balance_pendiente);
+            const nuevoBalance = balanceActual - montoPagado;
+            const nuevaCuota = parseInt(data.numero_cuota) + 1;
+
+            try {
+                // Actualizamos Firestore
+                await updateDoc(doc(db, "prestamos", prestamoId), {
+                    balance_pendiente: nuevoBalance,
+                    numero_cuota: nuevaCuota
+                });
+
+                // Preparamos Ticket
+                const fecha = new Date().toLocaleString();
+                let ticket = `--- PRESA FACIL ---\n`;
+                ticket += `CLIENTE: ${data.nombre_cliente}\n`;
+                ticket += `FECHA: ${fecha}\n\n`;
+                ticket += `PAGO RECIBIDO: $${montoPagado.toFixed(2)}\n`;
+                ticket += `NUEVO BALANCE: $${nuevoBalance.toFixed(2)}\n`;
+                ticket += `PROXIMA CUOTA: #${nuevaCuota}\n\n`;
+                ticket += `¡GRACIAS POR SU PAGO!\n\n\n`;
+
+                // Lanzar RawBT
+                window.location.href = "rawbt:base64," + btoa(unescape(encodeURIComponent(ticket)));
+                
+                alert("¡Pago exitoso!");
+                window.location.href = "diario.html";
+            } catch (e) {
+                alert("Error al procesar: " + e.message);
+                btn.innerText = "REALIZAR PAGO E IMPRIMIR";
+                btn.disabled = false;
+            }
+        };
+    </script>
+</body>
+</html>
