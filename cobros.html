@@ -14,7 +14,7 @@
         .btn-semanal { background: #10B981; }
         .btn-quincenal { background: #F59E0B; }
         .btn-mensual { background: #8B5CF6; }
-        .v2-card { background: #FFFFFF; border-radius: 20px; padding: 18px; margin-bottom: 15px; display: flex; align-items: center; gap: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #F0F0F0; cursor: pointer; }
+        .v2-card { background: #FFFFFF; border-radius: 20px; padding: 18px; margin-bottom: 15px; display: flex; align-items: center; gap: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #F0F0F0; cursor: pointer; transition: 0.2s; }
         .indicator { width: 6px; height: 50px; border-radius: 4px; }
         .bg-diario { background: #3B82F6; }
         .bg-semanal { background: #10B981; }
@@ -53,18 +53,10 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        
-        // Obtenemos el ID, si no existe ponemos un aviso
         const idEmpresa = localStorage.getItem('id_empresa');
 
         window.cargarCobros = async (dias, clase) => {
             const container = document.getElementById('lista-clientes');
-            
-            if (!idEmpresa) {
-                container.innerHTML = `<div style="color:red; text-align:center;"><strong>ERROR:</strong> No se encontró el ID de empresa en el navegador. Por favor, inicia sesión correctamente en index.html.</div>`;
-                return;
-            }
-
             container.innerHTML = "Cargando...";
             
             try {
@@ -73,12 +65,11 @@
                     where("modalidad_dias", "==", dias), 
                     where("status", "==", "Activo")
                 );
-                
                 const snapshot = await getDocs(q);
                 container.innerHTML = "";
                 
                 if(snapshot.empty) {
-                    container.innerHTML = `<div style="text-align:center; padding:20px;">No hay préstamos activos para modalidad ${dias}.<br><small>(Empresa: ${idEmpresa})</small></div>`;
+                    container.innerHTML = "<p>No hay préstamos activos para esta modalidad.</p>";
                     return;
                 }
 
@@ -98,7 +89,7 @@
                 });
             } catch (e) { 
                 console.error(e);
-                container.innerHTML = "Error al conectar con la base de datos: " + e.message; 
+                container.innerHTML = "Error al conectar con la base de datos."; 
             }
         };
 
@@ -108,10 +99,19 @@
 
             try {
                 const batch = writeBatch(db);
-                batch.update(doc(db, "prestamos", id), { cuotas_restantes: increment(-1), ultima_actualizacion: serverTimestamp() });
-                batch.set(doc(collection(db, "pagos")), { id_prestamo: id, monto: parseFloat(monto), fecha: serverTimestamp(), id_empresa: idEmpresa });
+                batch.update(doc(db, "prestamos", id), { 
+                    cuotas_restantes: increment(-1), 
+                    ultima_actualizacion: serverTimestamp() 
+                });
+                batch.set(doc(collection(db, "pagos")), { 
+                    id_prestamo: id, 
+                    monto: parseFloat(monto), 
+                    fecha: serverTimestamp(), 
+                    id_empresa: idEmpresa 
+                });
                 await batch.commit();
-                alert("✅ Pago registrado.");
+
+                alert("✅ Pago registrado correctamente.");
                 window.cargarCobros(dias, clase);
             } catch (e) { alert("Error al guardar: " + e.message); } 
         };
