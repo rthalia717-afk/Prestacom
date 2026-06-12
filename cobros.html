@@ -2,73 +2,37 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Seleccionar Modalidad</title>
+    <title>Seleccionar Modalidad - PRESA FACIL</title>
     <style>
-        * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body { background-color: #f1f5f9; margin: 0; padding: 20px; display: flex; flex-direction: column; min-height: 100vh; }
-        h2 { text-align: center; color: #1e293b; margin-bottom: 20px; }
-        
-        .grid-modalidades { 
-            display: grid; 
-            grid-template-columns: 1fr 1fr; 
-            gap: 15px; 
-            flex-grow: 1;
-        }
-        
-        .btn-modalidad { 
-            padding: 20px; 
-            border-radius: 20px; 
-            border: 3px solid #0f172a; 
-            color: white; 
-            font-weight: 900; 
-            font-size: 1.1rem; 
-            cursor: pointer; 
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        
-        .btn-diario { background: #3B82F6; }
-        .btn-semanal { background: #10B981; }
-        .btn-quincenal { background: #F59E0B; }
-        .btn-mensual { background: #8B5CF6; }
-        
-        .btn-volver { 
-            margin-top: 20px; 
-            padding: 15px; 
-            background: #ef4444; 
-            color: white; 
-            text-align: center; 
-            border-radius: 15px; 
-            font-weight: bold; 
-            text-decoration: none;
-            border: 2px solid #991b1b;
-        }
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding-top: 50px; background: #f1f5f9; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 90%; max-width: 400px; }
+        button { padding: 40px; border-radius: 20px; border: 2px solid #0f172a; font-size: 1.2rem; font-weight: 900; cursor: pointer; color: white; }
+        .b1 { background: #3B82F6; } .b2 { background: #10B981; }
+        .b3 { background: #F59E0B; } .b4 { background: #8B5CF6; }
     </style>
 </head>
 <body>
-
-    <h2>Seleccione Modalidad</h2>
-
-    <div class="grid-modalidades">
-        <button class="btn-modalidad btn-diario" onclick="irACobros(1, 'DIARIO')">DIARIO</button>
-        <button class="btn-modalidad btn-semanal" onclick="irACobros(7, 'SEMANAL')">SEMANAL</button>
-        <button class="btn-modalidad btn-quincenal" onclick="irACobros(15, 'QUINCENAL')">QUINCENAL</button>
-        <button class="btn-modalidad btn-mensual" onclick="irACobros(30, 'MENSUAL')">MENSUAL</button>
+    <h2>¿Qué desea cobrar hoy?</h2>
+    <div class="grid">
+        <!-- Al presionar DIARIO, llamamos a una función específica para diario.html -->
+        <button class="b1" onclick="irADiario()">DIARIO</button>
+        <button class="b2" onclick="sel(7, 'SEMANAL')">SEMANAL</button>
+        <button class="b3" onclick="sel(15, 'QUINCENAL')">QUINCENAL</button>
+        <button class="b4" onclick="sel(30, 'MENSUAL')">MENSUAL</button>
     </div>
 
-    <!-- Cambia 'index.html' por la página a la que quieras volver -->
-    <a href="index.html" class="btn-volver">VOLVER AL MENÚ PRINCIPAL</a>
-
     <script>
-        function irACobros(dias, nombre) {
-            // Guardamos la selección para que cobros.html la use
+        // Función específica para el botón Diario
+        function irADiario() {
+            localStorage.setItem('mod_dias', 1);
+            localStorage.setItem('mod_nombre', 'DIARIO');
+            window.location.href = "diario.html";
+        }
+
+        // Función para los demás botones
+        function sel(dias, nombre) {
             localStorage.setItem('mod_dias', dias);
             localStorage.setItem('mod_nombre', nombre);
-            
-            // Redirigimos a tu archivo de cobros
             window.location.href = "cobros.html";
         }
     </script>
