@@ -3,56 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cobros Diarios</title>
+    <title>Préstamos Diarios - PRESA FACIL</title>
     <style>
-        body { font-family: sans-serif; background: #f1f5f9; padding: 20px; }
-        .tarjeta { background: white; padding: 15px; border-radius: 10px; border: 2px solid #0f172a; margin-bottom: 10px; }
-        h2 { color: #1e293b; text-align: center; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; padding: 20px; margin: 0; }
+        h2 { color: #1e293b; text-align: center; margin-bottom: 20px; }
+        
+        .tarjeta { 
+            background: white; 
+            padding: 15px; 
+            border-radius: 15px; 
+            border: 2px solid #0f172a; 
+            margin-bottom: 15px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .nombre { font-size: 1.2rem; font-weight: 900; color: #0f172a; }
+        .datos-der { text-align: right; }
+        .monto-cuota { font-weight: 900; color: #f97316; font-size: 1.1rem; }
+        .info-cuota { font-size: 0.85rem; font-weight: bold; color: #334155; }
+        
+        .btn-volver { 
+            display: block; text-align: center; margin-top: 20px; padding: 15px; 
+            background: #ef4444; color: white; border-radius: 15px; 
+            text-decoration: none; font-weight: bold; border: 2px solid #991b1b;
+        }
     </style>
 </head>
 <body>
 
-    <h2>PRÉSTAMOS DIARIOS (Modalidad 1)</h2>
-    <div id="lista-cobros">Cargando préstamos...</div>
+    <h2>PRÉSTAMOS DIARIOS</h2>
+    <div id="lista-cobros">Cargando clientes...</div>
+    
+    <a href="menu.html" class="btn-volver">VOLVER AL MENÚ</a>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyC5oHQtFWzLqY3JdpV_3pKY40rx00o6Gu4",
-            authDomain: "prestacom-36ebd.firebaseapp.com",
-            projectId: "prestacom-36ebd",
-            storageBucket: "prestacom-36ebd.firebasestorage.app",
-            messagingSenderId: "787618813060",
-            appId: "1:787618813060:web:8bbdc1bea7960cdbad5ed1"
+        // CONFIGURACIÓN (Asegúrate de tener tus datos aquí)
+        const firebaseConfig = { 
+            /* Tu configuración aquí */ 
         };
-
         const db = getFirestore(initializeApp(firebaseConfig));
         const listaDiv = document.getElementById('lista-cobros');
 
-        // LA CONSULTA FILTRADA
+        // CONSULTA: Filtrado por empresa, modalidad 1 (DIARIO) y activos
         const q = query(
             collection(db, "prestamos"), 
             where("id_empresa", "==", "EMP-101"),
-            where("modalidad_dias", "==", 1),  // FILTRO POR MODALIDAD 1
+            where("modalidad_dias", "==", 1),
             where("status", "==", "Activo")
         );
 
         onSnapshot(q, (snapshot) => {
             listaDiv.innerHTML = "";
             if (snapshot.empty) {
-                listaDiv.innerHTML = "<p>No hay préstamos diarios activos.</p>";
+                listaDiv.innerHTML = "<p style='text-align:center;'>No hay préstamos diarios activos.</p>";
                 return;
             }
+
             snapshot.forEach((doc) => {
                 const data = doc.data();
                 const card = document.createElement('div');
                 card.className = "tarjeta";
+                
+                // Estructura visual basada en tu diseño profesional
                 card.innerHTML = `
-                    <h3>${data.nombre_cliente}</h3>
-                    <p>Balance: $${data.balance_pendiente}</p>
+                    <div>
+                        <div class="nombre">${data.nombre_cliente}</div>
+                        <div class="info-cuota">CUOTA PROXIMA: #${data.numero_cuota} DE ${data.total_cuotas}</div>
+                    </div>
+                    <div class="datos-der">
+                        <div class="monto-cuota">$${data.valor_cuota}</div>
+                        <div class="info-cuota">DEBE: $${data.balance_pendiente}</div>
+                    </div>
                 `;
+                
+                // Al hacer clic, redirigir a procesar_pago.html pasando el ID
+                card.onclick = () => {
+                    localStorage.setItem('id_prestamo_seleccionado', doc.id);
+                    window.location.href = "procesar_pago.html";
+                };
+                
                 listaDiv.appendChild(card);
             });
         });
