@@ -3,91 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Préstamos Diarios - PRESA FACIL</title>
+    <title>Cobros - PRESTACOM</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; padding: 20px; margin: 0; }
-        h2 { color: #1e293b; text-align: center; margin-bottom: 20px; }
-        .tarjeta { 
-            background: white; padding: 15px; border-radius: 15px; border: 2px solid #0f172a; 
-            margin-bottom: 15px; display: flex; justify-content: space-between; 
-            align-items: center; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-        .nombre { font-size: 1.2rem; font-weight: 900; color: #0f172a; }
-        .datos-der { text-align: right; }
-        .monto-cuota { font-weight: 900; color: #f97316; font-size: 1.1rem; }
-        .info-cuota { font-size: 0.85rem; font-weight: bold; color: #334155; }
-        .btn-volver { 
-            display: block; text-align: center; margin-top: 20px; padding: 15px; 
-            background: #ef4444; color: white; border-radius: 15px; 
-            text-decoration: none; font-weight: bold; border: 2px solid #991b1b;
-        }
+        .tarjeta { background: white; padding: 15px; border-radius: 15px; border: 2px solid #0f172a; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .nombre { font-size: 1.2rem; font-weight: 900; }
+        .btn-volver { display: block; text-align: center; margin-top: 20px; padding: 15px; background: #ef4444; color: white; border-radius: 15px; text-decoration: none; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <h2>PRÉSTAMOS DIARIOS</h2>
-    <div id="lista-cobros">Cargando...</div>
-    <a href="cobros.html" class="btn-volver">VOLVER AL MENÚ</a>
+    <h2 id="titulo">Cargando...</h2>
+    <div id="lista-cobros">Cargando clientes...</div>
+    <a href="cobros.html" class="btn-volver">VOLVER</a>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         const firebaseConfig = {
-            apiKey: "AIzaSyDlVPO8P6oceu2RyVZA_bjak7bvAEXxvQk",
-            authDomain: "prestacom-sistema.firebaseapp.com",
-            projectId: "prestacom-sistema",
-            storageBucket: "prestacom-sistema.firebasestorage.app",
-            messagingSenderId: "263392324772",
-            appId: "1:263392324772:web:2d83308890ddaef7e84a31"
+            apiKey: "AIzaSyC5oHQtFWzLqY3JdpV_3pKY40rx00o6Gu4",
+            authDomain: "prestacom-36ebd.firebaseapp.com",
+            projectId: "prestacom-36ebd",
+            storageBucket: "prestacom-36ebd.firebasestorage.app",
+            messagingSenderId: "787618813060",
+            appId: "1:787618813060:web:8bbdc1bea7960cdbad5ed1"
         };
         
         const db = getFirestore(initializeApp(firebaseConfig));
         const listaDiv = document.getElementById('lista-cobros');
+        
+        // --- CONFIGURACIÓN DE MODALIDAD ---
+        const MODALIDAD = 1; // <--- CAMBIAR AQUÍ (1, 7, 15, o 30)
+        document.getElementById('titulo').innerText = "PRÉSTAMOS MODALIDAD " + MODALIDAD;
 
-        // CONSULTA REFORZADA:
-        // Aseguramos el id_empresa y el status. 
-        // Nota: He quitado el filtro de modalidad_dias temporalmente para asegurar que carguen los datos
-        // y que puedas verificar si es ahí donde está el fallo de coincidencia.
         const q = query(
             collection(db, "prestamos"), 
-            where("id_empresa", "==", "EMP-101"),
+            where("id_empresa", "==", localStorage.getItem('id_empresa')),
+            where("modalidad_dias", "==", MODALIDAD),
             where("status", "==", "Activo")
         );
 
         onSnapshot(q, (snapshot) => {
             listaDiv.innerHTML = "";
-            if (snapshot.empty) {
-                listaDiv.innerHTML = "<p style='text-align:center;'>No hay préstamos activos encontrados.</p>";
-                return;
-            }
-
+            if (snapshot.empty) { listaDiv.innerHTML = "<p style='text-align:center;'>No hay préstamos activos.</p>"; return; }
             snapshot.forEach((doc) => {
                 const data = doc.data();
-                
-                // Filtro manual en caso de que modalidad_dias en BD sea string o numero
-                if (parseInt(data.modalidad_dias) !== 1) return;
-
                 const card = document.createElement('div');
                 card.className = "tarjeta";
-                
-                card.innerHTML = `
-                    <div>
-                        <div class="nombre">${data.nombre_cliente}</div>
-                        <div class="info-cuota">CUOTA: #${data.numero_cuota || 1} DE ${data.total_cuotas || 'N/A'}</div>
-                    </div>
-                    <div class="datos-der">
-                        <div class="monto-cuota">$${parseFloat(data.valor_cuota).toFixed(2)}</div>
-                        <div class="info-cuota">DEBE: $${parseFloat(data.balance_pendiente).toFixed(2)}</div>
-                    </div>
-                `;
-                
+                card.innerHTML = `<div><div class="nombre">${data.nombre_cliente}</div><div>Cuota: $${data.valor_cuota}</div></div>`;
                 card.onclick = () => {
                     localStorage.setItem('cliente_data', JSON.stringify(data));
                     localStorage.setItem('prestamo_id', doc.id);
                     window.location.href = "procesar_pago.html";
                 };
-                
                 listaDiv.appendChild(card);
             });
         });
