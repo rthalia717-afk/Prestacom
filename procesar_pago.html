@@ -33,38 +33,40 @@
         };
 
         const db = getFirestore(initializeApp(firebaseConfig));
-        
-        // 1. Obtener datos y depurar
-        const rawData = localStorage.getItem('cliente_data');
+        const data = JSON.parse(localStorage.getItem('cliente_data'));
         const prestamoId = localStorage.getItem('prestamo_id');
         
-        if (!rawData) {
-            document.getElementById('info-credito').innerHTML = "Error: No hay datos de cliente.";
+        if (!data) {
+            document.getElementById('info-credito').innerHTML = "Error: No hay datos.";
         } else {
-            const data = JSON.parse(rawData);
+            // Extracción de datos
+            const nombre = data.nombre_cliente || "Cliente";
+            const montoOriginal = parseFloat(data.monto_original || 0);
+            const balance = parseFloat(data.balance_pendiente || 0);
+            const cuotaNum = parseInt(data.numero_cuota || 1);
+            const totalCuotas = parseInt(data.total_cuotas || 0);
+            const valorCuota = parseFloat(data.valor_cuota || 0);
             
-            // 2. Mapeo más flexible: probamos varios nombres de campos por si acaso
-            const nombre = data.nombre_cliente || data.cliente || "Sin nombre";
-            const balance = parseFloat(data.balance_pendiente || data.balance || 0);
-            const cuotaNum = data.numero_cuota || data.cuota_num || 1;
-            const valorCuota = parseFloat(data.valor_cuota || data.valor_cuota_sugerido || 0);
+            // Cálculo de restantes
+            const cuotasRestantes = Math.max(0, totalCuotas - (cuotaNum - 1));
 
-            // 3. Renderizar
             const infoDiv = document.getElementById('info-credito');
             infoDiv.innerHTML = `
                 <div class="row"><span>Cliente:</span> <b>${nombre}</b></div>
-                <div class="row"><span>Balance:</span> <b style="color:red;">$${balance.toFixed(2)}</b></div>
-                <div class="row"><span>Cuota actual:</span> <b>#${cuotaNum}</b></div>
-                <input type="number" id="monto-pagar" value="${valorCuota}">
+                <div class="row"><span>Monto Préstamo:</span> <b>$${montoOriginal.toLocaleString()}</b></div>
+                <div class="row"><span>Balance Pendiente:</span> <b style="color:red;">$${balance.toLocaleString()}</b></div>
+                <div class="row"><span>Cuota Actual:</span> <b>#${cuotaNum}</b></div>
+                <div class="row"><span>Cuotas Restantes:</span> <b>${cuotasRestantes}</b></div>
+                <input type="number" id="monto-pagar" value="${valorCuota.toFixed(2)}">
                 <button class="btn-pay" id="btn-procesar">REALIZAR PAGO E IMPRIMIR</button>
             `;
 
             document.getElementById('btn-procesar').onclick = async () => {
                 const monto = parseFloat(document.getElementById('monto-pagar').value);
-                if (isNaN(monto) || monto <= 0) return alert("Monto inválido");
+                if (isNaN(monto) || monto <= 0) return alert("Ingrese un monto válido");
 
                 document.getElementById('btn-procesar').disabled = true;
-                document.getElementById('btn-procesar').innerText = "Enviando...";
+                document.getElementById('btn-procesar').innerText = "Procesando...";
 
                 try {
                     await updateDoc(doc(db, "prestamos", prestamoId), {
@@ -72,7 +74,7 @@
                         numero_cuota: increment(1)
                     });
 
-                    const ticket = `--- PRESTACOM ---\nCLIENTE: ${nombre}\nPAGO: $${monto.toFixed(2)}\nFECHA: ${new Date().toLocaleString()}\n---------------\n¡GRACIAS!\n\n`;
+                    const ticket = `--- PRESTACOM ---\nCLIENTE: ${nombre}\nPAGO: $${monto.toFixed(2)}\nCUOTA: #${cuotaNum}\nFECHA: ${new Date().toLocaleString()}\n---------------\n¡GRACIAS!\n\n`;
                     window.location.href = "rawbt:base64," + btoa(unescape(encodeURIComponent(ticket)));
                     
                     setTimeout(() => window.location.href = "diario.html", 1000);
