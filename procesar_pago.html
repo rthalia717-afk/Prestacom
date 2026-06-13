@@ -3,27 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRESTACOM 2.0 - Cobros</title>
+    <title>PROCESAR COBRO - PRESTACOM</title>
     <style>
-        body { font-family: sans-serif; background: #f1f5f9; padding: 20px; }
-        .card { background: white; padding: 20px; border-radius: 20px; border: 2px solid #0f172a; max-width: 400px; margin: auto; }
-        .row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed #ccc; font-weight: bold; }
-        input { width: 100%; padding: 15px; margin: 15px 0; border: 2px solid #0f172a; border-radius: 10px; font-size: 1.5rem; text-align: center; }
-        .btn-pay { width: 100%; padding: 18px; background: #f97316; color: white; border: none; border-radius: 10px; font-weight: 900; font-size: 1.1rem; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f1f5f9; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { background: white; padding: 25px; border-radius: 20px; border: 2px solid #0f172a; width: 100%; max-width: 400px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        .row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px dashed #e2e8f0; font-size: 15px; color: #334155; }
+        .row span:last-child { font-weight: 700; color: #0f172a; }
+        input { width: 100%; padding: 18px; margin: 20px 0; border: 3px solid #0f172a; border-radius: 12px; font-size: 1.5rem; text-align: center; box-sizing: border-box; font-weight: bold; }
+        .btn-pay { width: 100%; padding: 18px; background: #f97316; color: white; border: none; border-radius: 12px; font-weight: 900; font-size: 1.1rem; cursor: pointer; transition: background 0.2s; }
+        .btn-pay:disabled { background: #94a3b8; cursor: not-allowed; }
+        .error-msg { color: #dc2626; text-align: center; font-weight: bold; padding: 20px; }
     </style>
 </head>
 <body>
 
-    <div class="card" id="app-box">
-        <h2 style="text-align:center;">PROCESAR COBRO</h2>
-        <div id="info-credito">Cargando datos del préstamo...</div>
+    <div class="card" id="app">
+        <h2 style="text-align:center; margin-top:0;">PROCESAR COBRO</h2>
+        <div id="info-credito">Cargando datos...</div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, doc, updateDoc, increment, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // CONFIGURACIÓN (REEMPLAZA CON LA TUYA SI ES NECESARIO)
         const firebaseConfig = {
             apiKey: "AIzaSyDlVPO8P6oceu2RyVZA_bjak7bvAEXxvQk",
             authDomain: "prestacom-sistema.firebaseapp.com",
@@ -34,39 +36,47 @@
         };
 
         const db = getFirestore(initializeApp(firebaseConfig));
-        
-        // Recuperar ID desde localStorage (pasado desde tu lista de préstamos)
         const prestamoId = localStorage.getItem('prestamo_id');
-        
-        async function cargarDatosYRenderizar() {
-            if (!prestamoId) return alert("Error: No se seleccionó un préstamo");
+        const infoDiv = document.getElementById('info-credito');
 
-            const docRef = doc(db, "prestamos", prestamoId);
-            const docSnap = await getDoc(docRef);
+        async function init() {
+            if (!prestamoId) {
+                infoDiv.innerHTML = '<div class="error-msg">❌ No se encontró un préstamo seleccionado. Vuelve al listado.</div>';
+                return;
+            }
 
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                const nombre = data.nombre_cliente || "Cliente";
+            try {
+                const snap = await getDoc(doc(db, "prestamos", prestamoId));
+                if (!snap.exists()) {
+                    infoDiv.innerHTML = '<div class="error-msg">❌ El préstamo no existe en la base de datos.</div>';
+                    return;
+                }
+
+                const data = snap.data();
+                const nombre = data.nombre_cliente || "N/A";
                 const balance = parseFloat(data.balance_pendiente) || 0;
+                const cuotaNum = parseInt(data.numero_cuota) || 1;
                 const totalCuotas = parseInt(data.total_cuotas) || 0;
-                const cuotaActual = parseInt(data.numero_cuota) || 1;
                 const valorCuota = parseFloat(data.valor_cuota) || 0;
-                const restantes = Math.max(0, totalCuotas - cuotaActual + 1);
+                const restantes = Math.max(0, totalCuotas - cuotaNum + 1);
 
-                document.getElementById('info-credito').innerHTML = `
+                infoDiv.innerHTML = `
                     <div class="row"><span>Cliente:</span> <span>${nombre}</span></div>
-                    <div class="row"><span>Balance:</span> <span style="color:red;">$${balance.toFixed(2)}</span></div>
-                    <div class="row"><span>Cuota:</span> <span>#${cuotaActual}</span></div>
-                    <div class="row"><span>Restantes:</span> <span>${restantes}</span></div>
+                    <div class="row"><span>Balance Pendiente:</span> <span style="color:#ef4444;">$${balance.toLocaleString()}</span></div>
+                    <div class="row"><span>Cuota Actual:</span> <span>#${cuotaNum}</span></div>
+                    <div class="row"><span>Cuotas Restantes:</span> <span>${restantes}</span></div>
                     <input type="number" id="monto-pagar" value="${valorCuota.toFixed(2)}">
                     <button class="btn-pay" id="btn-procesar">REALIZAR PAGO E IMPRIMIR</button>
                 `;
 
-                document.getElementById('btn-procesar').onclick = () => ejecutarPago(data, nombre, cuotaActual);
+                document.getElementById('btn-procesar').onclick = () => ejecutarPago(nombre, cuotaNum);
+
+            } catch (e) {
+                infoDiv.innerHTML = '<div class="error-msg">❌ Error de conexión: ' + e.message + '</div>';
             }
         }
 
-        async function ejecutarPago(data, nombre, cuotaNum) {
+        async function ejecutarPago(nombre, cuotaNum) {
             const btn = document.getElementById('btn-procesar');
             const monto = parseFloat(document.getElementById('monto-pagar').value);
             
@@ -76,26 +86,24 @@
             btn.innerText = "Procesando...";
 
             try {
-                // Actualizar Firebase
                 await updateDoc(doc(db, "prestamos", prestamoId), {
                     balance_pendiente: increment(-monto),
                     numero_cuota: increment(1)
                 });
 
-                // Generar Ticket
-                const ticket = `--- PRESTACOM ---\nCLIENTE: ${nombre}\nPAGO: $${monto.toFixed(2)}\nCUOTA #: ${cuotaNum}\nFECHA: ${new Date().toLocaleString()}\n-----------------\n¡GRACIAS!\n\n\n`;
+                // Lógica de impresión
+                const ticket = `--- PRESTACOM ---\nCLIENTE: ${nombre}\nPAGO: $${monto.toFixed(2)}\nCUOTA: #${cuotaNum}\nFECHA: ${new Date().toLocaleString()}\n---------------\n¡GRACIAS!\n\n`;
                 window.location.href = "rawbt:base64," + btoa(unescape(encodeURIComponent(ticket)));
                 
-                alert("¡Pago registrado correctamente!");
-                window.location.href = "diario.html";
+                setTimeout(() => window.location.href = "diario.html", 1000);
             } catch (e) {
-                alert("Error: " + e.message);
+                alert("Error al guardar: " + e.message);
                 btn.disabled = false;
                 btn.innerText = "REALIZAR PAGO E IMPRIMIR";
             }
         }
 
-        cargarDatosYRenderizar();
+        init();
     </script>
 </body>
 </html>
