@@ -52,6 +52,19 @@
 
         const db = getFirestore(initializeApp(firebaseConfig));
         const prestamoId = localStorage.getItem('prestamo_id');
+        
+
+if (!prestamoId || prestamoId === "undefined" || prestamoId === "null") {
+    console.error("No hay un ID de préstamo válido.");
+    document.getElementById('diagnostico').innerHTML = `
+        <div style="color: #dc2626; font-weight: bold;">
+            Error crítico: No se encontró el ID del préstamo. 
+            Por favor, vuelve a la lista y selecciona el préstamo nuevamente.
+        </div>`;
+} else {
+    // Aquí ejecutas tu función cargar()
+    cargar();
+}
         const divInfo = document.getElementById('diagnostico');
 
         async function cargar() {
