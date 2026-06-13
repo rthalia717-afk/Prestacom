@@ -3,71 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Cobros</title>
+    <title>Cobros - PRESA-FACIL</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; padding: 20px; }
-        h2 { color: #1e293b; text-align: center; }
-        .tarjeta { background: white; padding: 20px; border-radius: 15px; border: 1px solid #cbd5e1; margin-bottom: 12px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .tarjeta:hover { border-color: #f97316; background: #fff7ed; }
-        .nombre { font-size: 1.1rem; font-weight: bold; color: #0f172a; }
-        .info { font-size: 0.9rem; color: #64748b; margin-top: 5px; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; padding: 20px; margin: 0; }
+        .tarjeta { background: white; padding: 15px; border-radius: 15px; border: 2px solid #0f172a; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .nombre { font-size: 1.1rem; font-weight: 900; }
+        .monto { font-weight: bold; color: #f97316; }
+        .btn-volver { display: block; text-align: center; margin-top: 20px; padding: 15px; background: #ef4444; color: white; border-radius: 15px; text-decoration: none; font-weight: bold; }
     </style>
 </head>
 <body>
+
     <h2 id="titulo">Cargando...</h2>
-    <div id="lista-cobros"></div>
+    <div id="lista-cobros">Cargando clientes...</div>
+    <a href="menu_principal.html" class="btn-volver">VOLVER AL MENÚ</a>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // Tu configuración de Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyC5oHQtFWzLqY3JdpV_3pKY40rx00o6Gu4",
-            authDomain: "prestacom-36ebd.firebaseapp.com",
-            projectId: "prestacom-36ebd",
-            storageBucket: "prestacom-36ebd.firebasestorage.app",
-            messagingSenderId: "787618813060",
-            appId: "1:787618813060:web:8bbdc1bea7960cdbad5ed1"
-        };
-        
+        const firebaseConfig = { /* ... tus credenciales ... */ };
         const db = getFirestore(initializeApp(firebaseConfig));
         
+        // --- LÓGICA DINÁMICA ---
         const params = new URLSearchParams(window.location.search);
-        const modal = params.get('modalidad') || "1"; // Por defecto muestra 1 (diario)
+        const tipo = parseInt(params.get('tipo')) || 1; // Obtiene el valor de la URL
+        const titulos = { 1: "DIARIOS", 7: "SEMANALES", 15: "QUINCENALES", 30: "MENSUALES" };
         
-        const nombresModalidad = { "1": "Diarios", "7": "Semanales", "15": "Quincenales", "30": "Mensuales" };
-        document.getElementById('titulo').innerText = "Préstamos " + (nombresModalidad[modal] || "Seleccionados");
+        document.getElementById('titulo').innerText = "PRÉSTAMOS " + titulos[tipo];
 
-        // Consulta filtrada por modalidad y status
         const q = query(
             collection(db, "prestamos"), 
-            where("modalidad_dias", "==", parseInt(modal)), 
+            where("id_empresa", "==", localStorage.getItem('id_empresa')),
+            where("modalidad_dias", "==", tipo),
             where("status", "==", "Activo")
         );
 
         onSnapshot(q, (snapshot) => {
-            const lista = document.getElementById('lista-cobros');
-            lista.innerHTML = "";
+            const listaDiv = document.getElementById('lista-cobros');
+            listaDiv.innerHTML = "";
+            if (snapshot.empty) { listaDiv.innerHTML = "<p style='text-align:center;'>No hay préstamos activos.</p>"; return; }
             
-            if (snapshot.empty) {
-                lista.innerHTML = "<p style='text-align:center;'>No hay préstamos activos para esta modalidad.</p>";
-                return;
-            }
-
-            snapshot.forEach(doc => {
-                const d = doc.data();
-                const div = document.createElement('div');
-                div.className = "tarjeta";
-                div.innerHTML = `
-                    <div class="nombre">${d.nombre_cliente}</div>
-                    <div class="info">Cuota: $${d.valor_cuota} | Pendientes: ${d.cuotas_restantes}</div>
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                // Aseguramos que el valor de cuota existe
+                const cuota = data.valor_cuota || 0;
+                
+                const card = document.createElement('div');
+                card.className = "tarjeta";
+                card.innerHTML = `
+                    <div class="nombre">${data.nombre_cliente}</div>
+                    <div class="monto">Cuota: $${parseFloat(cuota).toFixed(2)}</div>
                 `;
-                div.onclick = () => {
+                card.onclick = () => {
+                    localStorage.setItem('cliente_data', JSON.stringify(data));
                     localStorage.setItem('prestamo_id', doc.id);
                     window.location.href = "procesar_pago.html";
                 };
-                lista.appendChild(div);
+                listaDiv.appendChild(card);
             });
         });
     </script>
