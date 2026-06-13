@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cobros - PRESTACOM</title>
+    <title>Cobros - PRESA-FACIL</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; padding: 20px; margin: 0; }
         .tarjeta { background: white; padding: 15px; border-radius: 15px; border: 2px solid #0f172a; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
         .nombre { font-size: 1.2rem; font-weight: 900; }
         .btn-volver { display: block; text-align: center; margin-top: 20px; padding: 15px; background: #ef4444; color: white; border-radius: 15px; text-decoration: none; font-weight: bold; }
+        .datos-info { font-size: 0.9rem; color: #334155; margin-top: 5px; }
     </style>
 </head>
 <body>
@@ -51,7 +52,18 @@
                 const data = doc.data();
                 const card = document.createElement('div');
                 card.className = "tarjeta";
-                card.innerHTML = `<div><div class="nombre">${data.nombre_cliente}</div><div>Cuota: $${data.valor_cuota}</div></div>`;
+                // He añadido la visualización de todos los campos solicitados aquí abajo:
+                card.innerHTML = `
+                    <div>
+                        <div class="nombre">${data.nombre_cliente}</div>
+                        <div class="datos-info">
+                            Monto Prestado: $${data.monto_prestado || 0}<br>
+                            Total Cuotas: ${data.total_cuotas || 0} | Pendientes: ${data.cuotas_restantes || 0}<br>
+                            Fecha: ${data.fecha_prestamo || 'N/A'}
+                        </div>
+                    </div>
+                    <div style="font-weight:bold;">Cuota: $${data.valor_cuota}</div>
+                `;
                 card.onclick = () => {
                     localStorage.setItem('cliente_data', JSON.stringify(data));
                     localStorage.setItem('prestamo_id', doc.id);
