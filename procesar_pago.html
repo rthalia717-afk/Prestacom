@@ -3,28 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PROCESAR COBRO - PRESTACOM</title>
-    <link href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <title>PROCESAR COBRO</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; padding: 20px; margin: 0; }
-        .card { background: white; padding: 20px; border-radius: 20px; border: 2px solid #0f172a; max-width: 400px; margin: auto; }
-        .row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed #ccc; font-weight: bold; color: #1e293b; }
-        input { width: 100%; padding: 15px; margin: 15px 0; border: 2px solid #0f172a; border-radius: 10px; font-size: 1.8rem; font-weight: bold; text-align: center; }
-        .btn-pay { width: 100%; padding: 18px; background: #f97316; color: white; border: none; border-radius: 10px; font-weight: 900; font-size: 1.1rem; cursor: pointer; }
+        body { font-family: sans-serif; background: #f1f5f9; padding: 10px; margin: 0; }
+        .card { background: white; padding: 20px; border-radius: 20px; border: 2px solid #0f172a; max-width: 400px; margin: auto; box-sizing: border-box; }
+        .row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #ccc; font-size: 14px; }
+        input { width: 100%; padding: 15px; margin: 15px 0; border: 2px solid #0f172a; border-radius: 10px; font-size: 1.5rem; text-align: center; box-sizing: border-box; }
+        .btn-pay { width: 100%; padding: 18px; background: #f97316; color: white; border: none; border-radius: 10px; font-weight: 900; font-size: 1.1rem; }
     </style>
 </head>
 <body>
 
     <div class="card">
-        <h2 style="text-align:center;">PROCESAR COBRO</h2>
-        <div id="info-credito">Cargando datos...</div>
+        <h2 style="text-align:center; margin-top:0;">PROCESAR COBRO</h2>
+        <div id="info-credito">Cargando...</div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // CONFIGURACIÓN (REEMPLAZA CON LA TUYA SI ES NECESARIO)
         const firebaseConfig = {
             apiKey: "AIzaSyDlVPO8P6oceu2RyVZA_bjak7bvAEXxvQk",
             authDomain: "prestacom-sistema.firebaseapp.com",
@@ -36,61 +34,55 @@
 
         const db = getFirestore(initializeApp(firebaseConfig));
         
-        // Recuperar datos
-        const data = JSON.parse(localStorage.getItem('cliente_data'));
+        // 1. Obtener datos y depurar
+        const rawData = localStorage.getItem('cliente_data');
         const prestamoId = localStorage.getItem('prestamo_id');
         
-        // Asignación segura de campos (usamos || 0 o || 'N/A' por seguridad)
-        const nombre = data.nombre_cliente || "Sin nombre";
-        const balance = parseFloat(data.balance_pendiente) || 0;
-        const cuotaNum = parseInt(data.numero_cuota) || 1;
-        const totalCuotas = data.total_cuotas || "N/A";
-        const valorCuota = parseFloat(data.valor_cuota) || 0;
-
-        const infoDiv = document.getElementById('info-credito');
-        infoDiv.innerHTML = `
-            <div class="row"><span>Cliente:</span> <span>${nombre}</span></div>
-            <div class="row"><span>Balance:</span> <span style="color:red;">$${balance.toFixed(2)}</span></div>
-            <div class="row"><span>Cuota:</span> <span>#${cuotaNum} de ${totalCuotas}</span></div>
-            <div class="row"><span>Monto Sugerido:</span> <span>$${valorCuota.toFixed(2)}</span></div>
-            <input type="number" id="monto-pagar" value="${valorCuota}">
-            <button class="btn-pay" id="btn-procesar">REALIZAR PAGO E IMPRIMIR</button>
-        `;
-
-        document.getElementById('btn-procesar').onclick = async () => {
-            const btn = document.getElementById('btn-procesar');
-            const monto = parseFloat(document.getElementById('monto-pagar').value);
+        if (!rawData) {
+            document.getElementById('info-credito').innerHTML = "Error: No hay datos de cliente.";
+        } else {
+            const data = JSON.parse(rawData);
             
-            if (isNaN(monto) || monto <= 0) {
-                alert("Ingrese un monto válido");
-                return;
-            }
+            // 2. Mapeo más flexible: probamos varios nombres de campos por si acaso
+            const nombre = data.nombre_cliente || data.cliente || "Sin nombre";
+            const balance = parseFloat(data.balance_pendiente || data.balance || 0);
+            const cuotaNum = data.numero_cuota || data.cuota_num || 1;
+            const valorCuota = parseFloat(data.valor_cuota || data.valor_cuota_sugerido || 0);
 
-            btn.innerText = "Procesando...";
-            btn.disabled = true;
+            // 3. Renderizar
+            const infoDiv = document.getElementById('info-credito');
+            infoDiv.innerHTML = `
+                <div class="row"><span>Cliente:</span> <b>${nombre}</b></div>
+                <div class="row"><span>Balance:</span> <b style="color:red;">$${balance.toFixed(2)}</b></div>
+                <div class="row"><span>Cuota actual:</span> <b>#${cuotaNum}</b></div>
+                <input type="number" id="monto-pagar" value="${valorCuota}">
+                <button class="btn-pay" id="btn-procesar">REALIZAR PAGO E IMPRIMIR</button>
+            `;
 
-            try {
-                // 1. Actualizar Firebase
-                const prestamoRef = doc(db, "prestamos", prestamoId);
-                await updateDoc(prestamoRef, {
-                    balance_pendiente: increment(-monto),
-                    numero_cuota: increment(1)
-                });
+            document.getElementById('btn-procesar').onclick = async () => {
+                const monto = parseFloat(document.getElementById('monto-pagar').value);
+                if (isNaN(monto) || monto <= 0) return alert("Monto inválido");
 
-                // 2. Ticket
-                const ticket = `--- PRESTACOM ---\nCLIENTE: ${nombre}\nPAGO: $${monto.toFixed(2)}\nCUOTA #: ${cuotaNum}\nFECHA: ${new Date().toLocaleString()}\n-----------------\n¡GRACIAS!\n\n\n`;
-                
-                // 3. Imprimir y redireccionar
-                window.location.href = "rawbt:base64," + btoa(unescape(encodeURIComponent(ticket)));
-                
-                alert("¡Pago exitoso!");
-                window.location.href = "diario.html";
-            } catch (e) {
-                alert("Error al guardar: " + e.message);
-                btn.innerText = "REALIZAR PAGO E IMPRIMIR";
-                btn.disabled = false;
-            }
-        };
+                document.getElementById('btn-procesar').disabled = true;
+                document.getElementById('btn-procesar').innerText = "Enviando...";
+
+                try {
+                    await updateDoc(doc(db, "prestamos", prestamoId), {
+                        balance_pendiente: increment(-monto),
+                        numero_cuota: increment(1)
+                    });
+
+                    const ticket = `--- PRESTACOM ---\nCLIENTE: ${nombre}\nPAGO: $${monto.toFixed(2)}\nFECHA: ${new Date().toLocaleString()}\n---------------\n¡GRACIAS!\n\n`;
+                    window.location.href = "rawbt:base64," + btoa(unescape(encodeURIComponent(ticket)));
+                    
+                    setTimeout(() => window.location.href = "diario.html", 1000);
+                } catch (e) {
+                    alert("Error: " + e.message);
+                    document.getElementById('btn-procesar').disabled = false;
+                    document.getElementById('btn-procesar').innerText = "REALIZAR PAGO E IMPRIMIR";
+                }
+            };
+        }
     </script>
 </body>
 </html>
