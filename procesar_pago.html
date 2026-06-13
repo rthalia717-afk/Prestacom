@@ -65,6 +65,9 @@ if (!prestamoId || prestamoId === "undefined" || prestamoId === "null") {
     // Aquí ejecutas tu función cargar()
     cargar();
 }
+
+        console.log("ID recuperado de LocalStorage:", prestamoId);
+console.log("Colección a consultar: 'prestamos'");
         const divInfo = document.getElementById('diagnostico');
 
         async function cargar() {
