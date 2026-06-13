@@ -2,27 +2,28 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PROCESAR COBRO</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRESTACOM 2.0 - Cobros</title>
     <style>
-        body { font-family: sans-serif; background: #f1f5f9; padding: 10px; margin: 0; }
-        .card { background: white; padding: 20px; border-radius: 20px; border: 2px solid #0f172a; max-width: 400px; margin: auto; box-sizing: border-box; }
-        .row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #ccc; font-size: 14px; }
-        input { width: 100%; padding: 15px; margin: 15px 0; border: 2px solid #0f172a; border-radius: 10px; font-size: 1.5rem; text-align: center; box-sizing: border-box; }
+        body { font-family: sans-serif; background: #f1f5f9; padding: 20px; }
+        .card { background: white; padding: 20px; border-radius: 20px; border: 2px solid #0f172a; max-width: 400px; margin: auto; }
+        .row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed #ccc; font-weight: bold; }
+        input { width: 100%; padding: 15px; margin: 15px 0; border: 2px solid #0f172a; border-radius: 10px; font-size: 1.5rem; text-align: center; }
         .btn-pay { width: 100%; padding: 18px; background: #f97316; color: white; border: none; border-radius: 10px; font-weight: 900; font-size: 1.1rem; }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h2 style="text-align:center; margin-top:0;">PROCESAR COBRO</h2>
-        <div id="info-credito">Cargando...</div>
+    <div class="card" id="app-box">
+        <h2 style="text-align:center;">PROCESAR COBRO</h2>
+        <div id="info-credito">Cargando datos del préstamo...</div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, doc, updateDoc, increment, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
+        // CONFIGURACIÓN (REEMPLAZA CON LA TUYA SI ES NECESARIO)
         const firebaseConfig = {
             apiKey: "AIzaSyDlVPO8P6oceu2RyVZA_bjak7bvAEXxvQk",
             authDomain: "prestacom-sistema.firebaseapp.com",
@@ -33,58 +34,68 @@
         };
 
         const db = getFirestore(initializeApp(firebaseConfig));
-        const data = JSON.parse(localStorage.getItem('cliente_data'));
+        
+        // Recuperar ID desde localStorage (pasado desde tu lista de préstamos)
         const prestamoId = localStorage.getItem('prestamo_id');
         
-        if (!data) {
-            document.getElementById('info-credito').innerHTML = "Error: No hay datos.";
-        } else {
-            // Extracción de datos
-            const nombre = data.nombre_cliente || "Cliente";
-            const montoOriginal = parseFloat(data.monto_original || 0);
-            const balance = parseFloat(data.balance_pendiente || 0);
-            const cuotaNum = parseInt(data.numero_cuota || 1);
-            const totalCuotas = parseInt(data.total_cuotas || 0);
-            const valorCuota = parseFloat(data.valor_cuota || 0);
-            
-            // Cálculo de restantes
-            const cuotasRestantes = Math.max(0, totalCuotas - (cuotaNum - 1));
+        async function cargarDatosYRenderizar() {
+            if (!prestamoId) return alert("Error: No se seleccionó un préstamo");
 
-            const infoDiv = document.getElementById('info-credito');
-            infoDiv.innerHTML = `
-                <div class="row"><span>Cliente:</span> <b>${nombre}</b></div>
-                <div class="row"><span>Monto Préstamo:</span> <b>$${montoOriginal.toLocaleString()}</b></div>
-                <div class="row"><span>Balance Pendiente:</span> <b style="color:red;">$${balance.toLocaleString()}</b></div>
-                <div class="row"><span>Cuota Actual:</span> <b>#${cuotaNum}</b></div>
-                <div class="row"><span>Cuotas Restantes:</span> <b>${cuotasRestantes}</b></div>
-                <input type="number" id="monto-pagar" value="${valorCuota.toFixed(2)}">
-                <button class="btn-pay" id="btn-procesar">REALIZAR PAGO E IMPRIMIR</button>
-            `;
+            const docRef = doc(db, "prestamos", prestamoId);
+            const docSnap = await getDoc(docRef);
 
-            document.getElementById('btn-procesar').onclick = async () => {
-                const monto = parseFloat(document.getElementById('monto-pagar').value);
-                if (isNaN(monto) || monto <= 0) return alert("Ingrese un monto válido");
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                const nombre = data.nombre_cliente || "Cliente";
+                const balance = parseFloat(data.balance_pendiente) || 0;
+                const totalCuotas = parseInt(data.total_cuotas) || 0;
+                const cuotaActual = parseInt(data.numero_cuota) || 1;
+                const valorCuota = parseFloat(data.valor_cuota) || 0;
+                const restantes = Math.max(0, totalCuotas - cuotaActual + 1);
 
-                document.getElementById('btn-procesar').disabled = true;
-                document.getElementById('btn-procesar').innerText = "Procesando...";
+                document.getElementById('info-credito').innerHTML = `
+                    <div class="row"><span>Cliente:</span> <span>${nombre}</span></div>
+                    <div class="row"><span>Balance:</span> <span style="color:red;">$${balance.toFixed(2)}</span></div>
+                    <div class="row"><span>Cuota:</span> <span>#${cuotaActual}</span></div>
+                    <div class="row"><span>Restantes:</span> <span>${restantes}</span></div>
+                    <input type="number" id="monto-pagar" value="${valorCuota.toFixed(2)}">
+                    <button class="btn-pay" id="btn-procesar">REALIZAR PAGO E IMPRIMIR</button>
+                `;
 
-                try {
-                    await updateDoc(doc(db, "prestamos", prestamoId), {
-                        balance_pendiente: increment(-monto),
-                        numero_cuota: increment(1)
-                    });
-
-                    const ticket = `--- PRESTACOM ---\nCLIENTE: ${nombre}\nPAGO: $${monto.toFixed(2)}\nCUOTA: #${cuotaNum}\nFECHA: ${new Date().toLocaleString()}\n---------------\n¡GRACIAS!\n\n`;
-                    window.location.href = "rawbt:base64," + btoa(unescape(encodeURIComponent(ticket)));
-                    
-                    setTimeout(() => window.location.href = "diario.html", 1000);
-                } catch (e) {
-                    alert("Error: " + e.message);
-                    document.getElementById('btn-procesar').disabled = false;
-                    document.getElementById('btn-procesar').innerText = "REALIZAR PAGO E IMPRIMIR";
-                }
-            };
+                document.getElementById('btn-procesar').onclick = () => ejecutarPago(data, nombre, cuotaActual);
+            }
         }
+
+        async function ejecutarPago(data, nombre, cuotaNum) {
+            const btn = document.getElementById('btn-procesar');
+            const monto = parseFloat(document.getElementById('monto-pagar').value);
+            
+            if (isNaN(monto) || monto <= 0) return alert("Ingrese un monto válido");
+
+            btn.disabled = true;
+            btn.innerText = "Procesando...";
+
+            try {
+                // Actualizar Firebase
+                await updateDoc(doc(db, "prestamos", prestamoId), {
+                    balance_pendiente: increment(-monto),
+                    numero_cuota: increment(1)
+                });
+
+                // Generar Ticket
+                const ticket = `--- PRESTACOM ---\nCLIENTE: ${nombre}\nPAGO: $${monto.toFixed(2)}\nCUOTA #: ${cuotaNum}\nFECHA: ${new Date().toLocaleString()}\n-----------------\n¡GRACIAS!\n\n\n`;
+                window.location.href = "rawbt:base64," + btoa(unescape(encodeURIComponent(ticket)));
+                
+                alert("¡Pago registrado correctamente!");
+                window.location.href = "diario.html";
+            } catch (e) {
+                alert("Error: " + e.message);
+                btn.disabled = false;
+                btn.innerText = "REALIZAR PAGO E IMPRIMIR";
+            }
+        }
+
+        cargarDatosYRenderizar();
     </script>
 </body>
 </html>
