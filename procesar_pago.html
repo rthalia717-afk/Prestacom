@@ -12,15 +12,13 @@
         .saldo-pendiente { font-size: 1.1rem; color: #64748b; background: #f8fafc; padding: 10px; border-radius: 10px; display: inline-block; }
         .label-input { font-weight: 600; color: #475569; margin-left: 5px; }
         input { width: 100%; padding: 18px; margin: 10px 0 20px 0; border: 3px solid #0f172a; border-radius: 12px; font-size: 2rem; font-weight: bold; text-align: center; box-sizing: border-box; color: #0f172a; }
-        .btn-cobrar { width: 100%; padding: 18px; background: #f97316; color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: background 0.2s; }
-        .btn-cobrar:active { transform: scale(0.98); }
-        .btn-cobrar:disabled { background: #94a3b8; }
+        .btn-cobrar { width: 100%; padding: 18px; background: #f97316; color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div class="contenedor-cobro" id="app">
-        <div id="diagnostico" style="text-align: center;">Cargando préstamo...</div>
+        <div id="diagnostico" style="text-align: center;">Cargando...</div>
     </div>
 
     <script type="module">
@@ -41,58 +39,47 @@
         const prestamoId = localStorage.getItem('prestamo_id');
 
         async function cargar() {
-            if (!prestamoId) {
-                divInfo.innerHTML = "Error: ID no encontrado.";
-                return;
-            }
+            const snap = await getDoc(doc(db, "prestamos", prestamoId));
+            const d = snap.data();
+            
+            divInfo.innerHTML = `
+                <div class="header-info">
+                    <div class="nombre-cliente">${d.nombre_cliente}</div>
+                    <div class="saldo-pendiente">Pendiente: <b>$${parseFloat(d.balance_pendiente).toFixed(2)}</b></div>
+                </div>
+                <div class="label-input">Monto a cobrar ($):</div>
+                <input type="number" id="monto" value="${parseFloat(d.valor_cuota).toFixed(2)}">
+                <button class="btn-cobrar" id="btn-pago">CONFIRMAR PAGO</button>
+            `;
 
-            try {
-                const snap = await getDoc(doc(db, "prestamos", prestamoId));
-                if (!snap.exists()) { divInfo.innerHTML = "Préstamo no encontrado."; return; }
-
-                const d = snap.data();
-                // Usamos parseFloat para asegurar que los números se lean bien
-                const valorCuota = parseFloat(d.valor_cuota || 0).toFixed(2);
-                const balance = parseFloat(d.balance_pendiente || 0).toFixed(2);
-
-                divInfo.innerHTML = `
-                    <div class="header-info">
-                        <div class="nombre-cliente">${d.nombre_cliente}</div>
-                        <div class="saldo-pendiente">Pendiente: <b>$${balance}</b></div>
-                    </div>
-                    <div class="label-input">Monto a cobrar ($):</div>
-                    <input type="number" id="monto" value="${valorCuota}">
-                    <button class="btn-cobrar" id="btn-pago">CONFIRMAR PAGO</button>
-                `;
-
-                document.getElementById('btn-pago').onclick = () => procesar(d.nombre_cliente);
-
-            } catch (e) {
-                divInfo.innerHTML = "Error: " + e.message;
-            }
+            document.getElementById('btn-pago').onclick = () => procesar(d);
         }
 
-        async function procesar(nombre) {
+        async function procesar(d) {
             const monto = parseFloat(document.getElementById('monto').value);
-            const btn = document.getElementById('btn-pago');
+            const nuevoSaldo = d.balance_pendiente - monto;
+
+            await updateDoc(doc(db, "prestamos", prestamoId), {
+                balance_pendiente: nuevoSaldo,
+                cuotas_restantes: increment(-1)
+            });
+
+            // Generar Ticket
+            const ventanaTicket = window.open('', '_blank', 'width=300,height=400');
+            ventanaTicket.document.write(`
+                <style>body{font-family:monospace; text-align:center; padding:10px;}</style>
+                <h3>RECIBO DE PAGO</h3>
+                <p>Cliente: ${d.nombre_cliente}</p>
+                <hr>
+                <p>Monto Recibido: $${monto.toFixed(2)}</p>
+                <p>Saldo Restante: $${nuevoSaldo.toFixed(2)}</p>
+                <hr>
+                <p>${new Date().toLocaleString()}</p>
+                <button onclick="window.print()">Imprimir Ticket</button>
+            `);
             
-            if (isNaN(monto) || monto <= 0) { alert("Ingresa un monto válido"); return; }
-            
-            btn.disabled = true;
-            btn.innerText = "Procesando...";
-            
-            try {
-                await updateDoc(doc(db, "prestamos", prestamoId), {
-                    balance_pendiente: increment(-monto),
-                    cuotas_restantes: increment(-1)
-                });
-                alert("¡Cobro registrado con éxito!");
-                window.location.href = "diario.html";
-            } catch (e) {
-                alert("Error al procesar: " + e.message);
-                btn.disabled = false;
-                btn.innerText = "CONFIRMAR PAGO";
-            }
+            alert("¡Pago registrado!");
+            window.location.href = "diario.html";
         }
 
         cargar();
