@@ -2,21 +2,25 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>PROCESAR COBRO</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Procesar Cobro</title>
     <style>
-        body { font-family: sans-serif; background: #f1f5f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .contenedor-cobro { background: white; padding: 25px; border-radius: 20px; border: 2px solid #0f172a; width: 90%; max-width: 400px; box-shadow: 0 10px 15px rgba(0,0,0,0.1); }
-        .campo { margin-bottom: 15px; font-size: 16px; color: #333; }
-        input { width: 100%; padding: 15px; margin: 10px 0; border: 2px solid #0f172a; border-radius: 10px; font-size: 1.5rem; text-align: center; box-sizing: border-box; }
-        .btn-cobrar { width: 100%; padding: 15px; background: #f97316; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .contenedor-cobro { background: white; padding: 25px; border-radius: 20px; width: 90%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }
+        .header-info { text-align: center; margin-bottom: 25px; }
+        .nombre-cliente { font-size: 1.5rem; font-weight: 800; color: #0f172a; margin-bottom: 5px; }
+        .saldo-pendiente { font-size: 1.1rem; color: #64748b; background: #f8fafc; padding: 10px; border-radius: 10px; display: inline-block; }
+        .label-input { font-weight: 600; color: #475569; margin-left: 5px; }
+        input { width: 100%; padding: 18px; margin: 10px 0 20px 0; border: 3px solid #0f172a; border-radius: 12px; font-size: 2rem; font-weight: bold; text-align: center; box-sizing: border-box; color: #0f172a; }
+        .btn-cobrar { width: 100%; padding: 18px; background: #f97316; color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+        .btn-cobrar:active { transform: scale(0.98); }
         .btn-cobrar:disabled { background: #94a3b8; }
     </style>
 </head>
 <body>
 
     <div class="contenedor-cobro" id="app">
-        <h2 style="text-align:center;">PROCESAR COBRO</h2>
-        <div id="diagnostico">Cargando datos del préstamo...</div>
+        <div id="diagnostico" style="text-align: center;">Cargando préstamo...</div>
     </div>
 
     <script type="module">
@@ -34,45 +38,37 @@
 
         const db = getFirestore(initializeApp(firebaseConfig));
         const divInfo = document.getElementById('diagnostico');
-        
-        // Obtenemos y limpiamos el ID
-        const rawId = localStorage.getItem('prestamo_id');
-        const prestamoId = rawId ? rawId.trim() : null;
+        const prestamoId = localStorage.getItem('prestamo_id');
 
         async function cargar() {
             if (!prestamoId) {
-                divInfo.innerHTML = "Error: No se encontró un ID de préstamo en memoria. Por favor, selecciona uno desde el diario.";
+                divInfo.innerHTML = "Error: ID no encontrado.";
                 return;
             }
 
             try {
-                // Depuración técnica
-                console.log("Buscando en colección 'prestamos' con ID:", prestamoId);
-                
-                const docRef = doc(db, "prestamos", prestamoId);
-                const snap = await getDoc(docRef);
-
-                if (!snap.exists()) {
-                    divInfo.innerHTML = `
-                        <div style="color:red;">
-                            <strong>Error:</strong> El préstamo ID [${prestamoId}] no existe en la colección 'prestamos'.
-                            <br><br>Si cambiaste la estructura de tu base de datos, verifica que la colección sea la correcta.
-                        </div>`;
-                    return;
-                }
+                const snap = await getDoc(doc(db, "prestamos", prestamoId));
+                if (!snap.exists()) { divInfo.innerHTML = "Préstamo no encontrado."; return; }
 
                 const d = snap.data();
+                // Usamos parseFloat para asegurar que los números se lean bien
+                const valorCuota = parseFloat(d.valor_cuota || 0).toFixed(2);
+                const balance = parseFloat(d.balance_pendiente || 0).toFixed(2);
+
                 divInfo.innerHTML = `
-                    <div class="campo">Cliente: <b>${d.nombre_cliente || 'N/A'}</b></div>
-                    <div class="campo">Pendiente: <b>$${parseFloat(d.balance_pendiente || 0).toFixed(2)}</b></div>
-                    <input type="number" id="monto" value="${parseFloat(d.valor_cuota || 0).toFixed(2)}">
-                    <button class="btn-cobrar" id="btn-pago">REALIZAR PAGO</button>
+                    <div class="header-info">
+                        <div class="nombre-cliente">${d.nombre_cliente}</div>
+                        <div class="saldo-pendiente">Pendiente: <b>$${balance}</b></div>
+                    </div>
+                    <div class="label-input">Monto a cobrar ($):</div>
+                    <input type="number" id="monto" value="${valorCuota}">
+                    <button class="btn-cobrar" id="btn-pago">CONFIRMAR PAGO</button>
                 `;
 
                 document.getElementById('btn-pago').onclick = () => procesar(d.nombre_cliente);
 
             } catch (e) {
-                divInfo.innerHTML = "Error de conexión: " + e.message;
+                divInfo.innerHTML = "Error: " + e.message;
             }
         }
 
@@ -80,17 +76,22 @@
             const monto = parseFloat(document.getElementById('monto').value);
             const btn = document.getElementById('btn-pago');
             
+            if (isNaN(monto) || monto <= 0) { alert("Ingresa un monto válido"); return; }
+            
             btn.disabled = true;
+            btn.innerText = "Procesando...";
+            
             try {
                 await updateDoc(doc(db, "prestamos", prestamoId), {
                     balance_pendiente: increment(-monto),
-                    numero_cuota: increment(1)
+                    cuotas_restantes: increment(-1)
                 });
-                alert("¡Pago exitoso!");
+                alert("¡Cobro registrado con éxito!");
                 window.location.href = "diario.html";
             } catch (e) {
                 alert("Error al procesar: " + e.message);
                 btn.disabled = false;
+                btn.innerText = "CONFIRMAR PAGO";
             }
         }
 
