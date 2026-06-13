@@ -2,11 +2,15 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Cobros</title>
     <style>
-        body { font-family: sans-serif; background: #f1f5f9; padding: 20px; }
-        .tarjeta { background: white; padding: 15px; border-radius: 12px; border: 1px solid #cbd5e1; margin-bottom: 10px; cursor: pointer; }
-        .tarjeta:hover { border-color: #f97316; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; padding: 20px; }
+        h2 { color: #1e293b; text-align: center; }
+        .tarjeta { background: white; padding: 20px; border-radius: 15px; border: 1px solid #cbd5e1; margin-bottom: 12px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .tarjeta:hover { border-color: #f97316; background: #fff7ed; }
+        .nombre { font-size: 1.1rem; font-weight: bold; color: #0f172a; }
+        .info { font-size: 0.9rem; color: #64748b; margin-top: 5px; }
     </style>
 </head>
 <body>
@@ -17,27 +21,47 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // Configuración Firebase (la misma que usas)
-        const db = getFirestore(initializeApp({ /* tus credenciales */ }));
+        // Tu configuración de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyC5oHQtFWzLqY3JdpV_3pKY40rx00o6Gu4",
+            authDomain: "prestacom-36ebd.firebaseapp.com",
+            projectId: "prestacom-36ebd",
+            storageBucket: "prestacom-36ebd.firebasestorage.app",
+            messagingSenderId: "787618813060",
+            appId: "1:787618813060:web:8bbdc1bea7960cdbad5ed1"
+        };
+        
+        const db = getFirestore(initializeApp(firebaseConfig));
         
         const params = new URLSearchParams(window.location.search);
-        const modal = params.get('modalidad'); // Obtiene 1, 7, 15 o 30
+        const modal = params.get('modalidad') || "1"; // Por defecto muestra 1 (diario)
         
         const nombresModalidad = { "1": "Diarios", "7": "Semanales", "15": "Quincenales", "30": "Mensuales" };
-        document.getElementById('titulo').innerText = "Préstamos " + nombresModalidad[modal];
+        document.getElementById('titulo').innerText = "Préstamos " + (nombresModalidad[modal] || "Seleccionados");
 
-        const q = query(collection(db, "prestamos"), where("modalidad_dias", "==", parseInt(modal)), where("status", "==", "Activo"));
+        // Consulta filtrada por modalidad y status
+        const q = query(
+            collection(db, "prestamos"), 
+            where("modalidad_dias", "==", parseInt(modal)), 
+            where("status", "==", "Activo")
+        );
 
         onSnapshot(q, (snapshot) => {
             const lista = document.getElementById('lista-cobros');
             lista.innerHTML = "";
+            
+            if (snapshot.empty) {
+                lista.innerHTML = "<p style='text-align:center;'>No hay préstamos activos para esta modalidad.</p>";
+                return;
+            }
+
             snapshot.forEach(doc => {
                 const d = doc.data();
                 const div = document.createElement('div');
                 div.className = "tarjeta";
                 div.innerHTML = `
-                    <b>${d.nombre_cliente}</b><br>
-                    Cuota: $${d.valor_cuota} | Pendientes: ${d.cuotas_restantes}
+                    <div class="nombre">${d.nombre_cliente}</div>
+                    <div class="info">Cuota: $${d.valor_cuota} | Pendientes: ${d.cuotas_restantes}</div>
                 `;
                 div.onclick = () => {
                     localStorage.setItem('prestamo_id', doc.id);
