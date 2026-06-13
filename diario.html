@@ -7,53 +7,62 @@
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; padding: 20px; margin: 0; }
         .tarjeta { background: white; padding: 15px; border-radius: 15px; border: 2px solid #0f172a; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-        .nombre { font-size: 1.1rem; font-weight: 900; }
-        .monto { font-weight: bold; color: #f97316; }
+        .nombre { font-size: 1.2rem; font-weight: 900; }
         .btn-volver { display: block; text-align: center; margin-top: 20px; padding: 15px; background: #ef4444; color: white; border-radius: 15px; text-decoration: none; font-weight: bold; }
+        .datos-info { font-size: 0.9rem; color: #334155; margin-top: 5px; }
     </style>
 </head>
 <body>
 
     <h2 id="titulo">Cargando...</h2>
     <div id="lista-cobros">Cargando clientes...</div>
-    <a href="menu_principal.html" class="btn-volver">VOLVER AL MENÚ</a>
+    <a href="cobros.html" class="btn-volver">VOLVER</a>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        const firebaseConfig = { /* ... tus credenciales ... */ };
+        const firebaseConfig = {
+            apiKey: "AIzaSyC5oHQtFWzLqY3JdpV_3pKY40rx00o6Gu4",
+            authDomain: "prestacom-36ebd.firebaseapp.com",
+            projectId: "prestacom-36ebd",
+            storageBucket: "prestacom-36ebd.firebasestorage.app",
+            messagingSenderId: "787618813060",
+            appId: "1:787618813060:web:8bbdc1bea7960cdbad5ed1"
+        };
+        
         const db = getFirestore(initializeApp(firebaseConfig));
+        const listaDiv = document.getElementById('lista-cobros');
         
-        // --- LÓGICA DINÁMICA ---
-        const params = new URLSearchParams(window.location.search);
-        const tipo = parseInt(params.get('tipo')) || 1; // Obtiene el valor de la URL
-        const titulos = { 1: "DIARIOS", 7: "SEMANALES", 15: "QUINCENALES", 30: "MENSUALES" };
-        
-        document.getElementById('titulo').innerText = "PRÉSTAMOS " + titulos[tipo];
+        // --- CONFIGURACIÓN DE MODALIDAD ---
+        const MODALIDAD = 1; // <--- CAMBIAR AQUÍ (1, 7, 15, o 30)
+        document.getElementById('titulo').innerText = "PRÉSTAMOS MODALIDAD " + MODALIDAD;
 
         const q = query(
             collection(db, "prestamos"), 
             where("id_empresa", "==", localStorage.getItem('id_empresa')),
-            where("modalidad_dias", "==", tipo),
+            where("modalidad_dias", "==", MODALIDAD),
             where("status", "==", "Activo")
         );
 
         onSnapshot(q, (snapshot) => {
-            const listaDiv = document.getElementById('lista-cobros');
             listaDiv.innerHTML = "";
             if (snapshot.empty) { listaDiv.innerHTML = "<p style='text-align:center;'>No hay préstamos activos.</p>"; return; }
-            
             snapshot.forEach((doc) => {
                 const data = doc.data();
-                // Aseguramos que el valor de cuota existe
-                const cuota = data.valor_cuota || 0;
-                
                 const card = document.createElement('div');
                 card.className = "tarjeta";
+                // He añadido la visualización de todos los campos solicitados aquí abajo:
                 card.innerHTML = `
-                    <div class="nombre">${data.nombre_cliente}</div>
-                    <div class="monto">Cuota: $${parseFloat(cuota).toFixed(2)}</div>
+                    <div>
+                        <div class="nombre">${data.nombre_cliente}</div>
+                        <div class="datos-info">
+                            Monto Prestado: $${data.monto_prestado || 0}<br>
+                            Total Cuotas: ${data.total_cuotas || 0} | Pendientes: ${data.cuotas_restantes || 0}<br>
+                            Fecha: ${data.fecha_prestamo || 'N/A'}
+                        </div>
+                    </div>
+                    <div style="font-weight:bold;">Cuota: $${data.valor_cuota}</div>
                 `;
                 card.onclick = () => {
                     localStorage.setItem('cliente_data', JSON.stringify(data));
