@@ -35,7 +35,7 @@
         const listaDiv = document.getElementById('lista-cobros');
         
         // --- CONFIGURACIÓN DE MODALIDAD ---
-        const MODALIDAD = 1; // <--- CAMBIAR AQUÍ (1, 7, 15, o 30)
+        const MODALIDAD = 1; 
         document.getElementById('titulo').innerText = "PRÉSTAMOS MODALIDAD " + MODALIDAD;
 
         const q = query(
@@ -47,30 +47,41 @@
 
         onSnapshot(q, (snapshot) => {
             listaDiv.innerHTML = "";
-            if (snapshot.empty) { listaDiv.innerHTML = "<p style='text-align:center;'>No hay préstamos activos.</p>"; return; }
+            
+            if (snapshot.empty) { 
+                listaDiv.innerHTML = "<p style='text-align:center; color: #64748b;'>No hay préstamos activos para esta modalidad.</p>"; 
+                return; 
+            }
+
             snapshot.forEach((doc) => {
                 const data = doc.data();
+                const nombre = data.nombre_cliente || "Sin nombre";
+                const monto = data.monto_prestado || 0;
+                const valorCuota = data.valor_cuota || 0;
+                
                 const card = document.createElement('div');
                 card.className = "tarjeta";
-                // He añadido la visualización de todos los campos solicitados aquí abajo:
                 card.innerHTML = `
                     <div>
-                        <div class="nombre">${data.nombre_cliente}</div>
+                        <div class="nombre">${nombre}</div>
                         <div class="datos-info">
-                            Monto Prestado: $${data.monto_prestado || 0}<br>
-                            Total Cuotas: ${data.total_cuotas || 0} | Pendientes: ${data.cuotas_restantes || 0}<br>
-                            Fecha: ${data.fecha_prestamo || 'N/A'}
+                            Monto: $${monto} | Cuota: $${valorCuota}<br>
+                            Restan: ${data.cuotas_restantes || 0} de ${data.total_cuotas || 0}
                         </div>
                     </div>
-                    <div style="font-weight:bold;">Cuota: $${data.valor_cuota}</div>
+                    <div style="font-weight:bold; color: #0f172a;">$${valorCuota}</div>
                 `;
+                
                 card.onclick = () => {
-                    localStorage.setItem('cliente_data', JSON.stringify(data));
                     localStorage.setItem('prestamo_id', doc.id);
+                    localStorage.setItem('cliente_data', JSON.stringify(data));
                     window.location.href = "procesar_pago.html";
                 };
                 listaDiv.appendChild(card);
             });
+        }, (error) => {
+            console.error("Error al cargar:", error);
+            listaDiv.innerHTML = "<p style='text-align:center; color: red;'>Error al cargar. Verifica conexión.</p>";
         });
     </script>
 </body>
