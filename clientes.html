@@ -8,197 +8,27 @@
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            background-color: var(--color-background, #f1f5f9);
-            color: var(--color-text-main, #334155);
-            display: flex;
-            justify-content: center;
-            min-height: 100vh;
-        }
-
-        .app-container {
-            width: 100%;
-            max-width: 480px;
-            background-color: var(--color-background, #f1f5f9);
-            display: flex;
-            flex-direction: column;
-        }
-
-        header {
-            background-color: var(--color-primary, #1e293b);
-            color: white;
-            padding: 15px 20px;
-            display: flex;
-            align-items: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-
-        .back-btn {
-            text-decoration: none;
-            color: white;
-            font-size: 1.5rem;
-            margin-right: 15px;
-            display: flex;
-            align-items: center;
-        }
-
-        header h1 {
-            font-size: 1.25rem;
-            font-weight: bold;
-        }
-
-        .search-container {
-            padding: 15px 20px;
-            background-color: var(--color-surface, #ffffff);
-            border-bottom: 1px solid #E5E7EB;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 12px 15px;
-            padding-left: 40px;
-            border: 1px solid #D1D5DB;
-            border-radius: 25px;
-            font-size: 0.95rem;
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="gray" class="bi bi-search" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg>');
-            background-repeat: no-repeat;
-            background-position: 15px center;
-        }
-
-        .search-input:focus {
-            outline: none;
-            border-color: var(--color-primary, #1e293b);
-            background-color: #FFFFFF;
-        }
-
-        .client-list {
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .client-card {
-            background-color: var(--color-surface, #ffffff);
-            border-radius: 12px;
-            padding: 15px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
-            border: 1px solid rgba(0,0,0,0.03);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: inherit;
-        }
-
-        .client-link-area {
-            text-decoration: none;
-            color: inherit;
-            flex: 1;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-right: 10px;
-        }
-
-        .client-info h3 {
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--color-text-main, #334155);
-            margin-bottom: 4px;
-        }
-
-        .client-meta {
-            font-size: 0.8rem;
-            color: #6B7280;
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .client-badge {
-            background-color: rgba(255, 102, 0, 0.1);
-            color: var(--color-primary, #ff6600);
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-weight: 600;
-        }
-
-        .arrow-icon {
-            color: #9CA3AF;
-            font-size: 1.2rem;
-            font-weight: bold;
-        }
-
-        .spatial-gps-action {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px; 
-            border-left: 1px solid #E5E7EB;
-            padding-left: 12px;
-            height: 40px;
-        }
-
-        .btn-trigger-maps, .btn-eliminar-client {
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            font-size: 1.2rem;
-            transition: all 0.2s ease;
-            border: none;
-            cursor: pointer;
-        }
-
-        .btn-trigger-maps {
-            background-color: #111827; 
-            color: #FFFFFF;
-            box-shadow: 0 3px 6px rgba(17, 24, 39, 0.15);
-        }
-
-        .btn-trigger-maps:active {
-            transform: scale(0.9);
-            background-color: #ff6600;
-        }
-
-        .btn-trigger-maps.disabled {
-            background-color: #F3F4F6;
-            color: #9CA3AF;
-            box-shadow: none;
-            pointer-events: none;
-            border: 1px dashed #D1D5DB;
-        }
-
-        .btn-eliminar-client {
-            background-color: #ef4444; 
-            color: #FFFFFF;
-            box-shadow: 0 3px 6px rgba(239, 68, 68, 0.2);
-        }
-
-        .btn-eliminar-client:active {
-            transform: scale(0.9);
-            background-color: #b91c1c; 
-        }
-
-        .no-data {
-            text-align: center;
-            color: #9CA3AF;
-            font-size: 0.95rem;
-            margin-top: 30px;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--color-background, #f1f5f9); color: var(--color-text-main, #334155); display: flex; justify-content: center; min-height: 100vh; }
+        .app-container { width: 100%; max-width: 480px; background-color: var(--color-background, #f1f5f9); display: flex; flex-direction: column; }
+        header { background-color: var(--color-primary, #1e293b); color: white; padding: 15px 20px; display: flex; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 10; }
+        .back-btn { text-decoration: none; color: white; font-size: 1.5rem; margin-right: 15px; display: flex; align-items: center; }
+        header h1 { font-size: 1.25rem; font-weight: bold; }
+        .search-container { padding: 15px 20px; background-color: var(--color-surface, #ffffff); border-bottom: 1px solid #E5E7EB; }
+        .search-input { width: 100%; padding: 12px 15px; padding-left: 40px; border: 1px solid #D1D5DB; border-radius: 25px; font-size: 0.95rem; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="gray" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg>'); background-repeat: no-repeat; background-position: 15px center; }
+        .search-input:focus { outline: none; border-color: var(--color-primary, #1e293b); background-color: #FFFFFF; }
+        .client-list { padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+        .client-card { background-color: var(--color-surface, #ffffff); border-radius: 12px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.03); display: flex; justify-content: space-between; align-items: center; color: inherit; }
+        .client-link-area { text-decoration: none; color: inherit; flex: 1; display: flex; justify-content: space-between; align-items: center; padding-right: 10px; }
+        .client-info h3 { font-size: 1rem; font-weight: 600; color: var(--color-text-main, #334155); margin-bottom: 4px; }
+        .client-meta { font-size: 0.8rem; color: #6B7280; display: flex; gap: 10px; align-items: center; }
+        .client-badge { background-color: rgba(255, 102, 0, 0.1); color: var(--color-primary, #ff6600); padding: 2px 6px; border-radius: 4px; font-weight: 600; }
+        .arrow-icon { color: #9CA3AF; font-size: 1.2rem; font-weight: bold; }
+        .spatial-gps-action { display: flex; align-items: center; justify-content: center; gap: 8px; border-left: 1px solid #E5E7EB; padding-left: 12px; height: 40px; }
+        .btn-trigger-maps, .btn-eliminar-client { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; }
+        .btn-trigger-maps { background-color: #111827; color: #FFFFFF; }
+        .btn-eliminar-client { background-color: #ef4444; color: #FFFFFF; }
+        .no-data { text-align: center; color: #9CA3AF; font-size: 0.95rem; margin-top: 30px; }
     </style>
 </head>
 <body>
@@ -231,10 +61,9 @@
             appId: "1:787618813060:web:8bbdc1bea7960cdbad5ed1"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
+        const db = getFirestore(initializeApp(firebaseConfig));
         const idEmpresaLogueada = localStorage.getItem('id_empresa');
+
         if (!idEmpresaLogueada) {
             window.location.href = "login.html";
         }
@@ -242,6 +71,7 @@
         const contenedor = document.getElementById('lista-clientes-container');
         const buscadorInput = document.getElementById('buscador');
 
+        // Consulta filtrada por empresa
         const q = query(
             collection(db, "clientes_prestamo"), 
             where("id_empresa", "==", idEmpresaLogueada)
@@ -249,7 +79,7 @@
 
         onSnapshot(q, (snapshot) => {
             if (snapshot.empty) {
-                contenedor.innerHTML = '<p class="no-data">No tienes clientes registrados aún en la nube.</p>';
+                contenedor.innerHTML = '<p class="no-data">No tienes clientes registrados aún.</p>';
                 return;
             }
 
@@ -258,35 +88,13 @@
                 listaClientes.push({ id: doc.id, ...doc.data() });
             });
 
-            // Ordenar alfabéticamente
-            listaClientes.sort((a, b) => {
-                const nameA = (a.nombre || "").toLowerCase();
-                const nameB = (b.nombre || "").toLowerCase();
-                return nameA.localeCompare(nameB);
-            });
+            listaClientes.sort((a, b) => (a.nombre || "").toLowerCase().localeCompare((b.nombre || "").toLowerCase()));
 
             let htmlCards = "";
             listaClientes.forEach((cliente) => {
-                
-                // CORRECCIÓN DE URL GOOGLE MAPS DIRECTA PARA COBRADORES
-                let mapaBotonHTML = "";
-                if (cliente.latitud && cliente.longitud) {
-                    mapaBotonHTML = `
-                        <a href="https://www.google.com/maps/search/?api=1&query=${cliente.latitud},${cliente.longitud}" 
-                           target="_blank" 
-                           class="btn-trigger-maps" 
-                           title="Lanzar GPS en Ruta"
-                           onclick="event.stopPropagation();">
-                            <i class='bx bx-map-pin'></i>
-                        </a>
-                    `;
-                } else {
-                    mapaBotonHTML = `
-                        <div class="btn-trigger-maps disabled" title="Ubicación no fijada">
-                            <i class='bx bx-map-alt'></i>
-                        </div>
-                    `;
-                }
+                const mapaLink = (cliente.latitud && cliente.longitud) 
+                    ? `http://maps.google.com/?q=${cliente.latitud},${cliente.longitud}` 
+                    : "#";
 
                 htmlCards += `
                     <div class="client-card">
@@ -300,66 +108,37 @@
                             </div>
                             <div class="arrow-icon">➔</div>
                         </a>
-                        
                         <div class="spatial-gps-action">
-                            ${mapaBotonHTML}
-                            
-                            <button class="btn-eliminar-client" 
-                                    title="Eliminar Cliente" 
-                                    onclick="event.preventDefault(); event.stopPropagation(); borrarClienteSeguro('${cliente.id}', '${cliente.nombre || 'Este cliente'}')">
+                            <a href="${mapaLink}" target="_blank" class="btn-trigger-maps" onclick="event.stopPropagation();">
+                                <i class='bx bx-map-pin'></i>
+                            </a>
+                            <button class="btn-eliminar-client" onclick="borrarClienteSeguro('${cliente.id}', '${cliente.nombre}')">
                                 <i class='bx bx-trash'></i>
                             </button>
                         </div>
                     </div>
                 `;
             });
-            
             contenedor.innerHTML = htmlCards;
-
-            // Ejecuta el filtro inmediatamente por si el usuario ya tenía texto escrito
-            filtrarClientes();
-            
         }, (error) => {
-            console.error("Error al conectar con Firestore: ", error);
-            contenedor.innerHTML = '<p class="no-data">Error de conexión con la base de datos.</p>';
+            console.error("Error en conexión:", error);
+            contenedor.innerHTML = '<p class="no-data" style="color:red;">Error de conexión.</p>';
         });
 
-        async function borrarClienteSeguro(idCliente, nombreCliente) {
-            const confirmar = confirm(`⚠️ ¿Estás completamente seguro de que deseas eliminar a "${nombreCliente}"?\nEsta acción borrará al cliente permanentemente de Prestacom.`);
-            
-            if (confirmar) {
+        window.borrarClienteSeguro = async (idCliente, nombreCliente) => {
+            if (confirm(`¿Eliminar a ${nombreCliente}?`)) {
                 try {
-                    const docRef = doc(db, "clientes_prestamo", idCliente);
-                    await deleteDoc(docRef);
-                    alert("Cliente eliminado correctamente de la nube.");
-                } catch (error) {
-                    console.error("Error al eliminar el documento: ", error);
-                    alert("No se pudo eliminar al cliente. Inténtalo de nuevo.");
-                }
+                    await deleteDoc(doc(db, "clientes_prestamo", idCliente));
+                } catch (e) { alert("Error al eliminar."); }
             }
-        }
+        };
 
-        function filtrarClientes() {
-            const textoBuscado = buscadorInput.value.toLowerCase();
-            const tarjetas = contenedor.getElementsByClassName('client-card');
-
-            for (let i = 0; i < tarjetas.length; i++) {
-                const elNombre = tarjetas[i].querySelector('h3');
-                const elSector = tarjetas[i].querySelector('.client-badge');
-
-                const nombreCliente = elNombre ? elNombre.innerText.toLowerCase() : "";
-                const sectorCliente = elSector ? elSector.innerText.toLowerCase() : "";
-
-                if (nombreCliente.includes(textoBuscado) || sectorCliente.includes(textoBuscado)) {
-                    tarjetas[i].style.display = "flex";
-                } else {
-                    tarjetas[i].style.display = "none";
-                }
-            }
-        }
-
-        buscadorInput.addEventListener('keyup', filtrarClientes);
-        window.borrarClienteSeguro = borrarClienteSeguro;
+        buscadorInput.addEventListener('keyup', (e) => {
+            const val = e.target.value.toLowerCase();
+            document.querySelectorAll('.client-card').forEach(card => {
+                card.style.display = card.innerText.toLowerCase().includes(val) ? "flex" : "none";
+            });
+        });
     </script>
 </body>
 </html>
