@@ -53,14 +53,20 @@
         import { getFirestore, collection, query, where, onSnapshot, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         const firebaseConfig = {
-            apiKey: "AIzaSyC5oHQtFWzLqY3JdpV_3pKY40rx00o6Gu4",
-            authDomain: "prestacom-36ebd.firebaseapp.com",
-            projectId: "prestacom-36ebd",
-            storageBucket: "prestacom-36ebd.firebasestorage.app",
-            messagingSenderId: "787618813060",
-            appId: "1:787618813060:web:8bbdc1bea7960cdbad5ed1"
+          
+                
+         apiKey: "AIzaSyDlVPO8P6oceu2RyVZA_bjak7bvAEXxvQk",
+  authDomain: "prestacom-sistema.firebaseapp.com",
+  projectId: "prestacom-sistema",
+  storageBucket: "prestacom-sistema.firebasestorage.app",
+  messagingSenderId: "263392324772",
+  appId: "1:263392324772:web:2d83308890ddaef7e84a31"
+        
+        
         };
 
+
+        
         const db = getFirestore(initializeApp(firebaseConfig));
         const idEmpresaLogueada = localStorage.getItem('id_empresa');
 
