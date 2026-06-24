@@ -65,18 +65,26 @@ const firebaseConfig = {
             const password = document.getElementById('password').value;
             const errorTxt = document.getElementById('error-txt');
             
-            try {
+           try {
+                // 1. Intentar iniciar sesión
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                
+                // 2. Buscar el documento del usuario en la colección "perfiles"
+                // El ID del documento DEBE ser igual al UID de Authentication
                 const userDoc = await getDoc(doc(db, "perfiles", userCredential.user.uid));
                 
                 if (userDoc.exists()) {
+                    console.log("Acceso concedido para:", userCredential.user.email);
                     window.location.href = "index.html";
                 } else {
-                    throw new Error("Perfil no encontrado");
+                    // Si el login fue exitoso pero no hay perfil, cerramos sesión por seguridad
+                    await auth.signOut();
+                    throw new Error("Perfil no encontrado en la base de datos.");
                 }
             } catch (error) {
                 console.error(error);
                 errorTxt.style.display = 'block';
+                // Mensaje simplificado para el usuario
                 errorTxt.innerText = "Error: " + error.message;
             }
         });
