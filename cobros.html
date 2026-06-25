@@ -6,7 +6,7 @@
     <title>Gestión de Cobros - PRESA-FACIL</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
-        body { background-color: #f1f5f9; padding-bottom: 20px; }
+        body { background-color: #f1f5f9; padding-bottom: 80px; min-height: 100vh; position: relative; }
         
         header { 
             background: #111827; color: white; padding: 20px; display: flex; 
@@ -29,6 +29,27 @@
         .btn-opcion:active { transform: scale(0.95); }
         .btn-opcion:hover { border-color: #f97316; color: #f97316; }
         .btn-opcion span { font-size: 2rem; margin-bottom: 5px; }
+
+        /* Estilos para el nuevo botón */
+        .footer-home {
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+        .btn-inicio {
+            background: #1e293b;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: background 0.3s;
+        }
+        .btn-inicio:hover { background: #f97316; }
     </style>
 </head>
 <body>
@@ -56,6 +77,10 @@
                 <span>📆</span> Mensuales
             </a>
         </div>
+    </div>
+
+    <div class="footer-home">
+        <a href="index.html" class="btn-inicio">Inicio</a>
     </div>
 
 </body>
