@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRESA FÁCIL - Iniciar Sesión</title>
+    <title>PRESTACOM - Iniciar Sesión</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#FF6600">
-    <link rel="stylesheet" href="css/variable.css">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
         body { background: radial-gradient(circle at top right, #2a1b10 0%, #0f172a 60%, #020617 100%); color: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 24px; }
@@ -16,7 +15,8 @@
         .form-group { text-align: left; margin-bottom: 22px; }
         label { font-size: 0.85rem; font-weight: 600; color: #cbd5e1; text-transform: uppercase; display: block; margin-bottom: 8px; }
         input { width: 100%; padding: 14px 16px; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; background: rgba(15, 23, 42, 0.6); color: #ffffff; }
-        .btn-login { width: 100%; background: linear-gradient(135deg, #FF7A1A 0%, #E05500 100%); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: 700; cursor: pointer; margin-top: 12px; }
+        .btn-login { width: 100%; background: linear-gradient(135deg, #FF7A1A 0%, #E05500 100%); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: 700; cursor: pointer; margin-top: 12px; transition: opacity 0.3s; }
+        .btn-login:disabled { opacity: 0.6; cursor: not-allowed; }
         .error-message { color: #ff8585; font-size: 0.85rem; margin-top: 14px; background: rgba(239, 68, 68, 0.15); padding: 10px; border-radius: 8px; display: none; }
     </style>
 </head>
@@ -24,7 +24,7 @@
 
     <div class="login-container">
         <div class="logo-placeholder">💼</div>
-        <h1>PRESA FÁCIL</h1>
+        <h1>PRESTACOM</h1>
         <form id="login-form">
             <div class="form-group">
                 <label for="email">Correo Electrónico</label>
@@ -34,7 +34,7 @@
                 <label for="password">Contraseña</label>
                 <input type="password" id="password" required>
             </div>
-            <div class="error-message" id="error-txt">Credenciales incorrectas.</div>
+            <div class="error-message" id="error-txt"></div>
             <button type="submit" class="btn-login" id="btn-submit">Ingresar al Sistema</button>
         </form>
     </div>
@@ -44,48 +44,48 @@
         import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // --- PEGA AQUÍ TU CONFIGURACIÓN DE LA CONSOLA DE FIREBASE ---
-const firebaseConfig = {
-  apiKey: "AIzaSyDlVPO8P6oceu2RyVZA_bjak7bvAEXxvQk",
-  authDomain: "prestacom-sistema.firebaseapp.com",
-  projectId: "prestacom-sistema",
-  storageBucket: "prestacom-sistema.firebasestorage.app",
-  messagingSenderId: "263392324772",
-  appId: "1:263392324772:web:2d83308890ddaef7e84a31"
-};
-        
+        const firebaseConfig = {
+            apiKey: "AIzaSyDbmVXLBIsBzk-wE60yVtchZ8WI4NWnAW4",
+            authDomain: "prestacom-sistema-a2830.firebaseapp.com",
+            projectId: "prestacom-sistema-a2830",
+            storageBucket: "prestacom-sistema-a2830.firebasestorage.app",
+            messagingSenderId: "500739174929",
+            appId: "1:500739174929:web:1694f07bf65714606f77b0"
+        };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        const btnSubmit = document.getElementById('btn-submit');
+        const errorTxt = document.getElementById('error-txt');
+
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+            btnSubmit.disabled = true;
+            btnSubmit.innerText = "Validando acceso...";
+            errorTxt.style.display = 'none';
+
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
-            const errorTxt = document.getElementById('error-txt');
             
-           try {
-                // 1. Intentar iniciar sesión
+            try {
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                
-                // 2. Buscar el documento del usuario en la colección "perfiles"
-                // El ID del documento DEBE ser igual al UID de Authentication
                 const userDoc = await getDoc(doc(db, "perfiles", userCredential.user.uid));
                 
                 if (userDoc.exists()) {
-                    console.log("Acceso concedido para:", userCredential.user.email);
                     window.location.href = "index.html";
                 } else {
-                    // Si el login fue exitoso pero no hay perfil, cerramos sesión por seguridad
                     await auth.signOut();
-                    throw new Error("Perfil no encontrado en la base de datos.");
+                    throw new Error("Usuario sin perfil registrado.");
                 }
             } catch (error) {
-                console.error(error);
+                btnSubmit.disabled = false;
+                btnSubmit.innerText = "Ingresar al Sistema";
                 errorTxt.style.display = 'block';
-                // Mensaje simplificado para el usuario
-                errorTxt.innerText = "Error: " + error.message;
+                errorTxt.innerText = error.code === 'auth/invalid-credential' 
+                    ? "Correo o contraseña incorrectos." 
+                    : "Error: " + error.message;
             }
         });
     </script>
