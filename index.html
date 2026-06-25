@@ -1,33 +1,384 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Page Not Found</title>
+<html lang="es">
+<head>
+    <script>
+        // 🔒 FILTRO DE SEGURIDAD CRÍTICO
+        if (!localStorage.getItem('id_empresa')) {
+            window.location.href = "login.html";
+        }
+    </script>
 
-    <style media="screen">
-      body { background: #ECEFF1; color: rgba(0,0,0,0.87); font-family: Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; }
-      #message { background: white; max-width: 360px; margin: 100px auto 16px; padding: 32px 24px 16px; border-radius: 3px; }
-      #message h3 { color: #888; font-weight: normal; font-size: 16px; margin: 16px 0 12px; }
-      #message h2 { color: #ffa100; font-weight: bold; font-size: 16px; margin: 0 0 8px; }
-      #message h1 { font-size: 22px; font-weight: 300; color: rgba(0,0,0,0.6); margin: 0 0 16px;}
-      #message p { line-height: 140%; margin: 16px 0 24px; font-size: 14px; }
-      #message a { display: block; text-align: center; background: #039be5; text-transform: uppercase; text-decoration: none; color: white; padding: 16px; border-radius: 4px; }
-      #message, #message a { box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); }
-      #load { color: rgba(0,0,0,0.4); text-align: center; font-size: 13px; }
-      @media (max-width: 600px) {
-        body, #message { margin-top: 0; background: white; box-shadow: none; }
-        body { border-top: 16px solid #ffa100; }
-      }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRESAFACIL - Panel Principal</title>
+    
+    <!-- PWA CONFIGURATION -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#FF6600">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="logo.png">
+    
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            color: #1F2937;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            height: 100dvh; /* Alto dinámico móvil */
+            overflow: hidden; /* Elimina cualquier scroll residual */
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 480px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        header {
+            background-color: #111827;
+            color: white;
+            padding: 18px 20px;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            flex-shrink: 0; /* No se reduce */
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .header-top h1 {
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+
+        .header-top h1 span {
+            color: #FF6600;
+        }
+
+        .logout-btn {
+            background: none;
+            border: none;
+            color: #9CA3AF;
+            font-size: 0.85rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+
+        .logout-btn:active {
+            color: #e74c3c;
+        }
+
+        .welcome-box {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .welcome-box p {
+            color: #9CA3AF;
+            font-size: 0.85rem;
+        }
+
+        .welcome-box h2 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: white;
+            margin-top: 2px;
+        }
+
+        /* 🕒 CONTENEDOR RELOJ Y FECHA */
+        .datetime-container {
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #digital-clock {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #FF6600;
+            letter-spacing: 0.5px;
+        }
+
+        #current-date {
+            font-size: 0.75rem;
+            color: #9CA3AF;
+            text-transform: capitalize;
+        }
+
+        main {
+            padding: 15px 20px;
+            display: flex;
+            flex-direction: column;
+            flex: 1; /* Ocupa todo el espacio intermedio */
+            justify-content: space-between; /* Distribuye secciones simétricamente */
+            min-height: 0; /* Permite un correcto cálculo de flex en hijos */
+        }
+
+        .section-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #6B7280;
+            font-weight: 700;
+            margin-bottom: 8px;
+            flex-shrink: 0;
+        }
+
+        /* 🚨 CUADRÍCULA DE 10 BOTONES ADAPTATIVA */
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            flex: 1;
+            align-content: stretch; /* Estira las tarjetas para ocupar el alto */
+            margin-bottom: 12px;
+        }
+
+        .menu-card {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 16px;
+            padding: 0 10px; /* Removido padding vertical fijo para basarse en flex */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+            color: #1E293B;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+            transition: transform 0.1s, background-color 0.2s;
+            text-align: center;
+        }
+
+        .menu-card:active {
+            transform: scale(0.95);
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        .icon-circle {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+        }
+
+        .menu-card p {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #334155;
+            line-height: 1.2;
+        }
+
+        /* 🎨 MAGIA VISUAL: COLORES EXCLUSIVOS POR ÍCONO */
+        .color-cliente { color: #3498db; background: rgba(52, 152, 219, 0.1); box-shadow: 0 0 12px rgba(52, 152, 219, 0.15); }
+        .color-prestamo { color: #2ecc71; background: rgba(46, 204, 113, 0.1); box-shadow: 0 0 12px rgba(46, 204, 113, 0.15); }
+        .color-cobro { color: #00b894; background: rgba(0, 184, 148, 0.1); box-shadow: 0 0 12px rgba(0, 184, 148, 0.15); }
+        .color-atrasadas { color: #e74c3c; background: rgba(231, 76, 60, 0.1); box-shadow: 0 0 12px rgba(231, 76, 60, 0.15); }
+        .color-mis-clientes { color: #e67e22; background: rgba(230, 126, 34, 0.1); box-shadow: 0 0 12px rgba(230, 126, 34, 0.15); }
+        .color-ver-prestamos { color: #00cec9; background: rgba(0, 206, 201, 0.1); box-shadow: 0 0 12px rgba(0, 206, 201, 0.15); }
+        .color-stats { color: #9b59b6; background: rgba(155, 89, 182, 0.1); box-shadow: 0 0 12px rgba(155, 89, 182, 0.15); }
+        .color-reportes { color: #fdcb6e; color: #b7791f; background: rgba(253, 203, 110, 0.15); box-shadow: 0 0 12px rgba(253, 203, 110, 0.15); }
+        .color-mensajeros { color: #6c5ce7; background: rgba(108, 92, 231, 0.1); box-shadow: 0 0 12px rgba(108, 92, 231, 0.15); }
+        .color-config { color: #7f8c8d; background: rgba(127, 140, 141, 0.1); box-shadow: 0 0 12px rgba(127, 140, 141, 0.15); }
+
+        /* Estilo para tarjetas deshabilitadas (Mensajeros) */
+        .menu-card.disabled {
+            opacity: 0.3;
+            pointer-events: none;
+            filter: grayscale(1);
+        }
+
+        .status-footer-card {
+            background: linear-gradient(135deg, #111827 0%, #1F2937 100%);
+            color: white;
+            border-radius: 16px;
+            padding: 12px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0; /* No se reduce */
+        }
+
+        .status-info h4 { font-size: 0.9rem; font-weight: 600; }
+        .status-info p { font-size: 0.72rem; color: #9CA3AF; }
+        .badge-online { background-color: rgba(46, 204, 113, 0.2); color: #2ECC71; padding: 4px 10px; border-radius: 12px; font-size: 0.72rem; font-weight: 700; }
     </style>
-  </head>
-  <body>
-    <div id="message">
-      <h2>404</h2>
-      <h1>Page Not Found</h1>
-      <p>The specified file was not found on this website. Please check the URL for mistakes and try again.</p>
-      <h3>Why am I seeing this?</h3>
-      <p>This page was generated by the Firebase Command-Line Interface. To modify it, edit the <code>404.html</code> file in your project's configured <code>public</code> directory.</p>
+</head>
+<body>
+
+    <div class="app-container">
+        <header>
+            <div class="header-top">
+                <h1>PRESA<span>FACIL</span></h1>
+                <button class="logout-btn" id="btn-cerrar-sesion">Cerrar Sesión 🚪</button>
+            </div>
+            <div class="welcome-box">
+                <p id="rol-usuario">Cargando...</p>
+                <h2 id="nombre-comercio">Administrador</h2>
+            </div>
+            <!-- 🕒 Reloj Digital y Fecha Actual -->
+            <div class="datetime-container">
+                <div id="digital-clock">00:00:00 PM</div>
+                <div id="current-date">Cargando fecha...</div>
+            </div>
+        </header>
+
+        <main>
+            <h3 class="section-title">Operaciones</h3>
+            <div class="menu-grid">
+                
+                <a href="nuevo-cliente.html" class="menu-card">
+                    <div class="icon-circle color-cliente"><i class='bx bx-user-plus'></i></div>
+                    <p>Nuevo Cliente</p>
+                </a>
+
+                <a href="nuevo-prestamo.html" class="menu-card">
+                    <div class="icon-circle color-prestamo"><i class='bx bx-money'></i></div>
+                    <p>Nuevo Préstamo</p>
+                </a>
+
+                <a href="cobros.html" class="menu-card">
+                    <div class="icon-circle color-cobro"><i class='bx bx-dollar-circle'></i></div>
+                    <p>Registrar Cobro</p>
+                </a>
+
+                <a href="cuotas-atrasadas.html" class="menu-card">
+                    <div class="icon-circle color-atrasadas"><i class='bx bx-error-circle'></i></div>
+                    <p>Cuotas Atrasadas</p>
+                </a>
+
+                <a href="clientes.html" class="menu-card">
+                    <div class="icon-circle color-mis-clientes"><i class='bx bx-group'></i></div>
+                    <p>Mis Clientes</p>
+                </a>
+
+                <a href="prestamos.html" class="menu-card">
+                    <div class="icon-circle color-ver-prestamos"><i class='bx bx-receipt'></i></div>
+                    <p>Ver Préstamos</p>
+                </a>
+
+                <a href="estadisticas.html" class="menu-card" id="card-stats">
+                    <div class="icon-circle color-stats"><i class='bx bx-bar-chart-alt-2'></i></div>
+                    <p>Estadísticas</p>
+                </a>
+
+                <a href="reportes.html" class="menu-card" id="card-reportes">
+                    <div class="icon-circle color-reportes"><i class='bx bx-pie-chart-alt-2'></i></div>
+                    <p>Reportes</p>
+                </a>
+
+                <a href="mensajeros.html" class="menu-card" id="card-mensajeros">
+                    <div class="icon-circle color-mensajeros"><i class='bx bx-id-card'></i></div>
+                    <p>Mensajeros</p>
+                </a>
+
+                <a href="configuracion.html" class="menu-card">
+                    <div class="icon-circle color-config"><i class='bx bx-cog'></i></div>
+                    <p>Configuración</p>
+                </a>
+            </div>
+
+            <div class="status-footer-card">
+                <div class="status-info">
+                    <h4>Dispositivo Vinculado</h4>
+                    <p>Modo Aplicación Activo v2.0</p>
+                </div>
+                <span class="badge-online">En Línea</span>
+            </div>
+        </main>
     </div>
-  </body>
+
+    <script type="module">
+        // 1. REGISTRO DEL SERVICE WORKER (PWA)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                .catch(err => console.log('SW error:', err));
+            });
+        }
+
+        // 2. Control de Sesión y Roles
+        const nombreEmpresa = localStorage.getItem('nombre_company') || localStorage.getItem('nombre_empresa') || 'Ruta General';
+        const rolUsuario = localStorage.getItem('rol_usuario') || 'Administrador';
+        
+        document.getElementById('nombre-comercio').textContent = nombreEmpresa;
+        document.getElementById('rol-usuario').textContent = `Panel de ${rolUsuario}`;
+
+        // 🛡️ SEGURIDAD EN TIEMPO DE EJECUCIÓN
+        if (rolUsuario === 'Mensajero') {
+            document.getElementById('card-stats').classList.add('disabled');
+            document.getElementById('card-reportes').classList.add('disabled');
+            document.getElementById('card-mensajeros').classList.add('disabled');
+        }
+
+        document.getElementById('btn-cerrar-sesion').addEventListener('click', () => {
+            localStorage.clear();
+            window.location.href = "login.html";
+        });
+
+        // 3. 🕒 FUNCIÓN DEL RELOJ Y FECHA DIGITAL
+        function initClock() {
+            const clockEl = document.getElementById('digital-clock');
+            const dateEl = document.getElementById('current-date');
+
+            function update() {
+                const now = new Date();
+
+                // Formato Hora de 12 horas (AM/PM)
+                let hours = now.getHours();
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                const seconds = String(now.getSeconds()).padStart(2, '0');
+                const ampm = hours >= 12 ? 'PM' : 'AM';
+                
+                hours = hours % 12;
+                hours = hours ? hours : 12; // Si es 0 se cambia a 12
+
+                clockEl.textContent = `${hours}:${minutes}:${seconds} ${ampm}`;
+
+                // Formato de Fecha en Español Latinoamericano
+                const options = { weekday: 'long', day: 'numeric', month: 'short' };
+                let dateString = now.toLocaleDateString('es-DO', options);
+                
+                // Limpiar puntos raros que a veces agrega toLocaleDateString en 'short'
+                dateString = dateString.replace('.', '');
+                dateEl.textContent = dateString;
+            }
+
+            setInterval(update, 1000);
+            update(); // Ejecución inmediata al cargar
+        }
+
+        initClock();
+    </script>
+</body>
 </html>
