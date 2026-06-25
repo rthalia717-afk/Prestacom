@@ -74,7 +74,8 @@
                 const userDoc = await getDoc(doc(db, "perfiles", userCredential.user.uid));
                 
                 if (userDoc.exists()) {
-                    window.location.href = "panel.html";
+                    window.location.href = "index.html";
+                   
                 } else {
                     await auth.signOut();
                     throw new Error("Usuario sin perfil registrado.");
