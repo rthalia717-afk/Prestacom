@@ -74,13 +74,14 @@
                 const userDoc = await getDoc(doc(db, "perfiles", userCredential.user.uid));
                 
                 if (userDoc.exists()) {
-                    window.location.href = "panel.html";
-                   
+                    console.log("Redirigiendo a panel.html...");
+                    window.location.replace("panel.html"); // .replace es más limpio para logins
                 } else {
                     await auth.signOut();
                     throw new Error("Usuario sin perfil registrado.");
                 }
             } catch (error) {
+                console.error("Detalle del error:", error); // Revisa la consola F12 si esto falla
                 btnSubmit.disabled = false;
                 btnSubmit.innerText = "Ingresar al Sistema";
                 errorTxt.style.display = 'block';
