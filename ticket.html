@@ -2,132 +2,64 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recibo de Pago</title>
     <style>
-        /* Estilos optimizados para alto contraste en tómbolas térmicas de 80mm */
-        body { 
-            font-family: 'Courier New', Courier, monospace; 
-            width: 80mm; 
-            margin: 0; 
-            padding: 8px; 
-            font-size: 14px; 
-            color: #000; 
-            font-weight: 700; /* Hace que toda la letra base sea más gruesa */
-        }
-        .header { 
-            text-align: center; 
-            border-bottom: 3px solid #000; 
-            margin-bottom: 12px; 
-            padding-bottom: 6px; 
-        }
-        .header h2 { 
-            font-size: 22px; 
-            margin: 0; 
-            font-weight: 900; 
-            text-transform: uppercase; 
-            letter-spacing: 1px;
-        }
-        .header p { 
-            font-size: 13px; 
-            margin: 4px 0 0 0; 
-            font-weight: 900; 
-        }
-        .section-title { 
-            font-weight: 900; 
-            font-size: 14px;
-            border-bottom: 2px solid #000; 
-            margin: 12px 0 6px 0; 
-            padding-bottom: 2px; 
-            text-transform: uppercase;
-        }
-        .row { 
-            display: flex; 
-            justify-content: space-between; 
-            margin-bottom: 4px; 
-        }
-        .row span:first-child {
-            font-weight: 900; /* Etiquetas de la izquierda bien marcadas */
-        }
-        
-        /* CAJA DE TOTAL ULTRA RESALTADA (ALTO CONTRASTE RECOMENTADO) */
-        .total-box { 
-            background-color: #000; /* Fondo negro */
-            color: #fff; /* Letras blancas */
-            margin-top: 15px; 
-            padding: 8px; 
-            font-weight: 900; 
-            font-size: 18px; 
-            text-align: center;
-            border-radius: 4px;
-        }
-        .total-box span {
-            color: #fff !important;
-        }
-
-        .footer { 
-            text-align: center; 
-            font-size: 12px; 
-            margin-top: 20px; 
-            border-top: 2px dashed #000; 
-            padding-top: 8px; 
-            font-weight: 900;
-            text-transform: uppercase;
-        }
-        @media print { 
-            @page { size: 80mm auto; margin: 0; } 
-            body { padding: 0; } 
-            .total-box { -webkit-print-color-adjust: exact; print-color-adjust: exact; } /* Fuerza el color negro en la impresión */
-        }
+        body { font-family: 'Courier New', monospace; width: 72mm; margin: 0; padding: 5px; font-size: 13px; color: #000; }
+        .header { text-align: center; border-bottom: 2px solid #000; margin-bottom: 10px; padding-bottom: 5px; }
+        .titulo-ticket { font-size: 16px; font-weight: 900; margin: 0; text-transform: uppercase; }
+        .sub-titulo { font-size: 11px; margin: 2px 0; }
+        .seccion { margin: 8px 0; border-bottom: 1px dashed #000; padding-bottom: 5px; }
+        .campo { display: flex; justify-content: space-between; margin-bottom: 3px; }
+        .label { font-weight: 900; }
+        .valor { font-weight: normal; }
+        .total-box { border: 2px solid #000; padding: 8px; text-align: center; margin: 10px 0; font-size: 15px; font-weight: 900; }
+        .footer { text-align: center; font-size: 11px; margin-top: 10px; }
+        @media print { @page { margin: 0; } }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h2 id="empresa-nombre">PRESAFACIL</h2>
-        <p>TEL: <span id="empresa-tel">---</span></p>
+        <h2 class="titulo-ticket" id="empresa-nombre">PRESTACOM</h2>
+        <p class="sub-titulo">COMPROBANTE DE PAGO</p>
+        <p id="lbl-fecha-hora"></p>
     </div>
 
-    <div class="section-title">DETALLES DE COBRO</div>
-    <div class="row"><span>FECHA:</span> <span id="lbl-fecha">---</span></div>
-    <div class="row"><span>CLIENTE:</span> <span id="lbl-cliente">---</span></div>
-    <div class="row"><span>COBRADOR:</span> <span id="lbl-mensajero">---</span></div>
+    <div class="seccion">
+        <div class="campo"><span class="label">CLIENTE:</span> <span class="valor" id="lbl-cliente"></span></div>
+    </div>
 
-    <div class="section-title">ESTADO DEL PRESTAMO</div>
-    <div class="row"><span>CUOTA #:</span> <span id="lbl-cuota">---</span></div>
-    <div class="row"><span>RESTANTES:</span> <span id="lbl-restantes">---</span></div>
-    
-    <div class="total-box row">
-        <span>TOTAL PAGADO:</span>
-        <span>RD$ <span id="lbl-monto">0.00</span></span>
+    <div class="seccion">
+        <div class="campo"><span class="label">PAGO N°:</span> <span class="valor" id="lbl-pago-num"></span></div>
+        <div class="campo"><span class="label">CUOTA:</span> <span class="valor" id="lbl-cuota-actual"></span></div>
+        <div class="campo"><span class="label">PENDIENTES:</span> <span class="valor" id="lbl-restantes"></span></div>
+    </div>
+
+    <div class="total-box">
+        TOTAL PAGADO: RD$ <span id="lbl-monto"></span>
     </div>
 
     <div class="footer">
-        <p id="footer-msg">Gracias por su preferencia.</p>
+        <p id="footer-msg">¡Gracias por su pago!</p>
+        <p>Recibido por: <span id="lbl-cobrador"></span></p>
     </div>
 
     <script>
         const ticket = JSON.parse(localStorage.getItem('ultimo_ticket'));
-        
         if (ticket) {
-            // 1. Carga de datos globales desde configuración
-            document.getElementById('empresa-nombre').innerText = (localStorage.getItem('ticket_nombre') || "PRESTACOM 2.0").toUpperCase();
-            document.getElementById('empresa-tel').innerText = localStorage.getItem('ticket_tel') || "---";
-            document.getElementById('footer-msg').innerText = (localStorage.getItem('ticket_footer') || "Gracias por su preferencia.").toUpperCase();
-            
-            // 2. Datos del préstamo (Extraídos del localStorage)
-            document.getElementById('lbl-cliente').innerText = (ticket.cliente || "---").toUpperCase();
-            document.getElementById('lbl-fecha').innerText = ticket.fecha || "---";
-            document.getElementById('lbl-mensajero').innerText = (localStorage.getItem('nombre_usuario') || "SISTEMA").toUpperCase();
-            document.getElementById('lbl-restantes').innerText = ticket.cuotas_restantes || "---";
-            document.getElementById('lbl-cuota').innerText = ticket.cuota_num || "---";
-            document.getElementById('lbl-monto').innerText = parseFloat(ticket.monto_pagado || 0).toLocaleString('es-DO', {minimumFractionDigits: 2});
+            document.getElementById('empresa-nombre').innerText = (localStorage.getItem('ticket_nombre') || "PRESTACOM").toUpperCase();
+            document.getElementById('lbl-fecha-hora').innerText = new Date().toLocaleString();
+            document.getElementById('lbl-cliente').innerText = ticket.cliente;
+            document.getElementById('lbl-pago-num').innerText = ticket.cuota_num;
+            document.getElementById('lbl-cuota-actual').innerText = "RD$ " + ticket.monto_pagado.toFixed(2);
+            document.getElementById('lbl-restantes').innerText = ticket.cuotas_restantes;
+            document.getElementById('lbl-monto').innerText = ticket.monto_pagado.toFixed(2);
+            document.getElementById('lbl-cobrador').innerText = (localStorage.getItem('nombre_usuario') || "SISTEMA").toUpperCase();
 
-            // 3. Impresión inmediata
             window.print();
-            setTimeout(() => { window.history.back(); }, 1500);
+            setTimeout(() => { window.location.href = localStorage.getItem('pagina_origen') || "diarios.html"; }, 1500);
         } else {
-            alert("No hay datos de ticket para mostrar.");
+            alert("No hay datos para imprimir.");
             window.history.back();
         }
     </script>
