@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Procesar Cobro</title>
+    <title>Procesar Cobro - PRESA-FACIL</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
         .contenedor-cobro { background: white; padding: 25px; border-radius: 20px; width: 90%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }
@@ -12,13 +12,14 @@
         .saldo-pendiente { font-size: 1.1rem; color: #64748b; background: #f8fafc; padding: 10px; border-radius: 10px; display: inline-block; }
         .label-input { font-weight: 600; color: #475569; margin-left: 5px; }
         input { width: 100%; padding: 18px; margin: 10px 0 20px 0; border: 3px solid #0f172a; border-radius: 12px; font-size: 2rem; font-weight: bold; text-align: center; box-sizing: border-box; color: #0f172a; }
-        .btn-cobrar { width: 100%; padding: 18px; background: #f97316; color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; }
+        .btn-cobrar { width: 100%; padding: 18px; background: #f97316; color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: background 0.3s; }
+        .btn-cobrar:hover { background: #ea580c; }
     </style>
 </head>
 <body>
 
-    <div class="contenedor-cobro" id="app">
-        <div id="diagnostico" style="text-align: center;">Cargando...</div>
+    <div class="contenedor-cobro">
+        <div id="diagnostico" style="text-align: center;">Cargando información...</div>
     </div>
 
     <script type="module">
@@ -39,47 +40,63 @@
         const prestamoId = localStorage.getItem('prestamo_id');
 
         async function cargar() {
-            const snap = await getDoc(doc(db, "prestamos", prestamoId));
-            const d = snap.data();
-            
-            divInfo.innerHTML = `
-                <div class="header-info">
-                    <div class="nombre-cliente">${d.nombre_cliente}</div>
-                    <div class="saldo-pendiente">Pendiente: <b>$${parseFloat(d.balance_pendiente).toFixed(2)}</b></div>
-                </div>
-                <div class="label-input">Monto a cobrar ($):</div>
-                <input type="number" id="monto" value="${parseFloat(d.valor_cuota).toFixed(2)}">
-                <button class="btn-cobrar" id="btn-pago">CONFIRMAR PAGO</button>
-            `;
+            if (!prestamoId) {
+                divInfo.innerHTML = "Error: No se seleccionó préstamo.";
+                return;
+            }
 
-            document.getElementById('btn-pago').onclick = () => procesar(d);
+            try {
+                const snap = await getDoc(doc(db, "prestamos", prestamoId));
+                if (!snap.exists()) {
+                    divInfo.innerHTML = "Préstamo no encontrado.";
+                    return;
+                }
+                const d = snap.data();
+                
+                divInfo.innerHTML = `
+                    <div class="header-info">
+                        <div class="nombre-cliente">${d.nombre_cliente}</div>
+                        <div class="saldo-pendiente">Pendiente: <b>$${parseFloat(d.balance_pendiente || 0).toFixed(2)}</b></div>
+                    </div>
+                    <div class="label-input">Monto a cobrar ($):</div>
+                    <input type="number" id="monto-input" value="${parseFloat(d.valor_cuota || 0).toFixed(2)}">
+                    <button class="btn-cobrar" id="btn-pago">CONFIRMAR PAGO</button>
+                `;
+
+                document.getElementById('btn-pago').onclick = () => procesar(d);
+            } catch (error) {
+                divInfo.innerHTML = "Error al cargar datos.";
+                console.error(error);
+            }
         }
 
         async function procesar(d) {
-            const monto = parseFloat(document.getElementById('monto').value);
-            const nuevoSaldo = d.balance_pendiente - monto;
-
-            await updateDoc(doc(db, "prestamos", prestamoId), {
-                balance_pendiente: nuevoSaldo,
-                cuotas_restantes: increment(-1)
-            });
-
-            // Generar Ticket
-            const ventanaTicket = window.open('', '_blank', 'width=300,height=400');
-            ventanaTicket.document.write(`
-                <style>body{font-family:monospace; text-align:center; padding:10px;}</style>
-                <h3>RECIBO DE PAGO</h3>
-                <p>Cliente: ${d.nombre_cliente}</p>
-                <hr>
-                <p>Monto Recibido: $${monto.toFixed(2)}</p>
-                <p>Saldo Restante: $${nuevoSaldo.toFixed(2)}</p>
-                <hr>
-                <p>${new Date().toLocaleString()}</p>
-                <button onclick="window.print()">Imprimir Ticket</button>
-            `);
+            const montoInput = document.getElementById('monto-input').value;
+            const monto = parseFloat(montoInput);
             
-            alert("¡Pago registrado!");
-            window.location.href = "diario.html";
+            if (isNaN(monto) || monto <= 0) {
+                alert("Ingrese un monto válido");
+                return;
+            }
+
+            const saldoActual = parseFloat(d.balance_pendiente || 0);
+            const nuevoSaldo = saldoActual - monto;
+
+            try {
+                // Actualizar Firestore
+                await updateDoc(doc(db, "prestamos", prestamoId), {
+                    balance_pendiente: nuevoSaldo,
+                    cuotas_restantes: increment(-1)
+                });
+
+                alert("¡Pago registrado correctamente!");
+                
+                // Redirigir a diarios o proceder al diseño del ticket
+                window.location.href = "diarios.html"; 
+            } catch (error) {
+                console.error("Error al procesar:", error);
+                alert("Error al guardar en la base de datos.");
+            }
         }
 
         cargar();
