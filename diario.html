@@ -73,8 +73,8 @@
                             Restan: ${data.cuotas_restantes || 0} de ${data.total_cuotas || 0}
                         </div>
                     </div>
-                    <div style="font-weight:bold; color: #0f172a;">$${valorCuota}</div>
-                `;
+                    <div style="font-weight:bold; color: #0f172a;">$${valorCuota}
+                    /div>;
                 
                 card.onclick = () => {
                     localStorage.setItem('prestamo_id', doc.id);
