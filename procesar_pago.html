@@ -79,23 +79,32 @@
                 return;
             }
 
+            // 1. Preparar datos para el Ticket
+            const datosTicket = {
+                cliente: d.nombre_cliente,
+                fecha: new Date().toLocaleDateString(),
+                cuota_num: (d.total_cuotas - d.cuotas_restantes) + 1,
+                cuotas_restantes: d.cuotas_restantes - 1,
+                monto_pagado: monto
+            };
+            localStorage.setItem('ultimo_ticket', JSON.stringify(datosTicket));
+
             const saldoActual = parseFloat(d.balance_pendiente || 0);
             const nuevoSaldo = saldoActual - monto;
 
             try {
-                // Actualizar Firestore
+                // 2. Actualizar Firestore
                 await updateDoc(doc(db, "prestamos", prestamoId), {
                     balance_pendiente: nuevoSaldo,
                     cuotas_restantes: increment(-1)
                 });
 
-                alert("¡Pago registrado correctamente!");
+                // 3. Redirigir al Ticket para imprimir
+                window.location.href = "ticket.html"; 
                 
-                // Redirigir a diarios o proceder al diseño del ticket
-                window.location.href = "diarios.html"; 
             } catch (error) {
                 console.error("Error al procesar:", error);
-                alert("Error al guardar en la base de datos.");
+                alert("Error al guardar el pago. Verifica tu conexión.");
             }
         }
 
