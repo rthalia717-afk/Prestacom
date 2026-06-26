@@ -73,12 +73,12 @@
                 setTimeout(() => {
                     window.print();
                     setTimeout(() => { 
-                        window.location.href = localStorage.getItem('pagina_origen') || "diarios.html"; 
+                        window.location.href = localStorage.getItem('pagina_origen') || "diario.html"; 
                     }, 1000);
                 }, 500);
             } else {
                 alert("No hay datos de ticket.");
-                window.location.href = "cobros.html";
+                window.location.href = "diario.html";
             }
         };
     </script>
