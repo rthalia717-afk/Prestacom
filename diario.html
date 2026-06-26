@@ -3,27 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cobros Diarios - PRESA-FACIL</title>
+    <title>Cobros - PRESA-FACIL</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; padding: 20px; margin: 0; }
-        .tarjeta { background: white; padding: 15px; border-radius: 15px; border: 2px solid #0f172a; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: transform 0.1s; }
-        .tarjeta:active { transform: scale(0.98); }
-        .nombre { font-size: 1.2rem; font-weight: 900; color: #1e293b; }
-        .datos-info { font-size: 0.9rem; color: #475569; margin-top: 5px; }
+        .tarjeta { background: white; padding: 15px; border-radius: 15px; border: 2px solid #0f172a; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .nombre { font-size: 1.2rem; font-weight: 900; }
         .btn-volver { display: block; text-align: center; margin-top: 20px; padding: 15px; background: #ef4444; color: white; border-radius: 15px; text-decoration: none; font-weight: bold; }
+        .datos-info { font-size: 0.9rem; color: #334155; margin-top: 5px; line-height: 1.4; }
     </style>
 </head>
 <body>
 
-    <h2 id="titulo">Cargando Préstamos Diarios...</h2>
-    <div id="lista-cobros">Cargando datos...</div>
+    <h2 id="titulo">Cargando...</h2>
+    <div id="lista-cobros">Cargando clientes...</div>
     <a href="cobros.html" class="btn-volver">VOLVER</a>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        const firebaseConfig = {
+       const firebaseConfig = {
             apiKey: "AIzaSyDbmVXLBIsBzk-wE60yVtchZ8WI4NWnAW4",
             authDomain: "prestacom-sistema-a2830.firebaseapp.com",
             projectId: "prestacom-sistema-a2830",
@@ -31,54 +30,51 @@
             messagingSenderId: "500739174929",
             appId: "1:500739174929:web:1694f07bf65714606f77b0"
         };
-
+        
         const db = getFirestore(initializeApp(firebaseConfig));
         const listaDiv = document.getElementById('lista-cobros');
-        const idEmpresa = localStorage.getItem('id_empresa');
+        
+        // --- CONFIGURACIÓN DE MODALIDAD ---
+        const MODALIDAD = 1; 
+        document.getElementById('titulo').innerText = "PRÉSTAMOS MODALIDAD " + MODALIDAD;
 
-        document.getElementById('titulo').innerText = "PRÉSTAMOS MODALIDAD DIARIA";
-
-        // Filtro para modalidad 1 (Diaria) y estatus Activo
         const q = query(
             collection(db, "prestamos"), 
-            where("id_empresa", "==", idEmpresa),
-            where("modalidad_dias", "==", 1),
+            where("id_empresa", "==", localStorage.getItem('id_empresa')),
+            where("modalidad_dias", "==", MODALIDAD),
             where("status", "==", "Activo")
         );
 
         onSnapshot(q, (snapshot) => {
             listaDiv.innerHTML = "";
+            if (snapshot.empty) { listaDiv.innerHTML = "<p style='text-align:center;'>No hay préstamos activos.</p>"; return; }
             
-            if (snapshot.empty) {
-                listaDiv.innerHTML = "<p style='text-align:center;'>No hay préstamos diarios activos.</p>";
-                return;
-            }
-
             snapshot.forEach((doc) => {
                 const data = doc.data();
                 const card = document.createElement('div');
                 card.className = "tarjeta";
+                
+                // Usando los nombres de campos que salen de tu archivo de registro
                 card.innerHTML = `
                     <div>
-                        <div class="nombre">${data.nombre_cliente || "Sin nombre"}</div>
+                        <div class="nombre">${data.nombre_cliente}</div>
                         <div class="datos-info">
-                            Cuota: $${data.valor_cuota || 0} | Restan: ${data.cuotas_restantes || 0}
+                            Monto: $${data.monto_original || 0}<br>
+                            Cuotas: ${data.cuotas_totales || 0} | 
+                            Pendientes: ${data.cuotas_restantes || 0}<br>
+                            Fecha: ${data.fecha_inicio || 'N/A'}
                         </div>
                     </div>
-                    <div style="font-weight:bold; color: #0f172a;">PAGAR</div>
+                    <div style="font-weight:bold; font-size: 1.1rem;">Cuota: $${data.valor_cuota || 0}</div>
                 `;
                 
                 card.onclick = () => {
-                    localStorage.setItem('prestamo_id', doc.id);
                     localStorage.setItem('cliente_data', JSON.stringify(data));
+                    localStorage.setItem('prestamo_id', doc.id);
                     window.location.href = "procesar_pago.html";
                 };
                 listaDiv.appendChild(card);
             });
-        }, (error) => {
-            console.error("Error al cargar:", error);
-            // Si sale error de índice, el link aparecerá aquí en la consola (F12)
-            listaDiv.innerHTML = "<p style='color:red;'>Error al cargar. Revisa la consola (F12).</p>";
         });
     </script>
 </body>
