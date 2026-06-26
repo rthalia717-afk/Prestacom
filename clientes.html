@@ -1,150 +1,83 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <script>
+        if (!localStorage.getItem('id_empresa')) window.location.replace("login.html");
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRESTACOM 2.0 - Clientes</title>
-    <link class="css-link" rel="stylesheet" href="css/variable.css">
+    <title>Mis Clientes - PRESTACOM</title>
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: var(--color-background, #f1f5f9); color: var(--color-text-main, #334155); display: flex; justify-content: center; min-height: 100vh; }
-        .app-container { width: 100%; max-width: 480px; background-color: var(--color-background, #f1f5f9); display: flex; flex-direction: column; }
-        header { background-color: var(--color-primary, #1e293b); color: white; padding: 15px 20px; display: flex; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 10; }
-        .back-btn { text-decoration: none; color: white; font-size: 1.5rem; margin-right: 15px; display: flex; align-items: center; }
-        header h1 { font-size: 1.25rem; font-weight: bold; }
-        .search-container { padding: 15px 20px; background-color: var(--color-surface, #ffffff); border-bottom: 1px solid #E5E7EB; }
-        .search-input { width: 100%; padding: 12px 15px; padding-left: 40px; border: 1px solid #D1D5DB; border-radius: 25px; font-size: 0.95rem; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="gray" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg>'); background-repeat: no-repeat; background-position: 15px center; }
-        .search-input:focus { outline: none; border-color: var(--color-primary, #1e293b); background-color: #FFFFFF; }
-        .client-list { padding: 20px; display: flex; flex-direction: column; gap: 12px; }
-        .client-card { background-color: var(--color-surface, #ffffff); border-radius: 12px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.03); display: flex; justify-content: space-between; align-items: center; color: inherit; }
-        .client-link-area { text-decoration: none; color: inherit; flex: 1; display: flex; justify-content: space-between; align-items: center; padding-right: 10px; }
-        .client-info h3 { font-size: 1rem; font-weight: 600; color: var(--color-text-main, #334155); margin-bottom: 4px; }
-        .client-meta { font-size: 0.8rem; color: #6B7280; display: flex; gap: 10px; align-items: center; }
-        .client-badge { background-color: rgba(255, 102, 0, 0.1); color: var(--color-primary, #ff6600); padding: 2px 6px; border-radius: 4px; font-weight: 600; }
-        .arrow-icon { color: #9CA3AF; font-size: 1.2rem; font-weight: bold; }
-        .spatial-gps-action { display: flex; align-items: center; justify-content: center; gap: 8px; border-left: 1px solid #E5E7EB; padding-left: 12px; height: 40px; }
-        .btn-trigger-maps, .btn-eliminar-client { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; }
-        .btn-trigger-maps { background-color: #111827; color: #FFFFFF; }
-        .btn-eliminar-client { background-color: #ef4444; color: #FFFFFF; }
-        .no-data { text-align: center; color: #9CA3AF; font-size: 0.95rem; margin-top: 30px; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        body { background: #f1f5f9; padding-bottom: 20px; }
+        header { background: #111827; color: white; padding: 20px; display: flex; align-items: center; }
+        .back-btn { color: white; text-decoration: none; font-size: 1.5rem; margin-right: 15px; }
+        .container { padding: 20px; max-width: 480px; margin: auto; }
+        
+        /* Tarjeta de cliente */
+        .cliente-card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; }
+        .info h3 { font-size: 1rem; color: #1e293b; }
+        .info p { font-size: 0.8rem; color: #64748b; }
+        .btn-ver { background: #FF6600; color: white; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div class="app-container">
-        <header>
-            <a href="index.html" class="back-btn">⬅</a>
-            <h1>Mis Clientes</h1>
-        </header>
+    <header>
+        <a href="panel.html" class="back-btn">⬅</a>
+        <h1>Mis Clientes</h1>
+    </header>
 
-        <div class="search-container">
-            <input type="text" id="buscador" class="search-input" placeholder="Buscar cliente por nombre o sector...">
-        </div>
-
-        <main class="client-list" id="lista-clientes-container">
-            <p class="no-data" id="cargando-txt">Conectando a la base de datos...</p>
-        </main>
+    <div class="container" id="lista-clientes">
+        <p style="text-align: center; color: #94a3b8;">Cargando clientes...</p>
     </div>
 
     <script type="module">
+        import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, collection, query, where, onSnapshot, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        const firebaseConfig = {
-          
-                
-         apiKey: "AIzaSyDlVPO8P6oceu2RyVZA_bjak7bvAEXxvQk",
-  authDomain: "prestacom-sistema.firebaseapp.com",
-  projectId: "prestacom-sistema",
-  storageBucket: "prestacom-sistema.firebasestorage.app",
-  messagingSenderId: "263392324772",
-  appId: "1:263392324772:web:2d83308890ddaef7e84a31"
-        
-        
+        const firebaseConfig = { /* Usa el mismo objeto que en tu otro archivo */
+            apiKey: "AIzaSyDlVPO8P6oceu2RyVZA_bjak7bvAEXxvQk",
+            projectId: "prestacom-sistema"
         };
 
-
-        
         const db = getFirestore(initializeApp(firebaseConfig));
-        const idEmpresaLogueada = localStorage.getItem('id_empresa');
+        const idEmpresa = localStorage.getItem('id_empresa');
+        const listaClientes = document.getElementById('lista-clientes');
 
-        if (!idEmpresaLogueada) {
-            window.location.href = "login.html";
+        async function cargarClientes() {
+            try {
+                const q = query(collection(db, "clientes_prestamo"), where("id_empresa", "==", idEmpresa));
+                const querySnapshot = await getDocs(q);
+                
+                listaClientes.innerHTML = ""; // Limpiar mensaje de carga
+
+                if (querySnapshot.empty) {
+                    listaClientes.innerHTML = "<p style='text-align:center;'>No tienes clientes registrados.</p>";
+                    return;
+                }
+
+                querySnapshot.forEach((doc) => {
+                    const c = doc.data();
+                    const div = document.createElement('div');
+                    div.className = 'cliente-card';
+                    div.innerHTML = `
+                        <div class="info">
+                            <h3>${c.nombre}</h3>
+                            <p>Cédula: ${c.cedula} | Tel: ${c.telefono}</p>
+                        </div>
+                        <button class="btn-ver" onclick="alert('Detalle de ${c.nombre}')">Ver</button>
+                    `;
+                    listaClientes.appendChild(div);
+                });
+            } catch (error) {
+                console.error("Error:", error);
+                listaClientes.innerHTML = "<p>Error al cargar clientes.</p>";
+            }
         }
 
-        const contenedor = document.getElementById('lista-clientes-container');
-        const buscadorInput = document.getElementById('buscador');
-
-        // Consulta filtrada por empresa
-        const q = query(
-            collection(db, "clientes_prestamo"), 
-            where("id_empresa", "==", idEmpresaLogueada)
-        );
-
-        onSnapshot(q, (snapshot) => {
-            if (snapshot.empty) {
-                contenedor.innerHTML = '<p class="no-data">No tienes clientes registrados aún.</p>';
-                return;
-            }
-
-            let listaClientes = [];
-            snapshot.forEach((doc) => {
-                listaClientes.push({ id: doc.id, ...doc.data() });
-            });
-
-            listaClientes.sort((a, b) => (a.nombre || "").toLowerCase().localeCompare((b.nombre || "").toLowerCase()));
-
-            let htmlCards = "";
-            listaClientes.forEach((cliente) => {
-                const mapaLink = (cliente.latitud && cliente.longitud) 
-                    ? `http://maps.google.com/?q=${cliente.latitud},${cliente.longitud}` 
-                    : "#";
-
-                htmlCards += `
-                    <div class="client-card">
-                        <a href="ficha-cliente.html?id=${cliente.id}" class="client-link-area">
-                            <div class="client-info">
-                                <h3>${cliente.nombre || 'Sin Nombre'}</h3>
-                                <div class="client-meta">
-                                    <span>📞 ${cliente.telefono || 'Sin número'}</span>
-                                    <span class="client-badge">${cliente.ruta_sector || 'Sin Zona'}</span>
-                                </div>
-                            </div>
-                            <div class="arrow-icon">➔</div>
-                        </a>
-                        <div class="spatial-gps-action">
-                            <a href="${mapaLink}" target="_blank" class="btn-trigger-maps" onclick="event.stopPropagation();">
-                                <i class='bx bx-map-pin'></i>
-                            </a>
-                            <button class="btn-eliminar-client" onclick="borrarClienteSeguro('${cliente.id}', '${cliente.nombre}')">
-                                <i class='bx bx-trash'></i>
-                            </button>
-                        </div>
-                    </div>
-                `;
-            });
-            contenedor.innerHTML = htmlCards;
-        }, (error) => {
-            console.error("Error en conexión:", error);
-            contenedor.innerHTML = '<p class="no-data" style="color:red;">Error de conexión.</p>';
-        });
-
-        window.borrarClienteSeguro = async (idCliente, nombreCliente) => {
-            if (confirm(`¿Eliminar a ${nombreCliente}?`)) {
-                try {
-                    await deleteDoc(doc(db, "clientes_prestamo", idCliente));
-                } catch (e) { alert("Error al eliminar."); }
-            }
-        };
-
-        buscadorInput.addEventListener('keyup', (e) => {
-            const val = e.target.value.toLowerCase();
-            document.querySelectorAll('.client-card').forEach(card => {
-                card.style.display = card.innerText.toLowerCase().includes(val) ? "flex" : "none";
-            });
-        });
+        cargarClientes();
     </script>
 </body>
 </html>
