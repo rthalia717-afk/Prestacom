@@ -13,7 +13,8 @@
         .label-input { font-weight: 600; color: #475569; margin-left: 5px; }
         input { width: 100%; padding: 18px; margin: 10px 0 20px 0; border: 3px solid #0f172a; border-radius: 12px; font-size: 2rem; font-weight: bold; text-align: center; box-sizing: border-box; color: #0f172a; }
         .btn-cobrar { width: 100%; padding: 18px; background: #f97316; color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: background 0.3s; }
-        .btn-cobrar:hover { background: #ea580c; }
+        .btn-cobrar:disabled { background: #cbd5e1; cursor: not-allowed; }
+        .btn-cobrar:hover:not(:disabled) { background: #ea580c; }
     </style>
 </head>
 <body>
@@ -71,6 +72,7 @@
         }
 
         async function procesar(d) {
+            const btn = document.getElementById('btn-pago');
             const montoInput = document.getElementById('monto-input').value;
             const monto = parseFloat(montoInput);
             
@@ -79,7 +81,10 @@
                 return;
             }
 
-            // 1. Preparar datos para el Ticket
+            // UI: Desactivar botón y mostrar estado de carga
+            btn.disabled = true;
+            btn.innerText = "Procesando...";
+
             const datosTicket = {
                 cliente: d.nombre_cliente,
                 fecha: new Date().toLocaleDateString(),
@@ -93,18 +98,19 @@
             const nuevoSaldo = saldoActual - monto;
 
             try {
-                // 2. Actualizar Firestore
                 await updateDoc(doc(db, "prestamos", prestamoId), {
                     balance_pendiente: nuevoSaldo,
                     cuotas_restantes: increment(-1)
                 });
 
-                // 3. Redirigir al Ticket para imprimir
+                // Redirigir directo al ticket
                 window.location.href = "ticket.html"; 
                 
             } catch (error) {
                 console.error("Error al procesar:", error);
                 alert("Error al guardar el pago. Verifica tu conexión.");
+                btn.disabled = false;
+                btn.innerText = "CONFIRMAR PAGO";
             }
         }
 
