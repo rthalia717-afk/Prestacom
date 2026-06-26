@@ -37,10 +37,24 @@
         import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 
-        const firebaseConfig = { /* Usa el mismo objeto que en tu otro archivo */
-            apiKey: "AIzaSyDlVPO8P6oceu2RyVZA_bjak7bvAEXxvQk",
-            projectId: "prestacom-sistema"
+       // const firebaseConfig = { /* Usa el mismo objeto que en tu otro archivo */
+         //   apiKey: "AIzaSyDlVPO8P6oceu2RyVZA_bjak7bvAEXxvQk",
+           // projectId: "prestacom-sistema"
+        //};
+
+
+const firebaseConfig = {
+            apiKey: "AIzaSyDbmVXLBIsBzk-wE60yVtchZ8WI4NWnAW4",
+            authDomain: "prestacom-sistema-a2830.firebaseapp.com",
+            projectId: "prestacom-sistema-a2830",
+            storageBucket: "prestacom-sistema-a2830.firebasestorage.app",
+            messagingSenderId: "500739174929",
+            appId: "1:500739174929:web:1694f07bf65714606f77b0"
         };
+
+
+
+        
 
         const db = getFirestore(initializeApp(firebaseConfig));
         const idEmpresa = localStorage.getItem('id_empresa');
