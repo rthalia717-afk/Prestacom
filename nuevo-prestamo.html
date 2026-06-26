@@ -4,35 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PRESTACOM 2.0 - Nuevo Préstamo</title>
-    <link class="css-link" rel="stylesheet" href="css/variable.css">
-    
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: var(--color-background, #F9FAFB); color: var(--color-text-main, #1F2937); display: flex; justify-content: center; min-height: 100vh; }
-        .app-container { width: 100%; max-width: 480px; background-color: var(--color-background, #F9FAFB); display: flex; flex-direction: column; }
-        header { background-color: var(--color-primary, #111827); color: white; padding: 15px 20px; display: flex; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 10; }
-        .back-btn { text-decoration: none; color: white; font-size: 1.5rem; margin-right: 15px; display: flex; align-items: center; }
-        header h1 { font-size: 1.25rem; font-weight: bold; }
+        body { background-color: #F9FAFB; color: #1F2937; display: flex; justify-content: center; min-height: 100vh; }
+        .app-container { width: 100%; max-width: 480px; background-color: #F9FAFB; display: flex; flex-direction: column; }
+        header { background-color: #111827; color: white; padding: 15px 20px; display: flex; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 10; }
+        .back-btn { text-decoration: none; color: white; font-size: 1.5rem; margin-right: 15px; }
         form { padding: 20px; display: flex; flex-direction: column; gap: 20px; padding-bottom: 120px; }
-        .card { background-color: var(--color-surface, #FFFFFF); border-radius: 12px; padding: 15px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02); border: 1px solid rgba(0,0,0,0.03); }
-        .card-title { font-size: 0.9rem; color: var(--color-primary, #FF6600); font-weight: 700; text-transform: uppercase; margin-bottom: 12px; border-bottom: 1px solid rgba(255, 102, 0, 0.1); padding-bottom: 4px; }
+        .card { background-color: #FFFFFF; border-radius: 12px; padding: 15px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02); border: 1px solid rgba(0,0,0,0.03); }
+        .card-title { font-size: 0.9rem; color: #FF6600; font-weight: 700; text-transform: uppercase; margin-bottom: 12px; border-bottom: 1px solid rgba(255, 102, 0, 0.1); padding-bottom: 4px; }
         .input-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
-        label { font-size: 0.85rem; font-weight: 600; color: var(--color-text-main, #1F2937); }
-        input, select { width: 100%; padding: 12px; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 0.95rem; background-color: #FAFAFA; color: var(--color-text-main, #1F2937); }
-        input:focus, select:focus { outline: none; border-color: var(--color-primary, #FF6600); background-color: #FFFFFF; }
-        input[readonly] { background-color: #E5E7EB; color: #374151; cursor: not-allowed; font-weight: 600; }
-        .info-termino { background-color: rgba(255, 102, 0, 0.05); border-left: 4px solid var(--color-primary, #FF6600); padding: 12px; margin-bottom: 15px; border-radius: 0 8px 8px 0; font-size: 0.95rem; }
-        .info-termino strong { color: var(--color-primary, #FF6600); }
-        .reenganche-alert { background-color: rgba(39, 174, 96, 0.08); border: 1px solid #27AE60; color: #27AE60; padding: 12px; border-radius: 8px; margin-bottom: 12px; font-size: 0.88rem; font-weight: 600; }
-        .table-container { margin-top: 10px; overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-        th { background-color: #F3F4F6; padding: 10px; font-weight: 700; border-bottom: 2px solid #E5E7EB; text-align: left; }
-        td { padding: 12px 10px; border-bottom: 1px solid #E5E7EB; }
-        .status-badge { font-weight: bold; padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; background-color: rgba(241, 198, 15, 0.15); color: #D4AC0D; }
-        .footer-actions { position: fixed; bottom: 0; width: 100%; max-width: 480px; background-color: var(--color-background, #F9FAFB); padding: 15px 20px; box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.08); z-index: 100; display: flex; gap: 10px; }
-        .btn-calcular { flex: 1; background-color: #E5E7EB; color: #374151; border: 1px solid #D1D5DB; border-radius: 8px; padding: 14px; font-weight: bold; cursor: pointer; }
+        label { font-size: 0.85rem; font-weight: 600; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 0.95rem; background-color: #FAFAFA; }
+        .footer-actions { position: fixed; bottom: 0; width: 100%; max-width: 480px; background-color: #F9FAFB; padding: 15px 20px; box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.08); display: flex; gap: 10px; }
         .btn-generar { flex: 1; background-color: #FF6600; color: white; border: none; border-radius: 8px; padding: 14px; font-weight: bold; cursor: pointer; }
-        .btn-generar:disabled { background-color: #9CA3AF; }
     </style>
 </head>
 <body>
@@ -40,63 +25,49 @@
     <div class="app-container">
         <header>
             <a href="index.html" class="back-btn">⬅</a>
-            <h1 id="titulo-pantalla">Nuevo Préstamo</h1>
+            <h1>Nuevo Préstamo</h1>
         </header>
 
         <form id="form-prestamo">
             <div class="card">
-                <div class="card-title">Asignar Cliente</div>
-                <div id="contenedor-alerta-reenganche" style="display: none;"></div>
-                <input type="hidden" id="hidden-cliente-id">
-                <div class="input-group" id="grupo-cliente-reenganche" style="display: none;">
-                    <label>Cliente a Reenganchar</label>
-                    <input type="text" id="input-cliente-nombre" readonly>
-                </div>
-                <div class="input-group" id="grupo-cliente-regular">
+                <div class="card-title">Datos Generales</div>
+                <div class="input-group">
                     <label for="select-cliente">Selecciona el Cliente</label>
-                    <select id="select-cliente">
-                        <option value="">Cargando clientes de la nube...</option>
+                    <select id="select-cliente" required>
+                        <option value="">Cargando clientes...</option>
                     </select>
+                </div>
+                <div class="input-group">
+                    <label for="fecha-inicio">Fecha de Inicio</label>
+                    <input type="date" id="fecha-inicio" required>
                 </div>
             </div>
 
             <div class="card">
-                <div class="card-title">Condiciones del Préstamo</div>
-                <div class="input-group"><label>Fecha de Entrega</label><input type="date" id="fecha-inicio" required></div>
-                <div class="input-group"><label>Nuevo Capital Solicitado ($)</label><input type="number" id="monto" placeholder="Ej. 10000" min="1" required></div>
-                <div class="input-group"><label>Tasa de Interés (%)</label><input type="number" id="interes" placeholder="Ej. 20" min="0" required></div>
+                <div class="card-title">Condiciones</div>
+                <div class="input-group"><label>Monto ($)</label><input type="number" id="monto" required></div>
+                <div class="input-group"><label>Tasa (%)</label><input type="number" id="interes" required></div>
                 <div class="input-group">
-                    <label for="modalidad">Modalidad de Pago</label>
+                    <label for="modalidad">Modalidad</label>
                     <select id="modalidad">
-                        <option value="1">Diario</option><option value="7">Semanal</option>
-                        <option value="15">Quincenal</option><option value="30">Mensual</option>
+                        <option value="1">Diario</option>
+                        <option value="7">Semanal</option>
+                        <option value="15">Quincenal</option>
+                        <option value="30">Mensual</option>
                     </select>
                 </div>
-                <div class="input-group"><label>Cantidad de Cuotas</label><input type="number" id="cuotas" placeholder="Ej. 6" min="1" required></div>
-                <div class="input-group"><label>Días de Gracia</label><input type="number" id="dias-gracia" value="0" min="0"></div>
-            </div>
-
-            <div class="card" id="detalles-card" style="display: none;">
-                <div class="card-title">Detalles del Desglose</div>
-                <div class="info-termino" id="info-resumen-ganancias"></div>
-                <div class="table-container">
-                    <table>
-                        <thead><tr><th>Cuota</th><th>Fecha</th><th>Monto</th><th>Status</th></tr></thead>
-                        <tbody id="tabla-cuotas-body"></tbody>
-                    </table>
-                </div>
+                <div class="input-group"><label>Cantidad de Cuotas</label><input type="number" id="cuotas" required></div>
             </div>
 
             <div class="footer-actions">
-                <button type="button" class="btn-calcular" id="btn-calcular-id">Calcular Préstamo</button>
-                <button type="submit" class="btn-generar" id="btn-generar-id">Generar Préstamo</button>
+                <button type="submit" class="btn-generar">Generar Préstamo</button>
             </div>
         </form>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, collection, query, where, getDocs, addDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, collection, query, where, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDbmVXLBIsBzk-wE60yVtchZ8WI4NWnAW4",
@@ -105,88 +76,62 @@
             storageBucket: "prestacom-sistema-a2830.firebasestorage.app",
             messagingSenderId: "500739174929",
             appId: "1:500739174929:web:1694f07bf65714606f77b0"
-        
         };
-        
-        
-        
+
         const db = getFirestore(initializeApp(firebaseConfig));
-        const idEmpresaLogueada = localStorage.getItem('id_empresa');
-        const nombreUsuarioLogueado = localStorage.getItem('nombre_usuario');
+        const idEmpresa = localStorage.getItem('id_empresa');
 
-        let cuotasCalculadas = [];
-        let fechaFinalPrestamo = "";
-        let idPrestamoAnterior = null;
-        let saldoArrastradoMora = 0;
-        let esReenganche = false;
-
-        window.addEventListener('DOMContentLoaded', async () => {
-            const hoy = new Date();
-            document.getElementById('fecha-inicio').value = hoy.toISOString().split('T')[0];
-            const p = new URLSearchParams(window.location.search);
-            idPrestamoAnterior = p.get('reenganche');
-            saldoArrastradoMora = parseFloat(p.get('saldo')) || 0;
-            if (idPrestamoAnterior) {
-                esReenganche = true;
-                document.getElementById('hidden-cliente-id').value = p.get('cliente_id');
-                document.getElementById('input-cliente-nombre').value = p.get('nombre_cliente');
-                document.getElementById('grupo-cliente-regular').style.display = "none";
-                document.getElementById('grupo-cliente-reenganche').style.display = "flex";
-            } else { await cargarClientes(); }
-        });
-
+        // Cargar clientes
         async function cargarClientes() {
-            const q = query(collection(db, "clientes_prestamo"), where("id_empresa", "==", idEmpresaLogueada));
+            const q = query(collection(db, "clientes_prestamo"), where("id_empresa", "==", idEmpresa));
             const snap = await getDocs(q);
             const select = document.getElementById('select-cliente');
             select.innerHTML = '<option value="">Elige un deudor</option>';
             snap.forEach(d => {
                 const data = d.data();
-                select.innerHTML += `<option value="${d.id}" data-nombre="${data.nombre}">${data.nombre}</option>`;
+                select.innerHTML += `<option value="${d.id}">${data.nombre}</option>`;
             });
         }
 
-        function verificarCalculo() {
-            const m = parseFloat(document.getElementById('monto').value);
-            const i = parseFloat(document.getElementById('interes').value);
-            const ct = parseInt(document.getElementById('cuotas').value);
-            if (isNaN(m) || isNaN(i) || isNaN(ct)) return false;
-            
-            const totalBase = m + saldoArrastradoMora;
-            const totalPagar = totalBase + (totalBase * (i / 100));
-            const valorCuota = totalPagar / ct;
-            
-            cuotasCalculadas = [];
-            const tbody = document.getElementById('tabla-cuotas-body');
-            tbody.innerHTML = "";
-            for (let x = 1; x <= ct; x++) {
-                cuotasCalculadas.push({ numero_cuota: x, fecha_vencimiento: "Calculada", monto_cuota: Number(valorCuota.toFixed(2)), status: 'Pendiente' });
-                tbody.innerHTML += `<tr><td>#${x}</td><td>-</td><td>$${valorCuota.toFixed(2)}</td><td><span class="status-badge">Pendiente</span></td></tr>`;
-            }
-            document.getElementById('detalles-card').style.display = 'block';
-            return true;
-        }
+        // Inicializar fecha
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('fecha-inicio').value = new Date().toISOString().split('T')[0];
+            cargarClientes();
+        });
 
-        document.getElementById('btn-calcular-id').addEventListener('click', verificarCalculo);
-
+        // Guardar
         document.getElementById('form-prestamo').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const valorCuotaFinal = Number(( ( (Number(document.getElementById('monto').value) + saldoArrastradoMora) * (1 + Number(document.getElementById('interes').value)/100) ) / Number(document.getElementById('cuotas').value) ).toFixed(2));
+            
+            const monto = Number(document.getElementById('monto').value);
+            const interes = Number(document.getElementById('interes').value);
+            const cuotas = parseInt(document.getElementById('cuotas').value);
+            const modalidad = parseInt(document.getElementById('modalidad').value);
+            const fecha = document.getElementById('fecha-inicio').value;
+            
+            const valorCuotaFinal = Number(( (monto * (1 + interes/100)) / cuotas).toFixed(2));
             
             const nuevoPrestamo = {
-                id_empresa: idEmpresaLogueada,
-                nombre_cliente: esReenganche ? document.getElementById('input-cliente-nombre').value : document.getElementById('select-cliente').options[document.getElementById('select-cliente').selectedIndex].text,
-                monto_original: Number(document.getElementById('monto').value),
+                id_empresa: idEmpresa,
+                nombre_cliente: document.getElementById('select-cliente').options[document.getElementById('select-cliente').selectedIndex].text,
+                monto_prestado: monto,
                 valor_cuota: valorCuotaFinal,
-                cuotas_totales: parseInt(document.getElementById('cuotas').value),
-                cuotas_restantes: parseInt(document.getElementById('cuotas').value),
+                total_cuotas: cuotas,
+                cuotas_restantes: cuotas,
+                modalidad_dias: modalidad,
+                fecha_inicio: fecha,
                 status: 'Activo',
                 fecha_registro: new Date().toISOString()
             };
 
-            await addDoc(collection(db, "prestamos"), nuevoPrestamo);
-            alert("Préstamo registrado correctamente");
-            window.location.href = "index.html";
+            try {
+                await addDoc(collection(db, "prestamos"), nuevoPrestamo);
+                alert("Préstamo generado con éxito");
+                window.location.href = "index.html";
+            } catch (err) {
+                console.error("Error:", err);
+                alert("Error al guardar: " + err.message);
+            }
         });
     </script>
 </body>
