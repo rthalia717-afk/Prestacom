@@ -9,7 +9,7 @@
         .tarjeta { background: white; padding: 15px; border-radius: 15px; border: 2px solid #0f172a; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
         .nombre { font-size: 1.2rem; font-weight: 900; }
         .btn-volver { display: block; text-align: center; margin-top: 20px; padding: 15px; background: #ef4444; color: white; border-radius: 15px; text-decoration: none; font-weight: bold; }
-        .datos-info { font-size: 0.9rem; color: #334155; margin-top: 5px; }
+        .datos-info { font-size: 0.9rem; color: #334155; margin-top: 5px; line-height: 1.4; }
     </style>
 </head>
 <body>
@@ -23,27 +23,19 @@
         import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
        const firebaseConfig = {
-
             apiKey: "AIzaSyDbmVXLBIsBzk-wE60yVtchZ8WI4NWnAW4",
-
             authDomain: "prestacom-sistema-a2830.firebaseapp.com",
-
             projectId: "prestacom-sistema-a2830",
-
             storageBucket: "prestacom-sistema-a2830.firebasestorage.app",
-
             messagingSenderId: "500739174929",
-
             appId: "1:500739174929:web:1694f07bf65714606f77b0"
-
-        }; 
-
+        };
         
         const db = getFirestore(initializeApp(firebaseConfig));
         const listaDiv = document.getElementById('lista-cobros');
         
         // --- CONFIGURACIÓN DE MODALIDAD ---
-        const MODALIDAD = 30; // <--- CAMBIAR AQUÍ (1, 7, 15, o 30)
+        const MODALIDAD = 30; 
         document.getElementById('titulo').innerText = "PRÉSTAMOS MODALIDAD " + MODALIDAD;
 
         const q = query(
@@ -56,22 +48,26 @@
         onSnapshot(q, (snapshot) => {
             listaDiv.innerHTML = "";
             if (snapshot.empty) { listaDiv.innerHTML = "<p style='text-align:center;'>No hay préstamos activos.</p>"; return; }
+            
             snapshot.forEach((doc) => {
                 const data = doc.data();
                 const card = document.createElement('div');
                 card.className = "tarjeta";
-                // He añadido la visualización de todos los campos solicitados aquí abajo:
+                
+                // Usando los nombres de campos que salen de tu archivo de registro
                 card.innerHTML = `
                     <div>
                         <div class="nombre">${data.nombre_cliente}</div>
                         <div class="datos-info">
-                            Monto Prestado: $${data.monto_prestado || 0}<br>
-                            Total Cuotas: ${data.total_cuotas || 0} | Pendientes: ${data.cuotas_restantes || 0}<br>
-                            Fecha: ${data.fecha_prestamo || 'N/A'}
+                            Monto: $${data.monto_original || 0}<br>
+                            Cuotas: ${data.cuotas_totales || 0} | 
+                            Pendientes: ${data.cuotas_restantes || 0}<br>
+                            Fecha: ${data.fecha_inicio || 'N/A'}
                         </div>
                     </div>
-                    <div style="font-weight:bold;">Cuota: $${data.valor_cuota}</div>
+                    <div style="font-weight:bold; font-size: 1.1rem;">Cuota: $${data.valor_cuota || 0}</div>
                 `;
+                
                 card.onclick = () => {
                     localStorage.setItem('cliente_data', JSON.stringify(data));
                     localStorage.setItem('prestamo_id', doc.id);
