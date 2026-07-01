@@ -2,122 +2,83 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Procesar Cobro - PRESA-FACIL</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PROCESAR COBRO</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .contenedor-cobro { background: white; padding: 25px; border-radius: 20px; width: 90%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }
-        .header-info { text-align: center; margin-bottom: 25px; }
-        .nombre-cliente { font-size: 1.5rem; font-weight: 800; color: #0f172a; margin-bottom: 5px; }
-        .saldo-pendiente { font-size: 1.1rem; color: #64748b; background: #f8fafc; padding: 10px; border-radius: 10px; display: inline-block; }
-        .label-input { font-weight: 600; color: #475569; margin-left: 5px; }
-        input { width: 100%; padding: 18px; margin: 10px 0 20px 0; border: 3px solid #0f172a; border-radius: 12px; font-size: 2rem; font-weight: bold; text-align: center; box-sizing: border-box; color: #0f172a; }
-        .btn-cobrar { width: 100%; padding: 18px; background: #f97316; color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: background 0.3s; }
-        .btn-cobrar:disabled { background: #cbd5e1; cursor: not-allowed; }
-        .btn-cobrar:hover:not(:disabled) { background: #ea580c; }
+        body { font-family: sans-serif; background: #f1f5f9; padding: 20px; margin: 0; }
+        .card { background: white; padding: 20px; border-radius: 20px; border: 2px solid #0f172a; max-width: 400px; margin: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed #ccc; font-weight: bold; color: #1e293b; }
+        input { width: 100%; padding: 15px; margin: 15px 0; border: 2px solid #0f172a; border-radius: 10px; font-size: 1.8rem; font-weight: bold; box-sizing: border-box; text-align: center; }
+        .btn-pay { width: 100%; padding: 18px; background: #f97316; color: white; border: none; border-radius: 10px; font-weight: 900; font-size: 1.1rem; cursor: pointer; transition: transform 0.1s; }
+        .btn-pay:active { transform: scale(0.98); }
     </style>
 </head>
 <body>
 
-    <div class="contenedor-cobro">
-        <div id="diagnostico" style="text-align: center;">Cargando información...</div>
+    <div class="card">
+        <h2 style="text-align:center; color: #1e293b;">PROCESAR COBRO</h2>
+        <div id="info-credito">Cargando datos...</div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, doc, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
+        // CONFIGURACIÓN (Asegúrate de que sea la misma que en cobros.html)
         const firebaseConfig = {
-            apiKey: "AIzaSyDbmVXLBIsBzk-wE60yVtchZ8WI4NWnAW4",
-            authDomain: "prestacom-sistema-a2830.firebaseapp.com",
-            projectId: "prestacom-sistema-a2830",
-            storageBucket: "prestacom-sistema-a2830.firebasestorage.app",
-            messagingSenderId: "500739174929",
-            appId: "1:500739174929:web:1694f07bf65714606f77b0"
+            apiKey: "AIzaSyDlVPO8P6oceu2RyVZA_bjak7bvAEXxvQk",
+            authDomain: "prestacom-sistema.firebaseapp.com",
+            projectId: "prestacom-sistema",
+            storageBucket: "prestacom-sistema.firebasestorage.app",
+            messagingSenderId: "263392324772",
+            appId: "1:263392324772:web:2d83308890ddaef7e84a31"
         };
 
         const db = getFirestore(initializeApp(firebaseConfig));
-        const divInfo = document.getElementById('diagnostico');
+        const data = JSON.parse(localStorage.getItem('cliente_data'));
         const prestamoId = localStorage.getItem('prestamo_id');
+        const infoDiv = document.getElementById('info-credito');
+        
+        infoDiv.innerHTML = `
+            <div class="row"><span>Cliente:</span> <span>${data.nombre_cliente}</span></div>
+            <div class="row"><span>Balance:</span> <span style="color:red;">$${data.balance_pendiente}</span></div>
+            <div class="row"><span>Cuota:</span> <span>#${data.numero_cuota} de ${data.total_cuotas}</span></div>
+            <input type="number" id="monto-pagar" value="${data.valor_cuota}">
+            <button class="btn-pay" id="btn-procesar">REALIZAR PAGO E IMPRIMIR</button>
+        `;
 
-        async function cargar() {
-            if (!prestamoId) {
-                divInfo.innerHTML = "Error: No se seleccionó préstamo.";
-                return;
-            }
-
-            try {
-                const snap = await getDoc(doc(db, "prestamos", prestamoId));
-                if (!snap.exists()) {
-                    divInfo.innerHTML = "Préstamo no encontrado.";
-                    return;
-                }
-                const d = snap.data();
-                
-                divInfo.innerHTML = `
-                    <div class="header-info">
-                        <div class="nombre-cliente">${d.nombre_cliente}</div>
-                        <div class="saldo-pendiente">Pendiente: <b>$${parseFloat(d.balance_pendiente || 0).toFixed(2)}</b></div>
-                    </div>
-                    <div class="label-input">Monto a cobrar ($):</div>
-                    <input type="number" id="monto-input" value="${parseFloat(d.valor_cuota || 0).toFixed(2)}">
-                    <button class="btn-cobrar" id="btn-pago">CONFIRMAR PAGO</button>
-                `;
-
-                document.getElementById('btn-pago').onclick = () => procesar(d);
-            } catch (error) {
-                divInfo.innerHTML = "Error al cargar datos.";
-                console.error(error);
-            }
-        }
-
-        async function procesar(d) {
-            const btn = document.getElementById('btn-pago');
-            const montoInput = document.getElementById('monto-input').value;
-            const monto = parseFloat(montoInput);
+        document.getElementById('btn-procesar').onclick = async () => {
+            const btn = document.getElementById('btn-procesar');
+            const montoPagado = parseFloat(document.getElementById('monto-pagar').value);
             
-            if (isNaN(monto) || monto <= 0) {
+            if (isNaN(montoPagado) || montoPagado <= 0) {
                 alert("Ingrese un monto válido");
                 return;
             }
 
-            btn.disabled = true;
             btn.innerText = "Procesando...";
-
-            const datosTicket = {
-                cliente: d.nombre_cliente,
-                fecha: new Date().toLocaleDateString(),
-                cuota_num: (d.total_cuotas - d.cuotas_restantes) + 1,
-                cuotas_restantes: d.cuotas_restantes - 1,
-                monto_pagado: monto
-            };
-            localStorage.setItem('ultimo_ticket', JSON.stringify(datosTicket));
-
-            const saldoActual = parseFloat(d.balance_pendiente || 0);
-            const nuevoSaldo = saldoActual - monto;
+            btn.disabled = true;
 
             try {
+                // Actualización atómica en Firebase
                 await updateDoc(doc(db, "prestamos", prestamoId), {
-                    balance_pendiente: nuevoSaldo,
-                    cuotas_restantes: increment(-1)
+                    balance_pendiente: increment(-montoPagado),
+                    numero_cuota: increment(1)
                 });
 
-                // --- NUEVA LÓGICA: Apertura en ventana emergente ---
-                //window.open('ticket.html', 'ImprimirTicket', 'width=400,height=600');
-                window.location.href = "ticket.html";
+                // Ticket
+                const ticket = `--- PRESTACOM ---\nCLIENTE: ${data.nombre_cliente}\nPAGO: $${montoPagado.toFixed(2)}\nFECHA: ${new Date().toLocaleString()}\n-----------------\n¡GRACIAS!\n\n\n`;
                 
-                // Redirigimos al usuario al diario inmediatamente
+                window.location.href = "rawbt:base64," + btoa(unescape(encodeURIComponent(ticket)));
+                
+                alert("¡Pago exitoso!");
                 window.location.href = "diario.html";
-                
-            } catch (error) {
-                console.error("Error al procesar:", error);
-                alert("Error al guardar el pago. Verifica tu conexión.");
+            } catch (e) {
+                alert("Error: " + e.message);
+                btn.innerText = "REALIZAR PAGO E IMPRIMIR";
                 btn.disabled = false;
-                btn.innerText = "CONFIRMAR PAGO";
             }
-        }
-
-        cargar();
+        };
     </script>
 </body>
 </html>
