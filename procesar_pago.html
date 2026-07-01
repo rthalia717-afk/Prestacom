@@ -81,7 +81,6 @@
                 return;
             }
 
-            // UI: Desactivar botón y mostrar estado de carga
             btn.disabled = true;
             btn.innerText = "Procesando...";
 
@@ -103,8 +102,11 @@
                     cuotas_restantes: increment(-1)
                 });
 
-                // Redirigir directo al ticket
-                window.location.href = "ticket.html"; 
+                // --- NUEVA LÓGICA: Apertura en ventana emergente ---
+                window.open('ticket.html', 'ImprimirTicket', 'width=400,height=600');
+                
+                // Redirigimos al usuario al diario inmediatamente
+                window.location.href = "diario.html";
                 
             } catch (error) {
                 console.error("Error al procesar:", error);
