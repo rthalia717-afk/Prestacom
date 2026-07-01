@@ -144,14 +144,10 @@
     </div>
 
     <script type="module">
-        // =================================================================
-        // CONFIGURACIÓN DE FIREBASE (Listo para producción en la nube)
-        // =================================================================
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // Coloca aquí tus credenciales reales de Firebase cuando vayas a conectar la base de datos real
-         const firebaseConfig = {
+       const firebaseConfig = {
             apiKey: "AIzaSyDbmVXLBIsBzk-wE60yVtchZ8WI4NWnAW4",
             authDomain: "prestacom-sistema-a2830.firebaseapp.com",
             projectId: "prestacom-sistema-a2830",
@@ -159,9 +155,9 @@
             messagingSenderId: "500739174929",
             appId: "1:500739174929:web:1694f07bf65714606f77b0"
         };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        
+        const db = getFirestore(initializeApp(firebaseConfig));
+        const listaDiv = document.getElementById('lista-cobros');
 
         // =================================================================
         // BASE DE DATOS LOCAL (Array de Pruebas)
@@ -173,12 +169,12 @@
             //{ id: "P-004", cliente: "Scarling Frias", monto_original: 15000, balance_actual: 3000, cuota_num: 6, valor_cuota: 1500 }
         //];
 
-        let clienteSeleccionado = null;
+        //let clienteSeleccionado = null;
 
         // Cargar listado automáticamente al cargar la pantalla
-        document.addEventListener('DOMContentLoaded', () => {
-            cargarListadoClientes();
-        });
+        //document.addEventListener('DOMContentLoaded', () => {
+        //    cargarListadoClientes();
+       //});
 
         function cargarListadoClientes() {
             const contenedor = document.getElementById('tabla-clientes-inyectar');
