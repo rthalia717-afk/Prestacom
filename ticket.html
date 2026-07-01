@@ -3,77 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Imprimir Ticket</title>
+    <title>Recibo de Pago - Final</title>
     <style>
-        body { font-family: 'Courier New', monospace; width: 80mm; margin: 0 auto; padding: 8px; font-size: 14px; color: #000; font-weight: 700; }
-        .ticket-header { text-align: center; border-bottom: 3px solid #000; margin-bottom: 12px; padding-bottom: 6px; }
-        .ticket-header h2 { font-size: 20px; margin: 0; font-weight: 900; text-transform: uppercase; }
-        .ticket-body { margin-bottom: 10px; }
-        .row { display: flex; justify-content: space-between; margin-bottom: 5px; }
-        .row span:first-child { font-weight: 900; }
+        body { font-family: 'Courier New', monospace; width: 80mm; margin: 0 auto; padding: 10px; font-size: 14px; color: #000; font-weight: 700; }
+        .header { text-align: center; border-bottom: 3px solid #000; margin-bottom: 12px; padding-bottom: 6px; }
+        .header h2 { font-size: 20px; margin: 0; font-weight: 900; text-transform: uppercase; }
+        .section-title { font-weight: 900; border-bottom: 2px solid #000; margin: 10px 0 5px 0; text-transform: uppercase; }
+        .row { display: flex; justify-content: space-between; margin-bottom: 4px; }
         
-        .total { background-color: #000; color: #fff; margin-top: 15px; padding: 8px; font-weight: 900; font-size: 18px; text-align: center; border-radius: 4px; display: flex; justify-content: space-between; }
-        .total span { color: #fff !important; }
+        .total-box { background-color: #000; color: #fff; margin: 15px 0; padding: 10px; font-size: 18px; text-align: center; border-radius: 4px; }
+        .total-box span { color: #fff !important; }
 
-        .seccion-firma { margin-top: 25px; margin-bottom: 15px; }
-        .linea-firma { border-bottom: 2px solid #000; width: 100%; display: inline-block; margin-bottom: 3px; }
-        .etiqueta-firma { font-size: 12px; font-weight: 900; text-transform: uppercase; display: block; }
+        .firma-area { margin-top: 25px; margin-bottom: 20px; text-align: center; }
+        .linea-firma { border-bottom: 2px solid #000; width: 80%; display: inline-block; margin-bottom: 5px; }
 
-        .footer { text-align: center; font-size: 12px; margin-top: 20px; border-top: 2px dashed #000; padding-top: 10px; }
+        .footer { text-align: center; font-size: 12px; border-top: 2px dashed #000; padding-top: 10px; }
         
         @media print {
             body { margin: 0; padding: 0; }
-            .total { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .total-box { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
     </style>
 </head>
 <body>
 
-    <div class="ticket-header">
+    <div class="header">
         <h2 id="empresa-nombre">PRESTACOM</h2>
         <p>RECIBO DE PAGO</p>
     </div>
 
-    <div class="ticket-body">
-        <div class="row"><span>FECHA:</span> <span id="t-fecha">---</span></div>
-        <div class="row"><span>CLIENTE:</span> <span id="t-cliente">---</span></div>
-        <hr style="border: 0; border-top: 1px dashed #000; margin: 8px 0;">
-        <div class="row"><span>PAGO N°:</span> <span id="t-pago-num">---</span></div>
-        <div class="row"><span>PENDIENTES:</span> <span id="t-restantes">---</span></div>
-        
-        <div class="total">
-            <span>TOTAL PAGADO:</span> 
-            <span>RD$ <span id="t-monto">0.00</span></span>
-        </div>
+    <div class="section-title">DETALLES</div>
+    <div class="row"><span>FECHA:</span> <span id="lbl-fecha">---</span></div>
+    <div class="row"><span>CLIENTE:</span> <span id="lbl-cliente">---</span></div>
+    
+    <div class="section-title">PRESTAMO</div>
+    <div class="row"><span>CUOTA #:</span> <span id="lbl-cuota">---</span></div>
+    <div class="row"><span>RESTANTES:</span> <span id="lbl-restantes">---</span></div>
+    
+    <div class="total-box">
+        <span>TOTAL: RD$ <span id="lbl-monto">0.00</span></span>
     </div>
 
-    <div class="seccion-firma">
-        <div style="margin-bottom: 20px;"><span class="linea-firma"></span><span class="etiqueta-firma">Firma Cliente</span></div>
+    <div class="firma-area">
+        <span class="linea-firma"></span>
+        <div style="font-size: 12px;">FIRMA CLIENTE</div>
     </div>
 
     <div class="footer">
-        <p>¡Gracias por su preferencia!</p>
-        <p>Recibido por: <span id="t-cobrador">---</span></p>
+        <p id="footer-msg">GRACIAS POR SU PREFERENCIA</p>
+        <p>COBRADOR: <span id="lbl-cobrador">---</span></p>
     </div>
 
     <script>
         window.onload = function() {
             const ticket = JSON.parse(localStorage.getItem('ultimo_ticket'));
-            
             if (ticket) {
                 document.getElementById('empresa-nombre').innerText = (localStorage.getItem('ticket_nombre') || "PRESTACOM").toUpperCase();
-                document.getElementById('t-fecha').innerText = ticket.fecha || new Date().toLocaleDateString();
-                document.getElementById('t-cliente').innerText = (ticket.cliente || "---").toUpperCase();
-                document.getElementById('t-pago-num').innerText = ticket.cuota_num || "---";
-                document.getElementById('t-restantes').innerText = ticket.cuotas_restantes ?? "---";
-                document.getElementById('t-monto').innerText = parseFloat(ticket.monto_pagado || 0).toLocaleString('es-DO', {minimumFractionDigits: 2});
-                document.getElementById('t-cobrador').innerText = (localStorage.getItem('nombre_usuario') || "SISTEMA").toUpperCase();
+                document.getElementById('lbl-fecha').innerText = ticket.fecha || new Date().toLocaleDateString();
+                document.getElementById('lbl-cliente').innerText = (ticket.cliente || "---").toUpperCase();
+                document.getElementById('lbl-cuota').innerText = ticket.cuota_num || "---";
+                document.getElementById('lbl-restantes').innerText = ticket.cuotas_restantes ?? "---";
+                document.getElementById('lbl-monto').innerText = parseFloat(ticket.monto_pagado || 0).toLocaleString('es-DO', {minimumFractionDigits: 2});
+                document.getElementById('lbl-cobrador').innerText = (localStorage.getItem('nombre_usuario') || "SISTEMA").toUpperCase();
 
-                // Imprimir y regresar
+                // Proceso de impresión
                 setTimeout(() => {
                     window.print();
-                    setTimeout(() => { 
-                        window.location.href = localStorage.getItem('pagina_origen') || "diario.html"; 
+                    setTimeout(() => {
+                        window.location.href = localStorage.getItem('pagina_origen') || "diario.html";
                     }, 1000);
                 }, 500);
             } else {
