@@ -46,14 +46,22 @@
         </div>
     </div>
 
-    <script type="module">
+  <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, collection, query, where, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        const firebaseConfig = { apiKey: "AIzaSyDbmVXLBIsBzk-wE60yVtchZ8WI4NWnAW4", authDomain: "prestacom-sistema-a2830.firebaseapp.com", projectId: "prestacom-sistema-a2830", storageBucket: "prestacom-sistema-a2830.firebasestorage.app", messagingSenderId: "500739174929", appId: "1:500739174929:web:1694f07bf65714606f77b0" };
+       const firebaseConfig = {
+            apiKey: "AIzaSyDbmVXLBIsBzk-wE60yVtchZ8WI4NWnAW4",
+            authDomain: "prestacom-sistema-a2830.firebaseapp.com",
+            projectId: "prestacom-sistema-a2830",
+            storageBucket: "prestacom-sistema-a2830.firebasestorage.app",
+            messagingSenderId: "500739174929",
+            appId: "1:500739174929:web:1694f07bf65714606f77b0"
+        };
+        
         const db = getFirestore(initializeApp(firebaseConfig));
-        const idEmpresa = localStorage.getItem('id_empresa');
-        let prestamosActivosBD = [], clienteSeleccionado = null;
+        const listaDiv = document.getElementById('lista-cobros');
+        
 
         async function cargarListadoClientes() {
             const contenedor = document.getElementById('tabla-clientes-inyectar');
