@@ -147,19 +147,17 @@
         // =================================================================
         // CONFIGURACIÓN DE FIREBASE (Listo para producción en la nube)
         // =================================================================
-        <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // Coloca aquí tus credenciales reales de Firebase cuando vayas a conectar la base de datos real
-       const firebaseConfig = {
-            apiKey: "AIzaSyDbmVXLBIsBzk-wE60yVtchZ8WI4NWnAW4",
-            authDomain: "prestacom-sistema-a2830.firebaseapp.com",
-            projectId: "prestacom-sistema-a2830",
-            storageBucket: "prestacom-sistema-a2830.firebasestorage.app",
-            messagingSenderId: "500739174929",
-            appId: "1:500739174929:web:1694f07bf65714606f77b0"
+        const firebaseConfig = {
+            apiKey: "TU_API_KEY",
+            authDomain: "TU_AUTH_DOMAIN",
+            projectId: "TU_PROJECT_ID",
+            storageBucket: "TU_STORAGE_BUCKET",
+            messagingSenderId: "TU_MESSAGING_SENDER_ID",
+            appId: "TU_APP_ID"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -168,7 +166,12 @@
         // =================================================================
         // BASE DE DATOS LOCAL (Array de Pruebas)
         // =================================================================
-       
+        const prestamosActivosBD = [
+            { id: "P-001", cliente: "Juan Pérez", monto_original: 10000, balance_actual: 4500, cuota_num: 3, valor_cuota: 1500 },
+            { id: "P-002", cliente: "María Rodríguez", monto_original: 25000, balance_actual: 12000, cuota_num: 5, valor_cuota: 2500 },
+            { id: "P-003", cliente: "Santo Sixto Frias", monto_original: 50000, balance_actual: 20000, cuota_num: 4, valor_cuota: 5000 },
+            { id: "P-004", cliente: "Scarling Frias", monto_original: 15000, balance_actual: 3000, cuota_num: 6, valor_cuota: 1500 }
+        ];
 
         let clienteSeleccionado = null;
 
@@ -265,7 +268,7 @@
             clienteSeleccionado.balance_actual = nuevoBalanceCalculado;
             clienteSeleccionado.cuota_num = nuevaCuotaNumero;
 
-             =================================================================
+            // =================================================================
             // CÓDIGO FIREBASE (Descomentar al conectar tu Base de Datos real)
             // =================================================================
             /* try {
