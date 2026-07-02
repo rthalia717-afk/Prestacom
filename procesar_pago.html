@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRESA-FACIL - Registrar Cobro</title>
+    <title>PRESTACOM 2.0 - Registrar Cobro</title>
     <link href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1e293b">
@@ -144,9 +144,15 @@
     </div>
 
     <script type="module">
+        // =================================================================
+        // CONFIGURACIÓN DE FIREBASE (Listo para producción en la nube)
+        // =================================================================
+        <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
+        // Coloca aquí tus credenciales reales de Firebase cuando vayas a conectar la base de datos real
        const firebaseConfig = {
             apiKey: "AIzaSyDbmVXLBIsBzk-wE60yVtchZ8WI4NWnAW4",
             authDomain: "prestacom-sistema-a2830.firebaseapp.com",
@@ -155,26 +161,21 @@
             messagingSenderId: "500739174929",
             appId: "1:500739174929:web:1694f07bf65714606f77b0"
         };
-        
-        const db = getFirestore(initializeApp(firebaseConfig));
-        const listaDiv = document.getElementById('lista-cobros');
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
         // =================================================================
         // BASE DE DATOS LOCAL (Array de Pruebas)
         // =================================================================
-       // const prestamosActivosBD = [
-         //   { id: "P-001", cliente: "Juan Pérez", monto_original: 10000, balance_actual: 4500, cuota_num: 3, valor_cuota: 1500 },
-           // { id: "P-002", cliente: "María Rodríguez", monto_original: 25000, balance_actual: 12000, cuota_num: 5, valor_cuota: 2500 },
-            //{ id: "P-003", cliente: "Santo Sixto Frias", monto_original: 50000, balance_actual: 20000, cuota_num: 4, valor_cuota: 5000 },
-            //{ id: "P-004", cliente: "Scarling Frias", monto_original: 15000, balance_actual: 3000, cuota_num: 6, valor_cuota: 1500 }
-        //];
+       
 
-        //let clienteSeleccionado = null;
+        let clienteSeleccionado = null;
 
         // Cargar listado automáticamente al cargar la pantalla
-        //document.addEventListener('DOMContentLoaded', () => {
-        //    cargarListadoClientes();
-       //});
+        document.addEventListener('DOMContentLoaded', () => {
+            cargarListadoClientes();
+        });
 
         function cargarListadoClientes() {
             const contenedor = document.getElementById('tabla-clientes-inyectar');
@@ -264,7 +265,7 @@
             clienteSeleccionado.balance_actual = nuevoBalanceCalculado;
             clienteSeleccionado.cuota_num = nuevaCuotaNumero;
 
-            // =================================================================
+             =================================================================
             // CÓDIGO FIREBASE (Descomentar al conectar tu Base de Datos real)
             // =================================================================
             /* try {
