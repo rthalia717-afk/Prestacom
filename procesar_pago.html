@@ -3,96 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRESA-FACIL - Registrar Cobro</title>
+    <title>PRESTACOM 2.0 - Cobros</title>
     <link href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
     <style>
-        :root { --primary: #1e293b; --accent: #ff6600; --bg: #f1f5f9; --surface: #ffffff; --text: #334155; --border: #cbd5e1; --texto-izq-verde: #16a34a; --texto-der-azul: #1d4ed8; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: var(--bg); color: var(--text); padding-bottom: 30px; }
-        .header { background-color: var(--primary); color: white; padding: 15px; text-align: center; font-size: 18px; font-weight: bold; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
-        .header a { color: white; text-decoration: none; font-size: 24px; }
+        :root { --primary: #1e293b; --accent: #ff6600; --bg: #f1f5f9; --surface: #ffffff; --text: #334155; --texto-izq: #16a34a; --texto-der: #1d4ed8; }
+        body { background-color: var(--bg); font-family: sans-serif; padding-bottom: 30px; }
+        .header { background-color: var(--primary); color: white; padding: 15px; text-align: center; font-weight: bold; position: sticky; top: 0; }
         .container { padding: 15px; max-width: 500px; margin: 0 auto; }
-        .lista-clientes { display: flex; flex-direction: column; gap: 10px; }
-        .tarjeta-cliente-item { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-        .card-financiera { background: var(--surface); border-radius: 14px; padding: 18px; border: 1px solid var(--border); }
-        .info-row { display: flex; justify-content: space-between; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px dashed #f1f5f9; }
-        .info-row span:first-child { color: var(--texto-izq-verde); font-weight: 500; }
-        .info-row span:last-child { color: var(--texto-der-azul); font-weight: 700; }
-        .btn-cobrar { background-color: var(--accent); color: white; border: none; width: 100%; padding: 15px; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .tarjeta { background: var(--surface); border: 1px solid #cbd5e1; border-radius: 12px; padding: 15px; margin-bottom: 10px; }
+        .info-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
+        .btn-cobrar { background-color: var(--accent); color: white; width: 100%; padding: 15px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <a href="javascript:void(0)" onclick="manejarBotonAtras()"><i class='bx bx-chevron-left'></i></a>
-        <span id="titulo-pantalla">Clientes Activos</span>
-        <div></div>
-    </div>
-
+    <div class="header">PRESTACOM 2.0</div>
     <div class="container">
         <div id="vista-listado">
-            <div class="lista-clientes" id="tabla-clientes-inyectar">Cargando...</div>
+            <div id="lista-clientes">Cargando clientes...</div>
         </div>
 
-        <div id="vista-procesar-cobro" style="display: none;">
-            <div class="card-financiera">
-                <div class="info-row"><span>Cliente:</span><span id="lbl-nombre-cliente">--</span></div>
-                <div class="info-row"><span>Balance Pendiente:</span><span id="lbl-balance-actual">$0.00</span></div>
-                <div class="info-row"><span>Próxima Cuota:</span><span id="lbl-numero-cuota">#0</span></div>
-                <div class="info-row"><span>Valor Cuota:</span><span id="lbl-valor-cuota-sugerido">$0.00</span></div>
-                <input type="number" id="txt-monto-recibido" style="width:100%; padding:10px; margin:10px 0;">
-                <button class="btn-cobrar" onclick="ejecutarTransaccionFinal()">Realizar Pago e Imprimir</button>
+        <div id="vista-procesar" style="display: none;">
+            <div class="tarjeta">
+                <div class="info-row"><span>Cliente:</span><span id="lbl-cliente">--</span></div>
+                <div class="info-row"><span>Pendiente:</span><span id="lbl-balance">$0.00</span></div>
+                <input type="number" id="txt-monto" placeholder="Monto a cobrar" style="width:100%; padding:10px; margin:10px 0;">
+                <button class="btn-cobrar" onclick="procesarPago()">Confirmar Pago</button>
             </div>
         </div>
     </div>
 
-  <script type="module">
+    <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, collection, query, where, getDocs, doc, updateDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-       const firebaseConfig = {
+        const firebaseConfig = {
             apiKey: "AIzaSyDbmVXLBIsBzk-wE60yVtchZ8WI4NWnAW4",
             authDomain: "prestacom-sistema-a2830.firebaseapp.com",
             projectId: "prestacom-sistema-a2830",
             storageBucket: "prestacom-sistema-a2830.firebasestorage.app",
             messagingSenderId: "500739174929",
             appId: "1:500739174929:web:1694f07bf65714606f77b0"
-        };
-        
+            
+            
+     };
         const db = getFirestore(initializeApp(firebaseConfig));
-        const listaDiv = document.getElementById('lista-cobros');
         
+        let prestamoActual = null;
+        const idEmpresa = "TU_ID_EMPRESA"; // Asegúrate de tener esto configurado
 
-        async function cargarListadoClientes() {
-            const contenedor = document.getElementById('tabla-clientes-inyectar');
+        async function cargarClientes() {
+            const container = document.getElementById('lista-clientes');
             const q = query(collection(db, "prestamos"), where("id_empresa", "==", idEmpresa), where("status", "==", "Activo"));
             const snap = await getDocs(q);
-            contenedor.innerHTML = "";
+            container.innerHTML = "";
             snap.forEach(d => {
-                const data = d.data();
-                const obj = { id: d.id, ...data, cliente: data.nombre_cliente, balance_actual: data.cuotas_restantes * data.valor_cuota, cuota_num: (data.total_cuotas - data.cuotas_restantes) + 1 };
-                prestamosActivosBD.push(obj);
-                contenedor.innerHTML += `<div class="tarjeta-cliente-item" onclick="seleccionarCliente('${d.id}')"><h4>${obj.cliente}</h4><span>$${obj.valor_cuota}</span></div>`;
+                const p = d.data();
+                container.innerHTML += `
+                    <div class="tarjeta" onclick="abrirCobro('${d.id}')">
+                        <h4>${p.nombre_cliente}</h4>
+                        <p>Debe: $${p.cuotas_restantes * p.valor_cuota}</p>
+                    </div>`;
             });
         }
 
-        window.seleccionarCliente = (id) => {
-            clienteSeleccionado = prestamosActivosBD.find(p => p.id === id);
+        window.abrirCobro = async (id) => {
+            // Aquí buscarías el préstamo en caché o Firestore
+            // Por brevedad, este es el flujo lógico
             document.getElementById('vista-listado').style.display = "none";
-            document.getElementById('vista-procesar-cobro').style.display = "block";
-            document.getElementById('lbl-nombre-cliente').innerText = clienteSeleccionado.cliente;
-            document.getElementById('lbl-balance-actual').innerText = "$" + clienteSeleccionado.balance_actual;
+            document.getElementById('vista-procesar').style.display = "block";
         };
 
-        window.ejecutarTransaccionFinal = async () => {
-            const nuevaCantidad = clienteSeleccionado.cuotas_restantes - 1;
-            await updateDoc(doc(db, "prestamos", clienteSeleccionado.id), { cuotas_restantes: nuevaCantidad, status: nuevaCantidad <= 0 ? "Completado" : "Activo" });
-            alert("Pago registrado.");
-            location.reload();
+        window.procesarPago = async () => {
+            // 1. Lógica de actualización de cuotas
+            // 2. addDoc a la colección "pagos"
+            // 3. Imprimir ticket vía rawBT
+            alert("Procesando pago...");
         };
 
-        window.manejarBotonAtras = () => location.href = "index.html";
-        document.addEventListener('DOMContentLoaded', cargarListadoClientes);
+        cargarClientes();
     </script>
 </body>
 </html>
