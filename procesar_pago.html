@@ -18,10 +18,9 @@
         .lista-clientes { display: flex; flex-direction: column; gap: 10px; }
         .tarjeta-cliente-item { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
         .cliente-info-principal h4 { font-size: 16px; color: #0f172a; margin-bottom: 2px; }
-        .cliente-info-principal p { font-size: 13px; color: #64748b; }
+        .cliente-info-principal p { font-size: 12px; color: #64748b; }
         .cliente-monto-badge { text-align: right; }
-        .cliente-monto-badge .cuota-valor { font-size: 15px; font-weight: bold; color: var(--accent); }
-        .cliente-monto-badge .balance-total { font-size: 11px; color: #94a3b8; }
+        .cuota-valor { font-size: 15px; font-weight: bold; color: var(--accent); }
         .card-financiera { background: var(--surface); border-radius: 14px; padding: 18px; border: 1px solid var(--border); box-shadow: 0 4px 10px rgba(0,0,0,0.04); margin-bottom: 15px; }
         .info-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 15px; padding-bottom: 8px; border-bottom: 1px dashed #f1f5f9; }
         .info-row span:first-child { font-weight: 500; color: var(--texto-izq-verde); }
@@ -36,7 +35,7 @@
 <body>
 
     <div class="header">
-        <a href="javascript:void(0)" onclick="manejarBotonAtras()"><i class='bx bx-chevron-left'></i></a>
+        <a href="javascript:void(0)" onclick="location.reload()"><i class='bx bx-chevron-left'></i></a>
         <span id="titulo-pantalla">Clientes Activos</span>
         <div style="width: 24px;"></div>
     </div>
@@ -53,7 +52,7 @@
                 <div class="info-row"><span>Balance Actual:</span><span id="lbl-balance-actual">$0.00</span></div>
                 <div class="form-group">
                     <label>Monto Real a Cobrar</label>
-                    <div class="input-wrapper"><span>$</span><input type="number" id="txt-monto-recibido" oninput="calcularMatematicasSobrante()"></div>
+                    <div class="input-wrapper"><span>$</span><input type="number" id="txt-monto-recibido" placeholder="0.00"></div>
                 </div>
                 <button class="btn-cobrar" onclick="ejecutarTransaccionFinal()">REALIZAR PAGO E IMPRIMIR</button>
             </div>
@@ -77,7 +76,7 @@
         let clienteSeleccionado = null;
         let listaPrestamos = [];
 
-        // Cargar datos de Firebase
+        // Carga inicial
         const q = query(collection(db, "prestamos"), where("id_empresa", "==", localStorage.getItem('id_empresa')), where("status", "==", "Activo"));
         
         onSnapshot(q, (snapshot) => {
@@ -91,23 +90,34 @@
                 const item = document.createElement('div');
                 item.className = "tarjeta-cliente-item";
                 item.onclick = () => seleccionarCliente(data.id);
-                item.innerHTML = `<div><h4>${data.nombre_cliente}</h4></div><div class="cuota-valor">$${parseFloat(data.valor_cuota).toLocaleString()}</div>`;
+                item.innerHTML = `
+                    <div class="cliente-info-principal">
+                        <h4>${data.nombre_cliente}</h4>
+                        <p>Balance: $${parseFloat(data.balance_pendiente || 0).toLocaleString()}</p>
+                    </div>
+                    <div class="cuota-valor">$${parseFloat(data.valor_cuota || 0).toLocaleString()}</div>
+                `;
                 contenedor.appendChild(item);
             });
         });
 
         window.seleccionarCliente = (id) => {
             clienteSeleccionado = listaPrestamos.find(p => p.id === id);
-            document.getElementById('titulo-pantalla').innerText = "Procesar Cobro";
-            document.getElementById('vista-listado').style.display = "none";
-            document.getElementById('vista-procesar-cobro').style.display = "block";
-            document.getElementById('lbl-nombre-cliente').innerText = clienteSeleccionado.nombre_cliente;
-            document.getElementById('lbl-balance-actual').innerText = "$" + parseFloat(clienteSeleccionado.balance_pendiente).toLocaleString();
+            if (clienteSeleccionado) {
+                const balance = parseFloat(clienteSeleccionado.balance_pendiente) || 0;
+                document.getElementById('titulo-pantalla').innerText = "Procesar Cobro";
+                document.getElementById('vista-listado').style.display = "none";
+                document.getElementById('vista-procesar-cobro').style.display = "block";
+                document.getElementById('lbl-nombre-cliente').innerText = clienteSeleccionado.nombre_cliente;
+                document.getElementById('lbl-balance-actual').innerText = "$" + balance.toLocaleString(undefined, {minimumFractionDigits: 2});
+            }
         };
 
         window.ejecutarTransaccionFinal = async () => {
-            const montoPagado = parseFloat(document.getElementById('txt-monto-recibido').value);
-            const nuevoBalance = parseFloat(clienteSeleccionado.balance_pendiente) - montoPagado;
+            if (!clienteSeleccionado) return;
+            const montoPagado = parseFloat(document.getElementById('txt-monto-recibido').value) || 0;
+            const balanceActual = parseFloat(clienteSeleccionado.balance_pendiente) || 0;
+            const nuevoBalance = balanceActual - montoPagado;
             
             try {
                 await updateDoc(doc(db, "prestamos", clienteSeleccionado.id), {
@@ -118,8 +128,6 @@
                 location.reload(); 
             } catch (e) { alert("Error al guardar: " + e.message); }
         };
-
-        window.manejarBotonAtras = () => { location.reload(); };
     </script>
 </body>
 </html>
