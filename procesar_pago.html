@@ -3,33 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Procesar Pago - PRESA-FACIL</title>
+    <title>PRESTACOM 2.0 - Registrar Cobro</title>
+    <link href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <meta name="theme-color" content="#1e293b">
+    
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; padding: 20px; }
-        .card { background: white; padding: 20px; border-radius: 15px; border: 2px solid #0f172a; }
-        .input-group { margin: 20px 0; }
-        input { width: 100%; padding: 15px; font-size: 1.2rem; border: 2px solid #0f172a; border-radius: 10px; box-sizing: border-box; }
-        .btn-pagar { width: 100%; padding: 15px; background: #16a34a; color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 1.1rem; cursor: pointer; }
+        :root { --primary: #1e293b; --accent: #ff6600; --bg: #f1f5f9; --surface: #ffffff; --text: #334155; --border: #cbd5e1; --texto-izq-verde: #16a34a; --texto-der-azul: #1d4ed8; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg); color: var(--text); padding-bottom: 30px; }
+        .header { background-color: var(--primary); color: white; padding: 15px; text-align: center; font-size: 18px; font-weight: bold; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+        .header a { color: white; text-decoration: none; font-size: 24px; display: flex; align-items: center; }
+        .container { padding: 15px; max-width: 500px; margin: 0 auto; }
+        .seccion-titulo { font-size: 16px; font-weight: bold; color: #475569; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .lista-clientes { display: flex; flex-direction: column; gap: 10px; }
+        .tarjeta-cliente-item { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .cliente-info-principal h4 { font-size: 16px; color: #0f172a; margin-bottom: 2px; }
+        .cliente-info-principal p { font-size: 13px; color: #64748b; }
+        .cliente-monto-badge { text-align: right; }
+        .cliente-monto-badge .cuota-valor { font-size: 15px; font-weight: bold; color: var(--accent); }
+        .cliente-monto-badge .balance-total { font-size: 11px; color: #94a3b8; }
+        .card-financiera { background: var(--surface); border-radius: 14px; padding: 18px; border: 1px solid var(--border); box-shadow: 0 4px 10px rgba(0,0,0,0.04); margin-bottom: 15px; }
+        .info-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 15px; padding-bottom: 8px; border-bottom: 1px dashed #f1f5f9; }
+        .info-row span:first-child { font-weight: 500; color: var(--texto-izq-verde); }
+        .info-row span:last-child { font-weight: 700; color: var(--texto-der-azul) !important; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; color: var(--texto-izq-verde); }
+        .input-wrapper { display: flex; align-items: center; background: var(--surface); border: 2px solid var(--border); border-radius: 10px; padding: 12px; }
+        .input-wrapper input { border: none; width: 100%; font-size: 18px; outline: none; font-weight: bold; color: var(--texto-der-azul); }
+        .btn-cobrar { background-color: var(--accent); color: white; border: none; width: 100%; padding: 15px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h2 id="nombre-cliente">Cargando...</h2>
-        <p>Balance actual: <strong id="balance-actual">$0.00</strong></p>
-        
-        <div class="input-group">
-            <label>Monto a pagar:</label>
-            <input type="number" id="txt-monto" placeholder="0.00" oninput="calcular()">
+    <div class="header">
+        <a href="javascript:void(0)" onclick="manejarBotonAtras()"><i class='bx bx-chevron-left'></i></a>
+        <span id="titulo-pantalla">Clientes Activos</span>
+        <div style="width: 24px;"></div>
+    </div>
+
+    <div class="container">
+        <div id="vista-listado">
+            <div class="seccion-titulo"><i class='bx bx-list-ul'></i> Selecciona un cliente</div>
+            <div class="lista-clientes" id="tabla-clientes-inyectar">Cargando datos...</div>
         </div>
 
-        <button class="btn-pagar" onclick="confirmarPago()">PROCESAR PAGO</button>
-        <p><a href="cobros.html">Cancelar</a></p>
+        <div id="vista-procesar-cobro" style="display: none;">
+            <div class="card-financiera">
+                <div class="info-row"><span>Cliente:</span><span id="lbl-nombre-cliente">--</span></div>
+                <div class="info-row"><span>Balance Actual:</span><span id="lbl-balance-actual">$0.00</span></div>
+                <div class="form-group">
+                    <label>Monto Real a Cobrar</label>
+                    <div class="input-wrapper"><span>$</span><input type="number" id="txt-monto-recibido" oninput="calcularMatematicasSobrante()"></div>
+                </div>
+                <button class="btn-cobrar" onclick="ejecutarTransaccionFinal()">REALIZAR PAGO E IMPRIMIR</button>
+            </div>
+        </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDbmVXLBIsBzk-wE60yVtchZ8WI4NWnAW4",
@@ -41,43 +74,52 @@
         };
         const db = getFirestore(initializeApp(firebaseConfig));
 
-        // Recuperar datos del cliente desde el localStorage
-        const clienteData = JSON.parse(localStorage.getItem('cliente_data'));
-        const prestamoId = localStorage.getItem('prestamo_id');
-        let balanceActual = parseFloat(clienteData.balance_pendiente) || 0;
+        let clienteSeleccionado = null;
+        let listaPrestamos = [];
 
-        document.getElementById('nombre-cliente').innerText = clienteData.nombre_cliente;
-        document.getElementById('balance-actual').innerText = "$" + balanceActual.toFixed(2);
-
-        window.confirmarPago = async () => {
-            const montoPagado = parseFloat(document.getElementById('txt-monto').value);
-            
-            if (isNaN(montoPagado) || montoPagado <= 0) {
-                alert("Ingrese un monto válido");
-                return;
-            }
-
-            const nuevoBalance = balanceActual - montoPagado;
-            
-            // LÓGICA DE ESTADO: Solo se marca como Finalizado si el balance es <= 0
-            const nuevoStatus = (nuevoBalance <= 0) ? 'Finalizado' : 'Activo';
-
-            try {
-                const prestamoRef = doc(db, "prestamos", prestamoId);
+        // Cargar datos de Firebase
+        const q = query(collection(db, "prestamos"), where("id_empresa", "==", localStorage.getItem('id_empresa')), where("status", "==", "Activo"));
+        
+        onSnapshot(q, (snapshot) => {
+            const contenedor = document.getElementById('tabla-clientes-inyectar');
+            contenedor.innerHTML = "";
+            listaPrestamos = [];
+            snapshot.forEach((doc) => {
+                const data = { id: doc.id, ...doc.data() };
+                listaPrestamos.push(data);
                 
-                // ACTUALIZACIÓN SEGURA: updateDoc no borra los otros campos
-                await updateDoc(prestamoRef, {
-                    balance_pendiente: nuevoBalance,
-                    status: nuevoStatus
-                });
+                const item = document.createElement('div');
+                item.className = "tarjeta-cliente-item";
+                item.onclick = () => seleccionarCliente(data.id);
+                item.innerHTML = `<div><h4>${data.nombre_cliente}</h4></div><div class="cuota-valor">$${parseFloat(data.valor_cuota).toLocaleString()}</div>`;
+                contenedor.appendChild(item);
+            });
+        });
 
-                alert("Pago registrado. Nuevo balance: $" + nuevoBalance.toFixed(2));
-                window.location.href = "cobros.html";
-            } catch (error) {
-                console.error("Error al actualizar:", error);
-                alert("Error al guardar en la base de datos.");
-            }
+        window.seleccionarCliente = (id) => {
+            clienteSeleccionado = listaPrestamos.find(p => p.id === id);
+            document.getElementById('titulo-pantalla').innerText = "Procesar Cobro";
+            document.getElementById('vista-listado').style.display = "none";
+            document.getElementById('vista-procesar-cobro').style.display = "block";
+            document.getElementById('lbl-nombre-cliente').innerText = clienteSeleccionado.nombre_cliente;
+            document.getElementById('lbl-balance-actual').innerText = "$" + parseFloat(clienteSeleccionado.balance_pendiente).toLocaleString();
         };
+
+        window.ejecutarTransaccionFinal = async () => {
+            const montoPagado = parseFloat(document.getElementById('txt-monto-recibido').value);
+            const nuevoBalance = parseFloat(clienteSeleccionado.balance_pendiente) - montoPagado;
+            
+            try {
+                await updateDoc(doc(db, "prestamos", clienteSeleccionado.id), {
+                    balance_pendiente: nuevoBalance,
+                    status: nuevoBalance <= 0 ? "Finalizado" : "Activo"
+                });
+                alert("Pago aplicado correctamente.");
+                location.reload(); 
+            } catch (e) { alert("Error al guardar: " + e.message); }
+        };
+
+        window.manejarBotonAtras = () => { location.reload(); };
     </script>
 </body>
 </html>
