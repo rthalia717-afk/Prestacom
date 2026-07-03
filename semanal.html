@@ -68,11 +68,14 @@
                     <div style="font-weight:bold; font-size: 1.1rem;">Cuota: $${data.valor_cuota || 0}</div>
                 `;
                 
-                card.onclick = () => {
-                    localStorage.setItem('cliente_data', JSON.stringify(data));
-                    localStorage.setItem('prestamo_id', doc.id);
-                    window.location.href = "procesar_pago.html";
-                };
+               // Dentro de tu bucle onSnapshot de la lista:
+item.onclick = () => {
+    // GUARDAMOS TODO EL OBJETO EN LOCALSTORAGE
+    localStorage.setItem('cliente_seleccionado', JSON.stringify(data));
+    
+    // REDIRECCIONAMOS
+    window.location.href = "procesar_pago.html";
+};
                 listaDiv.appendChild(card);
             });
         });
