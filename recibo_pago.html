@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recibo de Pago - Prestacóm</title>
+
+<style>
+    body {
+        font-family: Arial;
+        background: #f1f5f9;
+        display: flex;
+        justify-content: center;
+    }
+
+    .ticket {
+        width: 320px;
+        background: white;
+        padding: 15px;
+        margin-top: 20px;
+        border: 1px dashed #999;
+    }
+
+    .center { text-align: center; }
+
+    h2 {
+        font-size: 16px;
+        margin-bottom: 5px;
+    }
+
+    .info {
+        font-size: 13px;
+        margin: 5px 0;
+    }
+
+    .line {
+        border-top: 1px dashed #ccc;
+        margin: 10px 0;
+    }
+
+    .total {
+        font-size: 16px;
+        font-weight: bold;
+        text-align: center;
+        margin-top: 10px;
+    }
+
+    .print-btn {
+        width: 100%;
+        padding: 10px;
+        margin-top: 10px;
+        background: #ff6600;
+        border: none;
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    @media print {
+        .print-btn { display: none; }
+        body { background: white; }
+    }
+</style>
+</head>
+
+<body>
+
+<div class="ticket">
+
+    <div class="center">
+        <h2>PRESTACÓM</h2>
+        <p class="info">Recibo de Pago</p>
+    </div>
+
+    <div class="line"></div>
+
+    <div id="contenido">
+        Cargando...
+    </div>
+
+    <div class="line"></div>
+
+    <button class="print-btn" onclick="window.print()">🖨 Imprimir Recibo</button>
+
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+import {
+    getFirestore,
+    doc,
+    getDoc
+} from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyDbmVXLBIsBzk-wE60yVtchZ8WI4NWnAW4",
+    authDomain: "prestacom-sistema-a2830.firebaseapp.com",
+    projectId: "prestacom-sistema-a2830",
+    storageBucket: "prestacom-sistema-a2830.appspot.com",
+    messagingSenderId: "500739174929",
+    appId: "1:500739174929:web:1694f07bf65714606f77b0"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// ID del pago desde URL
+const urlParams = new URLSearchParams(window.location.search);
+const id_pago = urlParams.get("id");
+
+async function cargarRecibo() {
+
+    const ref = doc(db, "pagos", id_pago);
+    const snap = await getDoc(ref);
+
+    if (!snap.exists()) {
+        document.getElementById("contenido").innerHTML = "Pago no encontrado";
+        return;
+    }
+
+    const data = snap.data();
+
+    document.getElementById("contenido").innerHTML = `
+        <div class="info"><b>Cliente:</b> ${data.cliente}</div>
+        <div class="info"><b>Monto Pagado:</b> RD$ ${data.monto}</div>
+        <div class="info"><b>Tipo:</b> ${data.tipo}</div>
+        <div class="info"><b>Fecha:</b> ${new Date(data.fecha).toLocaleString()}</div>
+        <div class="total">TOTAL: RD$ ${data.monto}</div>
+    `;
+
+    // auto imprimir (opcional)
+    setTimeout(() => {
+        window.print();
+    }, 800);
+}
+
+cargarRecibo();
+</script>
+
+</body>
+</html>
