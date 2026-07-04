@@ -4,135 +4,192 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PRESTACOM 2.0 - Nuevo Préstamo</title>
+
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: #F9FAFB; color: #1F2937; display: flex; justify-content: center; min-height: 100vh; }
-        .app-container { width: 100%; max-width: 480px; background-color: #F9FAFB; display: flex; flex-direction: column; }
-        header { background-color: #111827; color: white; padding: 15px 20px; display: flex; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 10; }
-        .back-btn { text-decoration: none; color: white; font-size: 1.5rem; margin-right: 15px; }
-        form { padding: 20px; display: flex; flex-direction: column; gap: 20px; padding-bottom: 120px; }
-        .card { background-color: #FFFFFF; border-radius: 12px; padding: 15px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02); border: 1px solid rgba(0,0,0,0.03); }
-        .card-title { font-size: 0.9rem; color: #FF6600; font-weight: 700; text-transform: uppercase; margin-bottom: 12px; border-bottom: 1px solid rgba(255, 102, 0, 0.1); padding-bottom: 4px; }
-        .input-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
-        label { font-size: 0.85rem; font-weight: 600; }
-        input, select { width: 100%; padding: 12px; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 0.95rem; background-color: #FAFAFA; }
-        .footer-actions { position: fixed; bottom: 0; width: 100%; max-width: 480px; background-color: #F9FAFB; padding: 15px 20px; box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.08); display: flex; gap: 10px; }
-        .btn-generar { flex: 1; background-color: #FF6600; color: white; border: none; border-radius: 8px; padding: 14px; font-weight: bold; cursor: pointer; }
-    </style>
-</head>
-<body>
-
-    <div class="app-container">
-        <header>
-            <a href="index.html" class="back-btn">⬅</a>
-            <h1>Nuevo Préstamo</h1>
-        </header>
-
-        <form id="form-prestamo">
-            <div class="card">
-                <div class="card-title">Datos Generales</div>
-                <div class="input-group">
-                    <label for="select-cliente">Selecciona el Cliente</label>
-                    <select id="select-cliente" required>
-                        <option value="">Cargando clientes...</option>
-                    </select>
-                </div>
-                <div class="input-group">
-                    <label for="fecha-inicio">Fecha de Inicio</label>
-                    <input type="date" id="fecha-inicio" required>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">Condiciones</div>
-                <div class="input-group"><label>Monto ($)</label><input type="number" id="monto" required></div>
-                <div class="input-group"><label>Tasa (%)</label><input type="number" id="interes" required></div>
-                <div class="input-group">
-                    <label for="modalidad">Modalidad</label>
-                    <select id="modalidad">
-                        <option value="1">Diario</option>
-                        <option value="7">Semanal</option>
-                        <option value="15">Quincenal</option>
-                        <option value="30">Mensual</option>
-                    </select>
-                </div>
-                <div class="input-group"><label>Cantidad de Cuotas</label><input type="number" id="cuotas" required></div>
-            </div>
-
-            <div class="footer-actions">
-                <button type="submit" class="btn-generar">Generar Préstamo</button>
-            </div>
-        </form>
-    </div>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, collection, query, where, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyDbmVXLBIsBzk-wE60yVtchZ8WI4NWnAW4",
-            authDomain: "prestacom-sistema-a2830.firebaseapp.com",
-            projectId: "prestacom-sistema-a2830",
-            storageBucket: "prestacom-sistema-a2830.firebasestorage.app",
-            messagingSenderId: "500739174929",
-            appId: "1:500739174929:web:1694f07bf65714606f77b0"
-        };
-
-        const db = getFirestore(initializeApp(firebaseConfig));
-        const idEmpresa = localStorage.getItem('id_empresa');
-
-        // Cargar clientes
-        async function cargarClientes() {
-            const q = query(collection(db, "clientes_prestamo"), where("id_empresa", "==", idEmpresa));
-            const snap = await getDocs(q);
-            const select = document.getElementById('select-cliente');
-            select.innerHTML = '<option value="">Elige un deudor</option>';
-            snap.forEach(d => {
-                const data = d.data();
-                select.innerHTML += `<option value="${d.id}">${data.nombre}</option>`;
-            });
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
         }
 
-        // Inicializar fecha
-        document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('fecha-inicio').value = new Date().toISOString().split('T')[0];
-            cargarClientes();
-        });
+        body {
+            background: #f1f5f9;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
 
-        // Guardar
-        document.getElementById('form-prestamo').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const monto = Number(document.getElementById('monto').value);
-            const interes = Number(document.getElementById('interes').value);
-            const cuotas = parseInt(document.getElementById('cuotas').value);
-            const modalidad = parseInt(document.getElementById('modalidad').value);
-            const fecha = document.getElementById('fecha-inicio').value;
-            
-            const valorCuotaFinal = Number(( (monto * (1 + interes/100)) / cuotas).toFixed(2));
-            
-            const nuevoPrestamo = {
-                id_empresa: idEmpresa,
-                nombre_cliente: document.getElementById('select-cliente').options[document.getElementById('select-cliente').selectedIndex].text,
-                monto_prestado: monto,
-                valor_cuota: valorCuotaFinal,
-                total_cuotas: cuotas,
-                cuotas_restantes: cuotas,
-                modalidad_dias: modalidad,
-                fecha_inicio: fecha,
-                status: 'Activo',
-                fecha_registro: new Date().toISOString()
-            };
+        .container {
+            width: 100%;
+            max-width: 480px;
+            background: white;
+            display: flex;
+            flex-direction: column;
+        }
 
-            try {
-                await addDoc(collection(db, "prestamos"), nuevoPrestamo);
-                alert("Préstamo generado con éxito");
-                window.location.href = "index.html";
-            } catch (err) {
-                console.error("Error:", err);
-                alert("Error al guardar: " + err.message);
-            }
-        });
-    </script>
+        header {
+            background: #1e293b;
+            color: white;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: sticky;
+            top: 0;
+        }
+
+        header a {
+            color: white;
+            text-decoration: none;
+            font-size: 20px;
+        }
+
+        header h1 {
+            font-size: 18px;
+        }
+
+        form {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #ff6600;
+            margin-bottom: 10px;
+        }
+
+        label {
+            font-size: 13px;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: #ff6600;
+            border: none;
+            color: white;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .cliente-box {
+            background: #f8fafc;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <header>
+        <a href="index.html">⬅</a>
+        <h1>Nuevo Préstamo</h1>
+    </header>
+
+    <form id="form-prestamo">
+
+        <!-- CLIENTE -->
+        <div class="card">
+            <div class="title">Cliente</div>
+
+            <label>Buscar Cliente (Cédula o Nombre)</label>
+            <input type="text" id="buscar_cliente" placeholder="Ej: 001-1234567 o Juan Pérez">
+
+            <div class="cliente-box" id="cliente_info">
+                Cliente no seleccionado
+            </div>
+
+            <input type="hidden" id="cliente_id">
+        </div>
+
+        <!-- PRESTAMO -->
+        <div class="card">
+            <div class="title">Datos del Préstamo</div>
+
+            <label>Monto del Préstamo</label>
+            <input type="number" id="monto" required>
+
+            <label>Interés (%)</label>
+            <input type="number" id="interes" value="0" required>
+
+            <label>Modalidad</label>
+            <select id="modalidad" required>
+                <option value="diario">Diario</option>
+                <option value="semanal">Semanal</option>
+                <option value="quincenal">Quincenal</option>
+                <option value="mensual">Mensual</option>
+            </select>
+
+            <label>Cantidad de Cuotas</label>
+            <input type="number" id="cuotas" required>
+
+            <label>Fecha de Inicio</label>
+            <input type="date" id="fecha_inicio" required>
+        </div>
+
+        <!-- RESUMEN -->
+        <div class="card">
+            <div class="title">Resumen</div>
+
+            <p><b>Total a Pagar:</b> <span id="total_pago">0</span></p>
+            <p><b>Pago por Cuota:</b> <span id="pago_cuota">0</span></p>
+        </div>
+
+        <button type="submit" class="btn">Guardar Préstamo</button>
+
+    </form>
+
+</div>
+
+<script>
+    const monto = document.getElementById("monto");
+    const interes = document.getElementById("interes");
+    const cuotas = document.getElementById("cuotas");
+
+    function calcular() {
+        let m = parseFloat(monto.value) || 0;
+        let i = parseFloat(interes.value) || 0;
+        let c = parseInt(cuotas.value) || 1;
+
+        let total = m + (m * i / 100);
+        let pago = total / c;
+
+        document.getElementById("total_pago").innerText = total.toFixed(2);
+        document.getElementById("pago_cuota").innerText = pago.toFixed(2);
+    }
+
+    monto.addEventListener("input", calcular);
+    interes.addEventListener("input", calcular);
+    cuotas.addEventListener("input", calcular);
+</script>
+
 </body>
 </html>
