@@ -1,115 +1,117 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRESTACOM 2.0 - Cobros Diarios</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRESTACOM 2.0 - Cobros Diarios</title>
 
-    <style>
-        * { margin:0; padding:0; box-sizing:border-box; font-family:Arial; }
+<style>
+    * { margin:0; padding:0; box-sizing:border-box; font-family:Arial; }
 
-        body {
-            background:#f1f5f9;
-            display:flex;
-            justify-content:center;
-        }
+    body {
+        background:#f1f5f9;
+        display:flex;
+        justify-content:center;
+    }
 
-        .container {
-            width:100%;
-            max-width:480px;
-            min-height:100vh;
-            background:#fff;
-        }
+    .container {
+        width:100%;
+        max-width:480px;
+        min-height:100vh;
+        background:#fff;
+    }
 
-        header {
-            background:#1e293b;
-            color:#fff;
-            padding:15px;
-            display:flex;
-            gap:10px;
-            align-items:center;
-            position:sticky;
-            top:0;
-        }
+    header {
+        background:#1e293b;
+        color:#fff;
+        padding:15px;
+        display:flex;
+        align-items:center;
+        gap:10px;
+        position:sticky;
+        top:0;
+    }
 
-        header a {
-            color:#fff;
-            text-decoration:none;
-            font-size:20px;
-        }
+    header a {
+        color:#fff;
+        text-decoration:none;
+        font-size:20px;
+    }
 
-        h1 { font-size:18px; }
+    h1 { font-size:18px; }
 
-        .list {
-            padding:15px;
-            display:flex;
-            flex-direction:column;
-            gap:10px;
-        }
+    .list {
+        padding:15px;
+        display:flex;
+        flex-direction:column;
+        gap:10px;
+    }
 
-        .card {
-            background:#f8fafc;
-            border:1px solid #e5e7eb;
-            border-radius:10px;
-            padding:12px;
-        }
+    .card {
+        background:#f8fafc;
+        border:1px solid #e5e7eb;
+        border-radius:10px;
+        padding:12px;
+    }
 
-        .top {
-            display:flex;
-            justify-content:space-between;
-            margin-bottom:6px;
-        }
+    .top {
+        display:flex;
+        justify-content:space-between;
+        margin-bottom:6px;
+    }
 
-        .name { font-weight:bold; font-size:14px; }
+    .name { font-weight:bold; font-size:14px; }
 
-        .status {
-            font-size:12px;
-            padding:3px 8px;
-            border-radius:20px;
-            background:#facc15;
-        }
+    .status {
+        font-size:12px;
+        padding:3px 8px;
+        border-radius:20px;
+        background:#facc15;
+    }
 
-        .status.paid {
-            background:#22c55e;
-            color:#fff;
-        }
+    .status.paid {
+        background:#22c55e;
+        color:#fff;
+    }
 
-        .info {
-            font-size:13px;
-            margin-bottom:10px;
-        }
+    .info {
+        font-size:13px;
+        margin-bottom:10px;
+    }
 
-        button {
-            width:100%;
-            padding:10px;
-            border:none;
-            border-radius:8px;
-            background:#ff6600;
-            color:#fff;
-            font-weight:bold;
-            cursor:pointer;
-        }
+    button {
+        width:100%;
+        padding:10px;
+        border:none;
+        border-radius:8px;
+        background:#ff6600;
+        color:#fff;
+        font-weight:bold;
+        cursor:pointer;
+    }
 
-        button.paid {
-            background:#22c55e;
-        }
-    </style>
+    button:disabled {
+        background:#22c55e;
+        cursor:not-allowed;
+    }
+</style>
 </head>
 
 <body>
 
 <div class="container">
 
-    <header>
-        <a href="index.html">⬅</a>
-        <h1>Cobros Diarios</h1>
-    </header>
+<header>
+    <a href="index.html">⬅</a>
+    <h1>Cobros Diarios</h1>
+</header>
 
-    <div class="list" id="lista"></div>
+<div class="list" id="lista"></div>
 
 </div>
 
 <script type="module">
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import {
     getFirestore,
@@ -139,7 +141,7 @@ if (!idEmpresa) window.location.href = "login.html";
 
 const lista = document.getElementById("lista");
 
-// 🔥 Cargar préstamos diarios en tiempo real
+// 🔥 QUERY DE PRESTAMOS DIARIOS
 const q = query(
     collection(db, "prestamos"),
     where("id_empresa", "==", idEmpresa),
@@ -147,21 +149,24 @@ const q = query(
     where("estado", "==", "activo")
 );
 
+// 🔥 ESCUCHA EN TIEMPO REAL
 onSnapshot(q, (snapshot) => {
+
     lista.innerHTML = "";
 
     snapshot.forEach((docSnap) => {
+
         const data = docSnap.data();
 
         const div = document.createElement("div");
         div.className = "card";
 
-        const estado = data.pagado_hoy ? "paid" : "";
+        const pagado = data.pagado_hoy ? "paid" : "";
 
         div.innerHTML = `
             <div class="top">
                 <div class="name">${data.cliente_nombre || "Sin nombre"}</div>
-                <div class="status ${estado}">
+                <div class="status ${pagado}">
                     ${data.pagado_hoy ? "Pagado" : "Pendiente"}
                 </div>
             </div>
@@ -171,7 +176,7 @@ onSnapshot(q, (snapshot) => {
                 Modalidad: Diario
             </div>
 
-            <button ${data.pagado_hoy ? "class='paid' disabled" : ""}>
+            <button ${data.pagado_hoy ? "disabled" : ""}>
                 ${data.pagado_hoy ? "Pagado" : "Marcar Pago"}
             </button>
         `;
@@ -179,10 +184,11 @@ onSnapshot(q, (snapshot) => {
         const btn = div.querySelector("button");
 
         if (!data.pagado_hoy) {
+
             btn.addEventListener("click", async () => {
 
-                // 1. Registrar pago
-                await addDoc(collection(db, "pagos"), {
+                // 1. Guardar pago
+                const docRef = await addDoc(collection(db, "pagos"), {
                     id_prestamo: docSnap.id,
                     id_empresa: idEmpresa,
                     cliente: data.cliente_nombre,
@@ -191,18 +197,21 @@ onSnapshot(q, (snapshot) => {
                     tipo: "diario"
                 });
 
-                // 2. Marcar como pagado hoy
+                // 2. Marcar préstamo como pagado hoy
                 await updateDoc(doc(db, "prestamos", docSnap.id), {
                     pagado_hoy: true
                 });
 
-                alert("Pago registrado");
+                // 3. Abrir recibo automáticamente
+                window.open("recibo_pago.html?id=" + docRef.id, "_blank");
+
             });
         }
 
         lista.appendChild(div);
     });
 });
+
 </script>
 
 </body>
