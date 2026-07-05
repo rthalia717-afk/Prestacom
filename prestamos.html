@@ -46,7 +46,7 @@
             <button class="filter-btn" id="btn-filtro-finalizado">Liquidados</button>
         </div>
 
-        <main class="loans-list" id="contenedor-prestamos">
+        <main class="loans-list" id="semanal">
             <p style="text-align: center; padding: 20px; color: #6B7280;">Cargando cartera de préstamos...</p>
         </main>
     </div>
@@ -70,13 +70,13 @@
 
         if (!idEmpresaLogueada) window.location.href = "login.html";
 
-        let filtroActual = 'todos';
+        let filtroActual = 'semanal';
 
         // Función para eliminar préstamo
         window.eliminarPrestamo = async (idPrestamo) => {
             if (confirm("⚠️ ¿Estás seguro de eliminar este préstamo? Esta acción es irreversible.")) {
                 try {
-                    await deleteDoc(doc(db, "prestamos", idPrestamo));
+                    await deleteDoc(doc(db, "semanal", idPrestamo));
                     alert("Préstamo eliminado correctamente.");
                     await cargarPrestamosNube();
                 } catch (error) {
