@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PRESTACOM 2.0 - Cobros Semanal</title>
+<title>PRESTACOM 2.0 - Cobros Diarios</title>
 
 <style>
     * { margin:0; padding:0; box-sizing:border-box; font-family:Arial; }
@@ -103,7 +103,7 @@
 
 <header>
     <a href="index.html">⬅</a>
-    <h1>Cobros Semanal</h1>
+    <h1>Cobros Diarios</h1>
 </header>
 
 <div class="list" id="lista"></div>
@@ -141,11 +141,11 @@ if (!idEmpresa) window.location.href = "login.html";
 
 const lista = document.getElementById("lista");
 
-// 🔥 QUERY DE PRESTAMOS SEMANALES
+// 🔥 QUERY DE PRESTAMOS DIARIOS
 const q = query(
     collection(db, "prestamos"),
     where("id_empresa", "==", idEmpresa),
-    where("modalidad", "==", "semanal"),
+    where("modalidad", "==", "diario"),
     where("estado", "==", "activo")
 );
 
@@ -173,7 +173,7 @@ onSnapshot(q, (snapshot) => {
 
             <div class="info">
                 Cuota: RD$ ${data.cuota || 0} <br>
-                Modalidad: Semanal
+                Modalidad: Diario
             </div>
 
             <button ${data.pagado_hoy ? "disabled" : ""}>
@@ -194,7 +194,7 @@ onSnapshot(q, (snapshot) => {
                     cliente: data.cliente_nombre,
                     monto: data.cuota,
                     fecha: new Date().toISOString(),
-                    tipo: "semanal"
+                    tipo: "diario"
                 });
 
                 // 2. Marcar préstamo como pagado hoy
