@@ -7,122 +7,41 @@
 
 <style>
     * { margin:0; padding:0; box-sizing:border-box; font-family:Arial; }
-
-    body {
-        background:#f1f5f9;
-        display:flex;
-        justify-content:center;
-    }
-
-    .container {
-        width:100%;
-        max-width:480px;
-        min-height:100vh;
-        background:#fff;
-    }
-
-    header {
-        background:#1e293b;
-        color:#fff;
-        padding:15px;
-        display:flex;
-        align-items:center;
-        gap:10px;
-        position:sticky;
-        top:0;
-    }
-
-    header a {
-        color:#fff;
-        text-decoration:none;
-        font-size:20px;
-    }
-
+    body { background:#f1f5f9; display:flex; justify-content:center; }
+    .container { width:100%; max-width:480px; min-height:100vh; background:#fff; }
+    header { background:#1e293b; color:#fff; padding:15px; display:flex; align-items:center; gap:10px; position:sticky; top:0; }
+    header a { color:#fff; text-decoration:none; font-size:20px; }
     h1 { font-size:18px; }
-
-    .list {
-        padding:15px;
-        display:flex;
-        flex-direction:column;
-        gap:10px;
-    }
-
-    .card {
-        background:#f8fafc;
-        border:1px solid #e5e7eb;
-        border-radius:10px;
-        padding:12px;
-    }
-
-    .top {
-        display:flex;
-        justify-content:space-between;
-        margin-bottom:6px;
-    }
-
+    .list { padding:15px; display:flex; flex-direction:column; gap:10px; }
+    .card { background:#f8fafc; border:1px solid #e5e7eb; border-radius:10px; padding:12px; }
+    .top { display:flex; justify-content:space-between; margin-bottom:6px; }
     .name { font-weight:bold; font-size:14px; }
-
-    .status {
-        font-size:12px;
-        padding:3px 8px;
-        border-radius:20px;
-        background:#facc15;
-    }
-
-    .status.paid {
-        background:#22c55e;
-        color:#fff;
-    }
-
-    .info {
-        font-size:13px;
-        margin-bottom:10px;
-    }
-
+    .status { font-size:12px; padding:3px 8px; border-radius:20px; background:#facc15; }
+    .status.paid { background:#22c55e; color:#fff; }
+    .info { font-size:13px; margin-bottom:10px; line-height: 1.5; }
+    
     button {
-        width:100%;
-        padding:10px;
-        border:none;
-        border-radius:8px;
-        background:#ff6600;
-        color:#fff;
-        font-weight:bold;
-        cursor:pointer;
+        width:100%; padding:10px; border:none; border-radius:8px; 
+        background:#ff6600; color:#fff; font-weight:bold; cursor:pointer;
     }
-
-    button:disabled {
-        background:#22c55e;
-        cursor:not-allowed;
-    }
+    /* Clase para cuando está pagado */
+    .btn-paid { background:#22c55e !important; }
 </style>
 </head>
 
 <body>
 
 <div class="container">
-
-<header>
-    <a href="index.html">⬅</a>
-    <h1>Cobros Diarios</h1>
-</header>
-
-<div class="list" id="lista"></div>
-
+    <header>
+        <a href="index.html">⬅</a>
+        <h1>Cobros Diarios</h1>
+    </header>
+    <div class="list" id="lista"></div>
 </div>
 
 <script type="module">
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-import {
-    getFirestore,
-    collection,
-    query,
-    where,
-    onSnapshot,
-    addDoc,
-    doc,
-    updateDoc
-} from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { getFirestore, collection, query, where, onSnapshot, addDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyDbmVXLBIsBzk-wE60yVtchZ8WI4NWnAW4",
@@ -141,7 +60,6 @@ if (!idEmpresa) window.location.href = "login.html";
 
 const lista = document.getElementById("lista");
 
-// 🔥 QUERY DE PRESTAMOS DIARIOS
 const q = query(
     collection(db, "prestamos"),
     where("id_empresa", "==", idEmpresa),
@@ -149,15 +67,10 @@ const q = query(
     where("estado", "==", "activo")
 );
 
-// 🔥 ESCUCHA EN TIEMPO REAL
 onSnapshot(q, (snapshot) => {
-
     lista.innerHTML = "";
-
     snapshot.forEach((docSnap) => {
-
         const data = docSnap.data();
-
         const div = document.createElement("div");
         div.className = "card";
 
@@ -165,34 +78,36 @@ onSnapshot(q, (snapshot) => {
 
         div.innerHTML = `
             <div class="top">
-                <div class="name">${data.cliente_nombre || "Sin nombre"}</div>
-                <div class="status ${pagado}">
-                    ${data.pagado_hoy ? "Pagado" : "Pendiente"}
-                </div>
+                <div class="name">${data.nombre_cliente || "Sin nombre"}</div>
+                <div class="status ${pagado}">${data.pagado_hoy ? "Pagado" : "Pendiente"}</div>
             </div>
-
             <div class="info">
+                Monto Original: RD$ ${data.monto_original || 0} <br>
                 Cuota: RD$ ${data.cuota || 0} <br>
-                Modalidad: Diario
+                Cuotas: ${data.cuotas_detalle || "N/A"} <br>
+                Balance Pendiente: RD$ ${data.balance_pendiente || 0}
             </div>
-
-            <button ${data.pagado_hoy ? "disabled" : ""}>
-                ${data.pagado_hoy ? "Pagado" : "Marcar Pago"}
+            <button class="${data.pagado_hoy ? 'btn-paid' : ''}">
+                ${data.pagado_hoy ? "Ya Pagado Hoy" : "Marcar Pago"}
             </button>
         `;
 
         const btn = div.querySelector("button");
 
-        if (!data.pagado_hoy) {
-
-            btn.addEventListener("click", async () => {
-
-                // 1. Guardar pago
+        btn.addEventListener("click", async () => {
+            if (data.pagado_hoy) {
+                alert("¡Este préstamo ya tiene el pago registrado hoy!");
+            } else {
+                // 1. Guardar pago con toda la info detallada
                 const docRef = await addDoc(collection(db, "pagos"), {
                     id_prestamo: docSnap.id,
                     id_empresa: idEmpresa,
-                    cliente: data.cliente_nombre,
-                    monto: data.cuota,
+                    nombre_cliente: data.nombre_cliente,
+                    monto_original: data.monto_original,
+                    fecha_inicio: data.fecha_inicio,
+                    cuotas_detalle: data.cuotas_detalle,
+                    balance_pendiente: data.balance_pendiente,
+                    monto_abonado: data.cuota,
                     fecha: new Date().toISOString(),
                     tipo: "diario"
                 });
@@ -202,17 +117,14 @@ onSnapshot(q, (snapshot) => {
                     pagado_hoy: true
                 });
 
-                // 3. Abrir recibo automáticamente
+                // 3. Abrir recibo
                 window.open("recibo_pago.html?id=" + docRef.id, "_blank");
-
-            });
-        }
+            }
+        });
 
         lista.appendChild(div);
     });
 });
-
 </script>
-
 </body>
 </html>
