@@ -102,7 +102,7 @@ onSnapshot(q, (snapshot) => {
                 const docRef = await addDoc(collection(db, "pagos"), {
                     id_prestamo: docSnap.id,
                     id_empresa: idEmpresa,
-                    cliente_nombre: data.cliente_nombre,
+                    nombre_cliente: data.cliente_nombre,
                     monto_original: data.monto_original,
                     fecha_inicio: data.fecha_inicio,
                     cuotas_detalle: data.cuotas_detalle,
