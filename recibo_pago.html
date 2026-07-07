@@ -1,77 +1,86 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Recibo de Pago - Prestacóm</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imprimir Ticket</title>
+    <style>
+        body { font-family: 'Courier New', monospace; width: 80mm; margin: 0 auto; padding: 8px; font-size: 14px; color: #000; font-weight: 700; }
+        .ticket-header { text-align: center; border-bottom: 3px solid #000; margin-bottom: 12px; padding-bottom: 6px; }
+        .ticket-header h2 { font-size: 20px; margin: 0; font-weight: 900; text-transform: uppercase; }
+        .ticket-body { margin-bottom: 10px; }
+        .row { display: flex; justify-content: space-between; margin-bottom: 5px; }
+        .row span:first-child { font-weight: 900; }
+        
+        .total { background-color: #000; color: #fff; margin-top: 15px; padding: 8px; font-weight: 900; font-size: 18px; text-align: center; border-radius: 4px; display: flex; justify-content: space-between; }
+        .total span { color: #fff !important; }
 
-<style>
-    body { font-family: Arial; background: #f1f5f9; display: flex; justify-content: center; }
-    .ticket { width: 320px; background: white; padding: 20px; margin-top: 20px; border: 1px solid #ccc; }
-    .center { text-align: center; }
-    h2 { font-size: 18px; margin-bottom: 5px; }
-    .info { font-size: 14px; margin: 8px 0; }
-    .line { border-top: 1px dashed #ccc; margin: 10px 0; }
-    .resumen { margin-top: 15px; border-top: 2px solid #000; padding-top: 10px; }
-    .monto-final { font-size: 18px; font-weight: bold; text-align: center; margin-top: 10px; }
-    .print-btn { width: 100%; padding: 12px; margin-top: 15px; background: #ff6600; border: none; color: white; font-weight: bold; cursor: pointer; }
-    @media print { .print-btn { display: none; } body { background: white; } }
-</style>
-</head>
+        .seccion-firma { margin-top: 25px; margin-bottom: 15px; }
+        .linea-firma { border-bottom: 2px solid #000; width: 100%; display: inline-block; margin-bottom: 3px; }
+        .etiqueta-firma { font-size: 12px; font-weight: 900; text-transform: uppercase; display: block; }
 
-<body>
-<div class="ticket">
-    <div class="center">
-        <h2>PRESTACÓM</h2>
-        <p class="info">Comprobante de Pago</p>
-    </div>
-    <div class="line"></div>
-    <div id="contenido">Cargando datos...</div>
-    <div class="line"></div>
-    <button class="print-btn" onclick="window.print()">🖨 Imprimir Recibo</button>
-</div>
-
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-
-    const firebaseConfig = {
-        apiKey: "AIzaSyDbmVXLBIsBzk-wE60yVtchZ8WI4NWnAW4",
-        authDomain: "prestacom-sistema-a2830.firebaseapp.com",
-        projectId: "prestacom-sistema-a2830",
-        storageBucket: "prestacom-sistema-a2830.appspot.com",
-        messagingSenderId: "500739174929",
-        appId: "1:500739174929:web:1694f07bf65714606f77b0"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const id_pago = urlParams.get("id");
-
-    async function cargarRecibo() {
-        const snap = await getDoc(doc(db, "pagos", id_pago));
-        if (!snap.exists()) {
-            document.getElementById("contenido").innerHTML = "Error: Recibo no encontrado";
-            return;
+        .footer { text-align: center; font-size: 12px; margin-top: 20px; border-top: 2px dashed #000; padding-top: 10px; }
+        
+        @media print {
+            body { margin: 0; padding: 0; }
+            .total { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
+    </style>
+</head>
+<body>
 
-        const data = snap.data();
+    <div class="ticket-header">
+        <h2 id="empresa-nombre">PRESTACOM</h2>
+        <p>RECIBO DE PAGO</p>
+    </div>
 
-        document.getElementById("contenido").innerHTML = `
-            <div class="info"><b>Cliente:</b> ${data.cliente_nombre || 'N/A'}</div>
-            <div class="info"><b>Fecha:</b> ${new Date(data.fecha).toLocaleString()}</div>
-            <div class="line"></div>
-            <div class="info">Saldo Anterior: RD$ ${parseFloat(data.balance_anterior).toFixed(2)}</div>
-            <div class="info"><b>Monto Abonado: RD$ ${parseFloat(data.monto_pagado).toFixed(2)}</b></div>
-            <div class="info">Saldo Restante: RD$ ${parseFloat(data.balance_nuevo).toFixed(2)}</div>
-        `;
+    <div class="ticket-body">
+        <div class="row"><span>FECHA:</span> <span id="t-fecha">---</span></div>
+        <div class="row"><span>CLIENTE:</span> <span id="t-cliente">---</span></div>
+        <hr style="border: 0; border-top: 1px dashed #000; margin: 8px 0;">
+        <div class="row"><span>PAGO N°:</span> <span id="t-pago-num">---</span></div>
+        <div class="row"><span>PENDIENTES:</span> <span id="t-restantes">---</span></div>
+        
+        <div class="total">
+            <span>TOTAL PAGADO:</span> 
+            <span>RD$ <span id="t-monto">0.00</span></span>
+        </div>
+    </div>
 
-        setTimeout(() => window.print(), 800);
-    }
+    <div class="seccion-firma">
+        <div style="margin-bottom: 20px;"><span class="linea-firma"></span><span class="etiqueta-firma">Firma Cliente</span></div>
+    </div>
 
-    cargarRecibo();
-</script>
+    <div class="footer">
+        <p>¡Gracias por su preferencia!</p>
+        <p>Recibido por: <span id="t-cobrador">---</span></p>
+    </div>
+
+    <script>
+        window.onload = function() {
+            const ticket = JSON.parse(localStorage.getItem('ultimo_ticket'));
+            
+            if (ticket) {
+                document.getElementById('empresa-nombre').innerText = (localStorage.getItem('ticket_nombre') || "PRESTACOM").toUpperCase();
+                document.getElementById('t-fecha').innerText = ticket.fecha || new Date().toLocaleDateString();
+                document.getElementById('t-cliente').innerText = (ticket.cliente || "---").toUpperCase();
+                document.getElementById('t-pago-num').innerText = ticket.cuota_num || "---";
+                document.getElementById('t-restantes').innerText = ticket.cuotas_restantes ?? "---";
+                document.getElementById('t-monto').innerText = parseFloat(ticket.monto_pagado || 0).toLocaleString('es-DO', {minimumFractionDigits: 2});
+                document.getElementById('t-cobrador').innerText = (localStorage.getItem('nombre_usuario') || "SISTEMA").toUpperCase();
+
+                // Imprimir y regresar
+                setTimeout(() => {
+                    window.print();
+                    setTimeout(() => { 
+                        window.location.href = localStorage.getItem('pagina_origen') || "diario.html"; 
+                    }, 1000);
+                }, 500);
+            } else {
+                alert("No hay datos de ticket.");
+                window.location.href = "diario.html";
+            }
+        };
+    </script>
 </body>
 </html>
