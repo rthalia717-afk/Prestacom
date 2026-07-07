@@ -116,7 +116,7 @@
     fecha: new Date().toISOString(),
     tipo: "mensual"
 });
-                });
+                
 
                 await updateDoc(doc(db, "prestamos", docSnap.id), {
                     pagado_hoy: true,
