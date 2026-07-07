@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRESTACOM - Iniciar Sesión</title>
+    <title>PRESA-FACIL - Iniciar Sesión</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#FF6600">
     <style>
@@ -18,13 +18,41 @@
         .btn-login { width: 100%; background: linear-gradient(135deg, #FF7A1A 0%, #E05500 100%); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: 700; cursor: pointer; margin-top: 12px; transition: opacity 0.3s; }
         .btn-login:disabled { opacity: 0.6; cursor: not-allowed; }
         .error-message { color: #ff8585; font-size: 0.85rem; margin-top: 14px; background: rgba(239, 68, 68, 0.15); padding: 10px; border-radius: 8px; display: none; }
+    
+    .footer-info{
+    margin-top:30px;
+    padding-top:20px;
+    border-top:1px solid rgba(255,255,255,.15);
+    font-size:13px;
+    color:#cbd5e1;
+    line-height:1.6;
+    text-align:center;
+}
+
+.footer-info strong{
+    color:#ffffff;
+    font-size:15px;
+}
+
+.footer-info small{
+    color:#94a3b8;
+}
+    
+    
+    
+    
     </style>
+
+    
 </head>
 <body>
 
     <div class="login-container">
         <div class="logo-placeholder">💼</div>
         <h1>PRESTACOM</h1>
+        <p style="color:#94a3b8;font-size:14px;margin-top:-20px;margin-bottom:25px;">
+Sistema Profesional de Gestión de Préstamos
+</p>
         <form id="login-form">
             <div class="form-group">
                 <label for="email">Correo Electrónico</label>
@@ -36,6 +64,19 @@
             </div>
             <div class="error-message" id="error-txt"></div>
             <button type="submit" class="btn-login" id="btn-submit">Ingresar al Sistema</button>
+<div class="footer-info">
+    <strong>SIA - Sistemas Inteligentes de Automatización</strong><br>
+    Desarrollo de Software Profesional para Empresas<br><br>
+
+    <small>
+        Sistema de Préstamos Personales <b>PRESTACOM 2.0</b><br>
+        Versión 2.0<br><br>
+
+        © 2026 SIA. Todos los derechos reservados.
+    </small>
+</div>
+
+            
         </form>
     </div>
 
