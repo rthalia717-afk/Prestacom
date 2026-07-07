@@ -82,7 +82,7 @@
                 
                 </div>
 
-                
+                 </div>
                 <input type="number" value="${data.cuota || 0}" class="input-pago">
                 <button class="${data.pagado_hoy ? 'btn-extra' : ''}">
                     ${data.pagado_hoy ? "Registrar Otro Pago" : "Marcar Pago"}
@@ -122,13 +122,16 @@
     fecha: new Date().toISOString(),
     tipo: "mensual"
 });
-                
+          console.log("Voy a actualizar cuotas...");      
 
                 await updateDoc(doc(db, "prestamos", docSnap.id), {
                     pagado_hoy: true,
                     total: nuevoBalance
-                });
 
+                  
+                });
+                   console.log("Cuotas actualizadas.");
+               
                 window.open("recibo_pago.html?id=" + docRef.id, "_blank");
             });
             lista.appendChild(div);
