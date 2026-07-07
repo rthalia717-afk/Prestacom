@@ -127,16 +127,7 @@
     tipo: "diario"
 });
 
-                await updateDoc(doc(db, "prestamos", docSnap.id), {
-                    pagado_hoy: true,
-                    total: nuevoBalance
-
-
-
-
-
-                  
-                });
+                
 
                 window.open("recibo_pago.html?id=" + docRef.id, "_blank");
             });
