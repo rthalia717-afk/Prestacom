@@ -109,22 +109,8 @@
 
 
    await updateDoc(doc(db, "prestamos", docSnap.id), {
-   pagado_hoy: true,
-   total: nuevoBalance,
-   cuotas_pagadas: (data.cuotas_pagadas || 0) + 1
+      
 
-});
-
-    // Datos del préstamo
-    monto_prestado: data.monto,
-    cuotas: data.cuotas,
-    cuotas_pagadas: (data.cuotas_pagadas || 0) + 1,
-
-    balance_anterior: data.total,
-    balance_nuevo: nuevoBalance,
-
-    fecha: new Date().toISOString(),
-    tipo: "diario"
 });
 
                 
