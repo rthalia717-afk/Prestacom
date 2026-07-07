@@ -57,30 +57,33 @@
     </div>
 
     <script>
-        window.onload = function() {
-            const ticket = JSON.parse(localStorage.getItem('ultimo_ticket'));
+       <script>
+    window.onload = function() {
+        // 1. Recuperar los datos desde localStorage
+        const ticketData = JSON.parse(localStorage.getItem('ultimo_ticket'));
+        
+        if (ticketData) {
+            // 2. Llenar los campos en el HTML
+            document.getElementById('t-fecha').innerText = ticketData.fecha;
+            document.getElementById('t-cliente').innerText = ticketData.cliente.toUpperCase();
+            document.getElementById('t-pago-num').innerText = ticketData.cuota_num;
+            document.getElementById('t-restantes').innerText = ticketData.cuotas_restantes;
+            document.getElementById('t-monto').innerText = parseFloat(ticketData.monto_pagado).toLocaleString('es-DO', {minimumFractionDigits: 2});
             
-            if (ticket) {
-                document.getElementById('empresa-nombre').innerText = (localStorage.getItem('ticket_nombre') || "PRESTACOM").toUpperCase();
-                document.getElementById('t-fecha').innerText = ticket.fecha || new Date().toLocaleDateString();
-                document.getElementById('t-cliente').innerText = (ticket.cliente || "---").toUpperCase();
-                document.getElementById('t-pago-num').innerText = ticket.cuota_num || "---";
-                document.getElementById('t-restantes').innerText = ticket.cuotas_restantes ?? "---";
-                document.getElementById('t-monto').innerText = parseFloat(ticket.monto_pagado || 0).toLocaleString('es-DO', {minimumFractionDigits: 2});
-                document.getElementById('t-cobrador').innerText = (localStorage.getItem('nombre_usuario') || "SISTEMA").toUpperCase();
-
-                // Imprimir y regresar
+            // 3. Ejecutar impresión y redirección
+            setTimeout(() => {
+                window.print();
+                // Regresar a la pantalla de cobros después de imprimir
                 setTimeout(() => {
-                    window.print();
-                    setTimeout(() => { 
-                        window.location.href = localStorage.getItem('pagina_origen') || "diario.html"; 
-                    }, 1000);
-                }, 500);
-            } else {
-                alert("No hay datos de ticket.");
-                window.location.href = "diario.html";
-            }
-        };
+                    window.close(); // Cierra la ventana del recibo
+                }, 1000);
+            }, 500);
+        } else {
+            alert("No hay datos de pago para mostrar.");
+            window.close();
+        }
+    };
+</script>
     </script>
 </body>
 </html>
