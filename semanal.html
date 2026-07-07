@@ -87,21 +87,29 @@
                 const montoPagado = parseFloat(div.querySelector(".input-pago").value);
                 const nuevoBalance = (data.total || 0) - montoPagado;
                 
-                const docRef = await addDoc(collection(db, "pagos"), {
-                    id_prestamo: docSnap.id,
-                    id_empresa: idEmpresa,
-                    cliente_nombre: data.cliente_nombre,
-                    monto_pagado: montoPagado,
-                    balance_anterior: data.total,
-                    balance_nuevo: nuevoBalance,
-                    fecha: new Date().toISOString(),
-                    tipo: "semanal"
-                });
+               const docRef = await addDoc(collection(db, "pagos"), {
+    id_prestamo: docSnap.id,
+    id_empresa: idEmpresa,
+    cliente_nombre: data.cliente_nombre,
 
-                await updateDoc(doc(db, "prestamos", docSnap.id), {
-                    pagado_hoy: true,
-                    total: nuevoBalance
-                });
+    monto_prestado: data.monto,
+    monto_pagado: montoPagado,
+
+    cuotas: data.cuotas,
+    cuotas_pagadas: (data.cuotas_pagadas || 0) + 1,
+
+    balance_anterior: data.total,
+    balance_nuevo: nuevoBalance,
+
+    fecha: new Date().toISOString(),
+    tipo: "semanal"
+});
+
+              await updateDoc(doc(db, "prestamos", docSnap.id), {
+    pagado_hoy: true,
+    total: nuevoBalance,
+    cuotas_pagadas: (data.cuotas_pagadas || 0) + 1
+});
 
                 window.open("recibo_pago.html?id=" + docRef.id, "_blank");
             });
