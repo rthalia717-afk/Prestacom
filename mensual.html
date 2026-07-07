@@ -84,10 +84,19 @@
             `;
 
             div.querySelector("button").addEventListener("click", async () => {
-                const montoPagado = parseFloat(div.querySelector(".input-pago").value);
-                const nuevoBalance = (data.total || 0) - montoPagado;
-                
-               const docRef = await addDoc(collection(db, "pagos"), {
+               const balanceAnterior = Number(data.total || 0);
+               const montoPagado = Number(div.querySelector(".input-pago").value);
+               const nuevoBalance = balanceAnterior - montoPagado;
+
+
+
+
+               
+                const docRef = await addDoc(collection(db, "pagos"), {
+
+
+
+                   
     id_prestamo: docSnap.id,
     id_empresa: idEmpresa,
 
