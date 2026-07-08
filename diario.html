@@ -71,68 +71,47 @@
                     <div class="status ${data.pagado_hoy ? 'paid' : ''}">
                         ${data.pagado_hoy ? "Pagado Hoy" : "Pendiente"}
                     </div>
-             
-                
-                   <div class="info">
-    Monto Préstamo: RD$ ${data.monto || 0} <br>
-    Cuota: RD$ ${data.cuota || 0} <br>
-    Balance Pendiente: RD$ ${data.total || 0} <br>
-    Cuotas Pagadas: ${data.cuotas_pagadas || 0} de ${data.cuotas || 0} <br>
-    Cuotas Restantes: ${(data.cuotas || 0) - (data.cuotas_pagadas || 0)}
-                
                 </div>
-
-              
+                <div class="info">
+                    Monto Préstamo: RD$ ${data.monto || 0} <br>
+                    Cuota: RD$ ${data.cuota || 0} <br>
+                    Balance Pendiente: RD$ ${data.total || 0} <br>
+                    Cuotas Pagadas: ${data.cuotas_pagadas || 0} de ${data.cuotas || 0} <br>
+                    Cuotas Restantes: ${(data.cuotas || 0) - (data.cuotas_pagadas || 0)}
+                </div>
                 <input type="number" value="${data.cuota || 0}" class="input-pago">
                 <button class="${data.pagado_hoy ? 'btn-extra' : ''}">
                     ${data.pagado_hoy ? "Registrar Otro Pago" : "Marcar Pago"}
                 </button>
-              
             `;
 
             div.querySelector("button").addEventListener("click", async () => {
-               const balanceAnterior = Number(data.total || 0);
-               const montoPagado = Number(div.querySelector(".input-pago").value);
-               const nuevoBalance = balanceAnterior - montoPagado;
+                const balanceAnterior = Number(data.total || 0);
+                const montoPagado = Number(div.querySelector(".input-pago").value);
+                const nuevoBalance = balanceAnterior - montoPagado;
+                const nuevasCuotasPagadas = (data.cuotas_pagadas || 0) + 1;
 
-
-
-
-               
                 const docRef = await addDoc(collection(db, "pagos"), {
-
-
-
-                   
-    id_prestamo: docSnap.id,
-    id_empresa: idEmpresa,
-
-    cliente_nombre: data.cliente_nombre,
-
-    monto_prestado: data.monto,
-    cuota: data.cuota,
-
-    monto_pagado: montoPagado,
-
-    cuotas: data.cuotas,
-    cuotas_pagadas: (data.cuotas_pagadas || 0) + 1,
-
-    balance_anterior: data.total,
-    balance_nuevo: nuevoBalance,
-
-    fecha: new Date().toISOString(),
-    tipo: "diario"
-});
-          console.log("Voy a actualizar cuotas...");      
+                    id_prestamo: docSnap.id,
+                    id_empresa: idEmpresa,
+                    cliente_nombre: data.cliente_nombre,
+                    monto_prestado: data.monto,
+                    cuota: data.cuota,
+                    monto_pagado: montoPagado,
+                    cuotas: data.cuotas,
+                    cuotas_pagadas: nuevasCuotasPagadas,
+                    balance_anterior: data.total,
+                    balance_nuevo: nuevoBalance,
+                    fecha: new Date().toISOString(),
+                    tipo: "diario"
+                });
 
                 await updateDoc(doc(db, "prestamos", docSnap.id), {
                     pagado_hoy: true,
-                    total: nuevoBalance
-
-                  
+                    total: nuevoBalance,
+                    cuotas_pagadas: nuevasCuotasPagadas // ¡Aquí estaba el error!
                 });
-                   console.log("Cuotas actualizadas.");
-               
+                
                 window.open("recibo_pago.html?id=" + docRef.id, "_blank");
             });
             lista.appendChild(div);
