@@ -88,9 +88,6 @@
                 const btn = e.target;
                 const montoPagado = parseFloat(div.querySelector(".input-pago").value) || 0;
                 const balanceAnterior = parseFloat(data.total) || 0;
-// En tu addEventListener del botón:
-const urlRecibo = `recibo_pago.html?cliente=${encodeURIComponent(data.cliente_nombre)}&monto_prestado=${data.monto}&monto_pagado=${montoPagado}&cuotas_pagadas=${nuevasCuotasPagadas}&balance_nuevo=${nuevoBalance}`;
-window.open(urlRecibo, "_blank", "width=300,height=500");
                 
                 if (balanceAnterior <= 0) {
                     alert("¡Este préstamo ya está saldado!");
@@ -105,15 +102,21 @@ window.open(urlRecibo, "_blank", "width=300,height=500");
                     if (nuevoBalance < 0) nuevoBalance = 0; 
                     const nuevasCuotasPagadas = (parseInt(data.cuotas_pagadas) || 0) + 1;
 
-                    await addDoc(collection(db, "pagos"), {
-                        id_prestamo: docSnap.id,
-                        id_empresa: idEmpresa,
-                        cliente_nombre: data.cliente_nombre,
-                        monto_pagado: montoPagado,
-                        cuotas_pagadas: nuevasCuotasPagadas,
-                        balance_nuevo: nuevoBalance,
-                        fecha: new Date().toISOString()
-                    });
+                   // ... dentro de tu función asíncrona de registro ...
+
+// 1. Aquí capturas el resultado del addDoc en una variable
+const docRef = await addDoc(collection(db, "pagos"), {
+    id_prestamo: docSnap.id,
+    id_empresa: idEmpresa,
+    cliente_nombre: data.cliente_nombre,
+    monto_pagado: montoPagado,
+    cuotas_pagadas: nuevasCuotasPagadas,
+    balance_nuevo: nuevoBalance,
+    fecha: new Date().toISOString()
+});
+
+// 2. Aquí usas docRef.id (el ID del nuevo recibo) para abrir la ventana
+window.open("recibo_pago.html?id=" + docRef.id, "_blank");
 
                     await updateDoc(doc(db, "prestamos", docSnap.id), {
                         pagado_hoy: true,
