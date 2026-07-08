@@ -22,7 +22,7 @@
 <body>
 <div class="ticket">
     <div class="center">
-        <h2>PRESTACÓM</h2>
+        <h2>PRESA-FACIL</h2>
         <p class="info">Comprobante de Pago</p>
     </div>
     <div class="line"></div>
@@ -67,9 +67,12 @@ document.getElementById("contenido").innerHTML = `
 
     <div class="line"></div>
 
-    <div class="info"><b>Monto Abonado:</b> RD$ ${parseFloat(data.monto_pagado).toFixed(2)}</div>
+    <div class="info"><b>Monto Pagado:</b> RD$ ${parseFloat(data.monto_pagado).toFixed(2)}</div>
+    <div class="info"><b>Cuotas a Pagar:</b> ${data.cuotas}</div>
     <div class="info"><b>Cuotas Pagadas:</b> ${data.cuotas_pagadas}</div>
-    <div class="info"><b>Balance Restante:</b> RD$ ${parseFloat(data.balance_nuevo).toFixed(2)}</div>
+     <div class="info"><b>Modalidad del Prestamo:</b> ${data.modalidad}</div>
+    
+    <div class="info"><b>Balance Pendiente:</b> RD$ ${parseFloat(data.balance_nuevo).toFixed(2)}</div>
 `;
 
 
