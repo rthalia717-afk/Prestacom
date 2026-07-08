@@ -2,88 +2,50 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Imprimir Ticket</title>
     <style>
-        body { font-family: 'Courier New', monospace; width: 80mm; margin: 0 auto; padding: 8px; font-size: 14px; color: #000; font-weight: 700; }
-        .ticket-header { text-align: center; border-bottom: 3px solid #000; margin-bottom: 12px; padding-bottom: 6px; }
-        .ticket-header h2 { font-size: 20px; margin: 0; font-weight: 900; text-transform: uppercase; }
-        .ticket-body { margin-bottom: 10px; }
-        .row { display: flex; justify-content: space-between; margin-bottom: 5px; }
-        .row span:first-child { font-weight: 900; }
-        
-        .total { background-color: #000; color: #fff; margin-top: 15px; padding: 8px; font-weight: 900; font-size: 18px; text-align: center; border-radius: 4px; display: flex; justify-content: space-between; }
-        .total span { color: #fff !important; }
-
-        .seccion-firma { margin-top: 25px; margin-bottom: 15px; }
-        .linea-firma { border-bottom: 2px solid #000; width: 100%; display: inline-block; margin-bottom: 3px; }
-        .etiqueta-firma { font-size: 12px; font-weight: 900; text-transform: uppercase; display: block; }
-
-        .footer { text-align: center; font-size: 12px; margin-top: 20px; border-top: 2px dashed #000; padding-top: 10px; }
-        
-        @media print {
-            body { margin: 0; padding: 0; }
-            .total { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        }
+        body { width: 58mm; font-family: 'Courier New', monospace; font-size: 12px; margin: 0; padding: 5px; }
+        .center { text-align: center; }
+        .line { border-bottom: 1px dashed #000; margin: 5px 0; }
+        .data { display: flex; justify-content: space-between; }
+        .monto { font-size: 16px; font-weight: bold; margin: 10px 0; }
     </style>
 </head>
 <body>
-
-    <div class="ticket-header">
-        <h2 id="empresa-nombre">PRESTACOM</h2>
-        <p>RECIBO DE PAGO</p>
+    <div class="center">
+        <h2>PRESA-FACIL</h2>
+        <p>Tel: **********</p>
+        <div class="line"></div>
     </div>
-
-    <div class="ticket-body">
-        <div class="row"><span>FECHA:</span> <span id="t-fecha">---</span></div>
-        <div class="row"><span>CLIENTE:</span> <span id="t-cliente">---</span></div>
-        <hr style="border: 0; border-top: 1px dashed #000; margin: 8px 0;">
-        <div class="row"><span>PAGO N°:</span> <span id="t-pago-num">---</span></div>
-        <div class="row"><span>PENDIENTES:</span> <span id="t-restantes">---</span></div>
-        
-        <div class="total">
-            <span>TOTAL PAGADO:</span> 
-            <span>RD$ <span id="t-monto">0.00</span></span>
-        </div>
-    </div>
-
-    <div class="seccion-firma">
-        <div style="margin-bottom: 20px;"><span class="linea-firma"></span><span class="etiqueta-firma">Firma Cliente</span></div>
-    </div>
-
-    <div class="footer">
-        <p>¡Gracias por su preferencia!</p>
-        <p>Recibido por: <span id="t-cobrador">---</span></p>
-    </div>
+    
+    <p id="fecha"></p>
+    <p>Cliente: <span id="cliente"></span></p>
+    <div class="line"></div>
+    
+    <div class="data"><p>Monto Prestado:</p><p>RD$ <span id="prestado"></span></p></div>
+    <div class="data"><p>Cuota Pagada:</p><p>RD$ <span id="pagado"></span></p></div>
+    <div class="data"><p>Cuotas Pgd:</p><p><span id="cuotas"></span></p></div>
+    <div class="data"><p>Balance:</p><p>RD$ <span id="balance"></span></p></div>
+    
+    <div class="line"></div>
+    <p class="center">¡Gracias por su pago!</p>
+    <p class="center">--------------------</p>
 
     <script>
-       <script>
-    window.onload = function() {
-        // 1. Recuperar los datos desde localStorage
-        const ticketData = JSON.parse(localStorage.getItem('ultimo_ticket'));
-        
-        if (ticketData) {
-            // 2. Llenar los campos en el HTML
-            document.getElementById('t-fecha').innerText = ticketData.fecha;
-            document.getElementById('t-cliente').innerText = ticketData.cliente.toUpperCase();
-            document.getElementById('t-pago-num').innerText = ticketData.cuota_num;
-            document.getElementById('t-restantes').innerText = ticketData.cuotas_restantes;
-            document.getElementById('t-monto').innerText = parseFloat(ticketData.monto_pagado).toLocaleString('es-DO', {minimumFractionDigits: 2});
-            
-            // 3. Ejecutar impresión y redirección
-            setTimeout(() => {
-                window.print();
-                // Regresar a la pantalla de cobros después de imprimir
-                setTimeout(() => {
-                    window.close(); // Cierra la ventana del recibo
-                }, 1000);
-            }, 500);
-        } else {
-            alert("No hay datos de pago para mostrar.");
-            window.close();
-        }
-    };
-</script>
+        // Obtener datos de la URL
+        const params = new URLSearchParams(window.location.search);
+        document.getElementById('fecha').innerText = "Fecha: " + new Date().toLocaleString();
+        document.getElementById('cliente').innerText = params.get('cliente') || "N/A";
+        document.getElementById('prestado').innerText = params.get('monto_prestado') || "0";
+        document.getElementById('pagado').innerText = params.get('monto_pagado') || "0";
+        document.getElementById('cuotas').innerText = params.get('cuotas_pagadas') || "0";
+        document.getElementById('balance').innerText = params.get('balance_nuevo') || "0";
+
+        // Imprimir automáticamente
+        window.onload = () => {
+            window.print();
+            // Opcional: cerrar ventana tras imprimir
+            // setTimeout(() => window.close(), 1000);
+        };
     </script>
 </body>
 </html>
