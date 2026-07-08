@@ -86,33 +86,47 @@
             `;
 
             div.querySelector("button").addEventListener("click", async () => {
-                const balanceAnterior = Number(data.total || 0);
-                const montoPagado = Number(div.querySelector(".input-pago").value);
-                const nuevoBalance = balanceAnterior - montoPagado;
-                const nuevasCuotasPagadas = (data.cuotas_pagadas || 0) + 1;
+    // 1. Evitamos el registro si ya se terminó de pagar
+    if (Number(data.total) <= 0) {
+        alert("¡Este préstamo ya está saldado!");
+        return; 
+    }
 
-                const docRef = await addDoc(collection(db, "pagos"), {
-                    id_prestamo: docSnap.id,
-                    id_empresa: idEmpresa,
-                    cliente_nombre: data.cliente_nombre,
-                    monto_prestado: data.monto,
-                    cuota: data.cuota,
-                    monto_pagado: montoPagado,
-                    cuotas: data.cuotas,
-                    cuotas_pagadas: nuevasCuotasPagadas,
-                    balance_anterior: data.total,
-                    balance_nuevo: nuevoBalance,
-                    fecha: new Date().toISOString(),
-                    tipo: "diario"
-                });
+    const balanceAnterior = Number(data.total || 0);
+    const montoPagado = Number(div.querySelector(".input-pago").value);
+    
+    // 2. Calculamos el nuevo balance y lo ajustamos si llega a cero
+    let nuevoBalance = balanceAnterior - montoPagado;
+    if (nuevoBalance < 0) nuevoBalance = 0; 
 
-                await updateDoc(doc(db, "prestamos", docSnap.id), {
-                    pagado_hoy: true,
-                    total: nuevoBalance,
-                    cuotas_pagadas: nuevasCuotasPagadas // ¡Aquí estaba el error!
-                });
-                
-                window.open("recibo_pago.html?id=" + docRef.id, "_blank");
+    const nuevasCuotasPagadas = (data.cuotas_pagadas || 0) + 1;
+
+    // 3. Registramos el pago
+    const docRef = await addDoc(collection(db, "pagos"), {
+        id_prestamo: docSnap.id,
+        id_empresa: idEmpresa,
+        cliente_nombre: data.cliente_nombre,
+        monto_prestado: data.monto,
+        cuota: data.cuota,
+        monto_pagado: montoPagado,
+        cuotas: data.cuotas,
+        cuotas_pagadas: nuevasCuotasPagadas,
+        balance_anterior: data.total,
+        balance_nuevo: nuevoBalance,
+        fecha: new Date().toISOString(),
+        tipo: "diario"
+    });
+
+    // 4. Actualizamos el préstamo (ahora también marcamos estado 'finalizado' si el balance es 0)
+    await updateDoc(doc(db, "prestamos", docSnap.id), {
+        pagado_hoy: true,
+        total: nuevoBalance,
+        cuotas_pagadas: nuevasCuotasPagadas,
+        estado: (nuevoBalance === 0) ? "finalizado" : "activo"
+    });
+    
+    window.open("recibo_pago.html?id=" + docRef.id, "_blank");
+});
             });
             lista.appendChild(div);
         });
