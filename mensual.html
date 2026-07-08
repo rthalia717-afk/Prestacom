@@ -1,34 +1,35 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PRESA-FACIL - Cobros Mensuales</title>
-<style>
-    * { margin:0; padding:0; box-sizing:border-box; font-family:Arial; }
-    body { background:#f1f5f9; display:flex; justify-content:center; }
-    .container { width:100%; max-width:480px; min-height:100vh; background:#fff; }
-    header { background:#1e293b; color:#fff; padding:15px; display:flex; align-items:center; gap:10px; position:sticky; top:0; }
-    header a { color:#fff; text-decoration:none; font-size:20px; }
-    h1 { font-size:18px; }
-    .list { padding:15px; display:flex; flex-direction:column; gap:10px; }
-    .card { background:#f8fafc; border:1px solid #e5e7eb; border-radius:10px; padding:15px; }
-    .top { display:flex; justify-content:space-between; margin-bottom:8px; }
-    .name { font-weight:bold; font-size:15px; color:#1e293b; }
-    .status { font-size:12px; padding:4px 10px; border-radius:20px; background:#facc15; font-weight:bold; }
-    .status.paid { background:#22c55e; color:#fff; }
-    .info { font-size:14px; color:#475569; margin-bottom:12px; line-height: 1.6; }
-    .input-pago { width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:8px; font-size:16px; margin-bottom:10px; text-align:center; }
-    button { width:100%; padding:12px; border:none; border-radius:8px; background:#1e293b; color:#fff; font-weight:bold; cursor:pointer; }
-    .btn-extra { background:#ff6600; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRESA-FACIL - Cobros Mensual</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; font-family:Arial, sans-serif; }
+        body { background:#f1f5f9; display:flex; justify-content:center; }
+        .container { width:100%; max-width:480px; min-height:100vh; background:#fff; }
+        header { background:#1e293b; color:#fff; padding:15px; display:flex; align-items:center; gap:10px; position:sticky; top:0; z-index:100; }
+        header a { color:#fff; text-decoration:none; font-size:20px; }
+        h1 { font-size:18px; }
+        .list { padding:15px; display:flex; flex-direction:column; gap:15px; }
+        .card { background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:16px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .top { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+        .name { font-weight:bold; font-size:16px; color:#1e293b; }
+        .status { font-size:11px; padding:4px 12px; border-radius:20px; background:#e2e8f0; color:#64748b; font-weight:bold; text-transform:uppercase; }
+        .status.paid { background:#22c55e; color:#fff; }
+        .info { font-size:14px; color:#475569; margin-bottom:15px; line-height: 1.6; }
+        .input-pago { width:100%; padding:12px; border:1px solid #cbd5e1; border-radius:8px; font-size:16px; margin-bottom:10px; text-align:center; }
+        button { width:100%; padding:14px; border:none; border-radius:8px; background:#1e293b; color:#fff; font-weight:bold; cursor:pointer; transition: background 0.2s; }
+        button:disabled { background:#94a3b8; cursor:not-allowed; }
+        .btn-extra { background:#ff6600; }
+    </style>
 </head>
 
 <body>
 <div class="container">
     <header>
         <a href="index.html">⬅</a>
-        <h1>Cobros Mensuales</h1>
+        <h1>Cobros Mensual</h1>
     </header>
     <div class="list" id="lista"></div>
 </div>
@@ -60,6 +61,7 @@
     onSnapshot(q, (snapshot) => {
         const lista = document.getElementById("lista");
         lista.innerHTML = "";
+        
         snapshot.forEach((docSnap) => {
             const data = docSnap.data();
             const div = document.createElement("div");
@@ -71,68 +73,58 @@
                     <div class="status ${data.pagado_hoy ? 'paid' : ''}">
                         ${data.pagado_hoy ? "Pagado Hoy" : "Pendiente"}
                     </div>
-             
-                
-                   <div class="info">
-    Monto Préstamo: RD$ ${data.monto || 0} <br>
-    Cuota: RD$ ${data.cuota || 0} <br>
-    Balance Pendiente: RD$ ${data.total || 0} <br>
-    Cuotas Pagadas: ${data.cuotas_pagadas || 0} de ${data.cuotas || 0} <br>
-    Cuotas Restantes: ${(data.cuotas || 0) - (data.cuotas_pagadas || 0)}
-                
                 </div>
-
-                 </div>
+                <div class="info">
+                    Balance Pendiente: <strong>RD$ ${Number(data.total || 0).toLocaleString()}</strong><br>
+                    Cuotas: ${data.cuotas_pagadas || 0} de ${data.cuotas || 0}
+                </div>
                 <input type="number" value="${data.cuota || 0}" class="input-pago">
                 <button class="${data.pagado_hoy ? 'btn-extra' : ''}">
                     ${data.pagado_hoy ? "Registrar Otro Pago" : "Marcar Pago"}
                 </button>
             `;
 
-            div.querySelector("button").addEventListener("click", async () => {
-               const balanceAnterior = Number(data.total || 0);
-               const montoPagado = Number(div.querySelector(".input-pago").value);
-               const nuevoBalance = balanceAnterior - montoPagado;
+            div.querySelector("button").addEventListener("click", async (e) => {
+                const btn = e.target;
+                const montoPagado = parseFloat(div.querySelector(".input-pago").value) || 0;
+                const balanceAnterior = parseFloat(data.total) || 0;
+                
+                if (balanceAnterior <= 0) {
+                    alert("¡Este préstamo ya está saldado!");
+                    return; 
+                }
 
+                btn.disabled = true;
+                btn.innerText = "Procesando...";
 
+                try {
+                    let nuevoBalance = balanceAnterior - montoPagado;
+                    if (nuevoBalance < 0) nuevoBalance = 0; 
+                    const nuevasCuotasPagadas = (parseInt(data.cuotas_pagadas) || 0) + 1;
 
+                    await addDoc(collection(db, "pagos"), {
+                        id_prestamo: docSnap.id,
+                        id_empresa: idEmpresa,
+                        cliente_nombre: data.cliente_nombre,
+                        monto_pagado: montoPagado,
+                        cuotas_pagadas: nuevasCuotasPagadas,
+                        balance_nuevo: nuevoBalance,
+                        fecha: new Date().toISOString()
+                    });
 
-               
-                const docRef = await addDoc(collection(db, "pagos"), {
+                    await updateDoc(doc(db, "prestamos", docSnap.id), {
+                        pagado_hoy: true,
+                        total: nuevoBalance,
+                        cuotas_pagadas: nuevasCuotasPagadas,
+                        estado: (nuevoBalance <= 0) ? "finalizado" : "activo"
+                    });
 
-
-
-                   
-    id_prestamo: docSnap.id,
-    id_empresa: idEmpresa,
-
-    cliente_nombre: data.cliente_nombre,
-
-    monto_prestado: data.monto,
-    cuota: data.cuota,
-
-    monto_pagado: montoPagado,
-
-    cuotas: data.cuotas,
-    cuotas_pagadas: (data.cuotas_pagadas || 0) + 1,
-
-    balance_anterior: data.total,
-    balance_nuevo: nuevoBalance,
-
-    fecha: new Date().toISOString(),
-    tipo: "mensual"
-});
-          console.log("Voy a actualizar cuotas...");      
-
-                await updateDoc(doc(db, "prestamos", docSnap.id), {
-                    pagado_hoy: true,
-                    total: nuevoBalance
-
-                  
-                });
-                   console.log("Cuotas actualizadas.");
-               
-                window.open("recibo_pago.html?id=" + docRef.id, "_blank");
+                    window.open("recibo_pago.html?id=" + docSnap.id, "_blank");
+                } catch (err) {
+                    alert("Error al registrar pago");
+                    btn.disabled = false;
+                    btn.innerText = "Marcar Pago";
+                }
             });
             lista.appendChild(div);
         });
