@@ -92,9 +92,19 @@
         if (!dataGlobal) return alert("Esperando datos...");
         
         try {
-            const device = await navigator.bluetooth.requestDevice({
-                filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }]
-            });
+            //const device = await navigator.bluetooth.requestDevice({
+              // filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }]
+
+
+// Cambia esto en la función imprimirBluetooth:
+const device = await navigator.bluetooth.requestDevice({
+    acceptAllDevices: true, // Esto mostrará TODAS las impresoras cercanas
+    optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb'] // UUID común de soporte
+});
+
+
+             
+    
             const server = await device.gatt.connect();
             const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
             const characteristic = await service.getCharacteristic('00002ae1-0000-1000-8000-00805f9b34fb');
