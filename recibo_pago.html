@@ -51,6 +51,11 @@
     const id_pago = urlParams.get("id");
 
     async function cargarRecibo() {
+        if (!id_pago) {
+            document.getElementById("contenido").innerHTML = "Error: ID no encontrado";
+            return;
+        }
+
         const snap = await getDoc(doc(db, "pagos", id_pago));
         if (!snap.exists()) {
             document.getElementById("contenido").innerHTML = "Error: Recibo no encontrado";
@@ -59,41 +64,29 @@
 
         const data = snap.data();
 
-       
+        const total = parseInt(data.cuotas_totales) || 0;
+        const pagadas = parseInt(data.cuotas_pagadas) || 0;
+        const faltantes = total - pagadas;
 
-// ... dentro de tu bloque donde construyes el innerHTML ...
+        document.getElementById("contenido").innerHTML = `
+            <div class="info"><b>Cliente:</b> ${data.cliente_nombre}</div>
+            <div class="info"><b>Fecha:</b> ${new Date(data.fecha).toLocaleString()}</div>
+            <div class="line"></div>
+            <div class="info"><b>Monto Pagado:</b> RD$ ${parseFloat(data.monto_pagado).toFixed(2)}</div>
+            <div class="info"><b>Cuotas:</b> ${pagadas} de ${total}</div>
+            <div class="info"><b>Cuotas Faltantes:</b> ${faltantes >= 0 ? faltantes : 0}</div>
+            <div class="info"><b>Modalidad:</b> ${data.modalidad || "N/A"}</div>
+            <div class="info"><b>Balance Restante:</b> RD$ ${parseFloat(data.balance_nuevo).toFixed(2)}</div>
+        `;
 
-// Calculamos las cuotas faltantes solo si existen los datos
-const total = parseInt(data.cuotas_totales) || 0;
-const pagadas = parseInt(data.cuotas_pagadas) || 0;
-const faltantes = total - pagadas;
-
-document.getElementById("contenido").innerHTML = `
-    <div class="info"><b>Cliente:</b> ${data.cliente_nombre}</div>
-    <div class="info"><b>Fecha:</b> ${new Date(data.fecha).toLocaleString()}</div>
-
-    <div class="line"></div>
-
-    <div class="info"><b>Monto Pagado:</b> RD$ ${parseFloat(data.monto_pagado).toFixed(2)}</div>
-    <div class="info"><b>Cuotas:</b> ${pagadas} de ${total}</div>
-    <div class="info"><b>Cuotas Faltantes:</b> ${faltantes >= 0 ? faltantes : 0}</div>
-    <div class="info"><b>Modalidad:</b> ${data.modalidad || "N/A"}</div>
-    <div class="info"><b>Balance Restante:</b> RD$ ${parseFloat(data.balance_nuevo).toFixed(2)}</div>
-
-   
-`;
-
-
-       
-
-        setTimeout(() => window.print(), 800);
+        // Impresión y cierre automático
+        setTimeout(() => {
+            window.print();
+            setTimeout(() => window.close(), 1000);
+        }, 800);
     }
 
     cargarRecibo();
-    
-
-    
-};
-  
+</script>
 </body>
 </html>
