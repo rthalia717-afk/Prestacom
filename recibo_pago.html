@@ -1,52 +1,97 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Recibo</title>
-    <style>
-        body { font-family: Arial, sans-serif; font-size: 14px; width: 58mm; padding: 0; margin: 0; }
-        .ticket { width: 100%; }
-        .center { text-align: center; }
-        .line { border-bottom: 1px dashed #000; margin: 5px 0; }
-        @media print {
-            body { width: 58mm; }
-        }
-    </style>
-</head>
-<body>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recibo de Pago - Prestacóm</title>
 
-<div class="ticket" id="contenido">
-    Cargando...
+<style>
+    /* Estilos para visualización en pantalla */
+    body { font-family: Arial, sans-serif; background: #f1f5f9; margin: 0; padding: 0; display: flex; justify-content: center; }
+    .ticket { width: 100%; max-width: 320px; background: white; padding: 15px; box-sizing: border-box; }
+    .center { text-align: center; }
+    h2 { font-size: 18px; margin: 5px 0; }
+    .info { font-size: 14px; margin: 4px 0; }
+    .line { border-top: 1px dashed #000; margin: 8px 0; }
+    .print-btn { width: 100%; padding: 12px; margin-top: 15px; background: #ff6600; border: none; color: white; font-weight: bold; cursor: pointer; }
+
+    /* Estilos exclusivos para la impresora (58mm) */
+    @media print {
+        body { background: white; }
+        .ticket { width: 58mm; padding: 2px; }
+        .print-btn { display: none; }
+        @page { size: 58mm auto; margin: 0; }
+    }
+</style>
+</head>
+
+<body>
+<div class="ticket">
+    <div class="center">
+        <h2>PRESTACÓM</h2>
+        <p class="info">Comprobante de Pago</p>
+    </div>
+    <div class="line"></div>
+    <div id="contenido">Cargando datos...</div>
+    <div class="line"></div>
+    <button class="print-btn" onclick="window.print()">🖨 Imprimir Recibo</button>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-    // ... (Tu objeto firebaseConfig aquí) ...
+    const firebaseConfig = {
+        apiKey: "AIzaSyDbmVXLBIsBzk-wE60yVtchZ8WI4NWnAW4",
+        authDomain: "prestacom-sistema-a2830.firebaseapp.com",
+        projectId: "prestacom-sistema-a2830",
+        storageBucket: "prestacom-sistema-a2830.appspot.com",
+        messagingSenderId: "500739174929",
+        appId: "1:500739174929:web:1694f07bf65714606f77b0"
+    };
 
-    const db = getFirestore(initializeApp(firebaseConfig));
-    const id_pago = new URLSearchParams(window.location.search).get("id");
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-    async function cargar() {
-        const snap = await getDoc(doc(db, "pagos", id_pago));
-        const data = snap.data();
-        
-        document.getElementById("contenido").innerHTML = `
-            <div class="center"><h2>PRESA-FACIL</h2></div>
-            <div class="line"></div>
-            <div><b>Cliente:</b> ${data.cliente_nombre}</div>
-            <div><b>Monto:</b> RD$ ${data.monto_pagado}</div>
-            <div><b>Balance:</b> RD$ ${data.balance_nuevo}</div>
-            <div class="line"></div>
-        `;
+    const urlParams = new URLSearchParams(window.location.search);
+    const id_pago = urlParams.get("id");
 
-        // Imprimir automáticamente
-        setTimeout(() => {
-            window.print();
-        }, 1000);
+    async function cargarRecibo() {
+        if (!id_pago) {
+            document.getElementById("contenido").innerHTML = "Error: ID no detectado.";
+            return;
+        }
+
+        try {
+            const snap = await getDoc(doc(db, "pagos", id_pago));
+            if (!snap.exists()) {
+                document.getElementById("contenido").innerHTML = "Error: Recibo no encontrado.";
+                return;
+            }
+
+            const data = snap.data();
+            document.getElementById("contenido").innerHTML = `
+                <div class="info"><b>Cliente:</b> ${data.cliente_nombre}</div>
+                <div class="info"><b>Fecha:</b> ${new Date(data.fecha).toLocaleString()}</div>
+                <div class="line"></div>
+                <div class="info"><b>Monto Abonado:</b> RD$ ${parseFloat(data.monto_pagado).toFixed(2)}</div>
+                <div class="info"><b>Cuotas Pagadas:</b> ${data.cuotas_pagadas}</div>
+                <div class="info"><b>Balance Restante:</b> RD$ ${parseFloat(data.balance_nuevo).toFixed(2)}</div>
+            `;
+
+            // Impresión automática tras 1 segundo
+            setTimeout(() => {
+                window.print();
+                // Opcional: Cerrar ventana tras imprimir (comenta la siguiente línea si prefieres que se quede abierta)
+                setTimeout(() => window.close(), 1000);
+            }, 1000);
+
+        } catch (error) {
+            document.getElementById("contenido").innerHTML = "Error al cargar: " + error.message;
+        }
     }
-    cargar();
+
+    cargarRecibo();
 </script>
 </body>
 </html>
