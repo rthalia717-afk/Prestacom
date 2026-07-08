@@ -16,25 +16,25 @@
     .monto-final { font-size: 18px; font-weight: bold; text-align: center; margin-top: 10px; }
     .print-btn { width: 100%; padding: 12px; margin-top: 15px; background: #ff6600; border: none; color: white; font-weight: bold; cursor: pointer; }
     @media print { .print-btn { display: none; } body { background: white; } }
-    @media print {
-        @page {
-            margin: 0;
-            size: auto;
-        }
-        body { 
-            margin: 0; 
-            padding: 0; 
-            background: white; 
-        }
-        .ticket { 
-            width: 100%; 
-            border: none; 
-            margin: 0; 
-            padding: 5px; 
-            font-size: 12px; /* Ajuste para que quepa mejor en 58mm */
-        }
-        .print-btn { display: none; }
+   @media print {
+    /* Ocultar todo lo que no sea el ticket */
+    body * { visibility: hidden; }
+    .ticket, .ticket * { visibility: visible; }
+    
+    /* Posicionar el ticket arriba a la izquierda para que no se corte */
+    .ticket {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        margin: 0;
+        padding: 5px;
+        border: none;
     }
+    
+    /* Ocultar el botón de imprimir */
+    .print-btn { display: none; }
+}
 </style>
 </head>
 
