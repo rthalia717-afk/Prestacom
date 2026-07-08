@@ -94,19 +94,6 @@ document.getElementById("contenido").innerHTML = `
 
     
 };
-    </script>
-    window.onafterprint = () => {
-    window.close(); // Intenta cerrar la ventana abierta con window.open
-    // Si no se cierra (porque no fue abierta por JS), redirige:
-    window.location.href = "cobros.html"; 
-    setTimeout(() => {
-            window.print();
-            setTimeout(() => {
-                window.close();
-                // Si la ventana no se cerró, redirige al usuario a la página de cobros
-                window.location.href = "cobros.html"; 
-            }, 1000);
-        }, 800);
-</script>
+  
 </body>
 </html>
