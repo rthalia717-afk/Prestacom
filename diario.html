@@ -112,7 +112,9 @@ const docRef = await addDoc(collection(db, "pagos"), {
     monto_pagado: montoPagado,
     cuotas_pagadas: nuevasCuotasPagadas,
     balance_nuevo: nuevoBalance,
-    fecha: new Date().toISOString()
+    fecha: new Date().toISOString(),
+    cuotas_totales: data.cuotas, 
+    modalidad: data.modalidad
 });
 
 // 2. Aquí usas docRef.id (el ID del nuevo recibo) para abrir la ventana
