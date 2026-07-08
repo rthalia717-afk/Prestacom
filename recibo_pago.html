@@ -1,149 +1,52 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Recibo de Pago - Prestacóm</title>
-
-<style>
-    body { margin: 0; padding: 0; font-family: Arial; }
-    .ticket { width: 100%; max-width: 320px; padding: 5px; }
-    .center { text-align: center; }
-    h2 { font-size: 16px; margin: 5px 0; }
-    .info { font-size: 14px; margin: 4px 0; }
-    .line { border-top: 1px dashed #000; margin: 8px 0; }
-    .print-btn { width: 100%; padding: 10px; background: #ff6600; border: none; color: white; cursor: pointer; }
-
-    @media print {
-        /* Oculta todo y muestra solo el ticket */
-        body * { visibility: hidden; }
-        .ticket, .ticket * { visibility: visible; }
-        .ticket { position: absolute; left: 0; top: 0; width: 100%; padding: 0; }
-        .print-btn { display: none; }
-        @page { size: 58mm auto; margin: 0; }
-    }
-</style>
-
-<script type="module">
-    // ... (Tu código de Firebase que ya tienes) ...
-    // Asegúrate de que el código de impresión esté así:
-    setTimeout(() => {
-        window.print();
-        setTimeout(() => { window.close(); window.location.href = "cobros.html"; }, 1000);
-    }, 1000);
-</script>
+    <meta charset="UTF-8">
+    <title>Recibo</title>
+    <style>
+        body { font-family: Arial, sans-serif; font-size: 14px; width: 58mm; padding: 0; margin: 0; }
+        .ticket { width: 100%; }
+        .center { text-align: center; }
+        .line { border-bottom: 1px dashed #000; margin: 5px 0; }
+        @media print {
+            body { width: 58mm; }
+        }
+    </style>
 </head>
-
 <body>
-<div class="ticket">
-    <div class="center">
-        <h2>PRESA-FACIL</h2>
-        <p class="info">Comprobante de Pago</p>
-    </div>
-    <div class="line"></div>
-    <div id="contenido">Cargando datos...</div>
-    <div class="line"></div>
-    
-    <button class="print-btn btn-web" onclick="window.print()">🖨 Imprimir Recibo</button>
-    <button id="btnBluetooth" class="print-btn btn-bt">🖨 Imprimir Bluetooth</button>
+
+<div class="ticket" id="contenido">
+    Cargando...
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyDbmVXLBIsBzk-wE60yVtchZ8WI4NWnAW4",
-        authDomain: "prestacom-sistema-a2830.firebaseapp.com",
-        projectId: "prestacom-sistema-a2830",
-        storageBucket: "prestacom-sistema-a2830.appspot.com",
-        messagingSenderId: "500739174929",
-        appId: "1:500739174929:web:1694f07bf65714606f77b0"
-    };
+    // ... (Tu objeto firebaseConfig aquí) ...
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    
-    // Variable global para guardar los datos y usarlos en Bluetooth
-    let dataGlobal = null;
+    const db = getFirestore(initializeApp(firebaseConfig));
+    const id_pago = new URLSearchParams(window.location.search).get("id");
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const id_pago = urlParams.get("id");
-
-    async function cargarRecibo() {
-        if (!id_pago) {
-            document.getElementById("contenido").innerHTML = "Error: ID no encontrado";
-            return;
-        }
-
+    async function cargar() {
         const snap = await getDoc(doc(db, "pagos", id_pago));
-        if (!snap.exists()) {
-            document.getElementById("contenido").innerHTML = "Error: Recibo no encontrado";
-            return;
-        }
-
-        dataGlobal = snap.data(); // Guardamos los datos aquí
-
-        const total = parseInt(dataGlobal.cuotas_totales) || 0;
-        const pagadas = parseInt(dataGlobal.cuotas_pagadas) || 0;
-        const faltantes = total - pagadas;
-
-        document.getElementById("contenido").innerHTML = `
-            <div class="info"><b>Cliente:</b> ${dataGlobal.cliente_nombre}</div>
-            <div class="info"><b>Fecha:</b> ${new Date(dataGlobal.fecha).toLocaleString()}</div>
-            <div class="line"></div>
-            <div class="info"><b>Monto Pagado:</b> RD$ ${parseFloat(dataGlobal.monto_pagado).toFixed(2)}</div>
-            <div class="info"><b>Cuotas:</b> ${pagadas} de ${total}</div>
-            <div class="info"><b>Cuotas Faltantes:</b> ${faltantes >= 0 ? faltantes : 0}</div>
-            <div class="info"><b>Modalidad:</b> ${dataGlobal.modalidad || "N/A"}</div>
-            <div class="info"><b>Balance Restante:</b> RD$ ${parseFloat(dataGlobal.balance_nuevo).toFixed(2)}</div>
-        `;
-    }
-
-    // Nueva función para Bluetooth
-    async function imprimirBluetooth() {
-        if (!dataGlobal) return alert("Esperando datos...");
+        const data = snap.data();
         
-        try {
-            //const device = await navigator.bluetooth.requestDevice({
-              // filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }]
+        document.getElementById("contenido").innerHTML = `
+            <div class="center"><h2>PRESA-FACIL</h2></div>
+            <div class="line"></div>
+            <div><b>Cliente:</b> ${data.cliente_nombre}</div>
+            <div><b>Monto:</b> RD$ ${data.monto_pagado}</div>
+            <div><b>Balance:</b> RD$ ${data.balance_nuevo}</div>
+            <div class="line"></div>
+        `;
 
-
-// Cambia esto en la función imprimirBluetooth:
-const device = await navigator.bluetooth.requestDevice({
-    acceptAllDevices: true, // Esto mostrará TODAS las impresoras cercanas
-    optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb'] // UUID común de soporte
-});
-
-
-             
-    
-            const server = await device.gatt.connect();
-            const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
-            const characteristic = await service.getCharacteristic('00002ae1-0000-1000-8000-00805f9b34fb');
-
-            const encoder = new TextEncoder();
-            const ticketText = `
-PRESA-FACIL
-Comprobante de Pago
-----------------
-Cliente: ${dataGlobal.cliente_nombre}
-Fecha: ${new Date(dataGlobal.fecha).toLocaleString()}
-----------------
-Monto Pagado: RD$ ${parseFloat(dataGlobal.monto_pagado).toFixed(2)}
-Cuotas: ${dataGlobal.cuotas_pagadas} de ${dataGlobal.cuotas_totales}
-Balance Restante: RD$ ${parseFloat(dataGlobal.balance_nuevo).toFixed(2)}
-----------------
-\n\n\n`;
-            await characteristic.writeValue(encoder.encode(ticketText));
-        } catch (err) {
-            console.error(err);
-            alert("No se pudo conectar a la impresora.");
-        }
+        // Imprimir automáticamente
+        setTimeout(() => {
+            window.print();
+        }, 1000);
     }
-
-    document.getElementById("btnBluetooth").addEventListener("click", imprimirBluetooth);
-    cargarRecibo();
+    cargar();
 </script>
 </body>
 </html>
