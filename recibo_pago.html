@@ -61,6 +61,13 @@
 
        
 
+// ... dentro de tu bloque donde construyes el innerHTML ...
+
+// Calculamos las cuotas faltantes solo si existen los datos
+const total = parseInt(data.cuotas_totales) || 0;
+const pagadas = parseInt(data.cuotas_pagadas) || 0;
+const faltantes = total - pagadas;
+
 document.getElementById("contenido").innerHTML = `
     <div class="info"><b>Cliente:</b> ${data.cliente_nombre}</div>
     <div class="info"><b>Fecha:</b> ${new Date(data.fecha).toLocaleString()}</div>
@@ -68,11 +75,17 @@ document.getElementById("contenido").innerHTML = `
     <div class="line"></div>
 
     <div class="info"><b>Monto Pagado:</b> RD$ ${parseFloat(data.monto_pagado).toFixed(2)}</div>
-    <div class="info"><b>Cuotas a Pagar:</b> ${data.cuotas}</div>
-    <div class="info"><b>Cuotas Pagadas:</b> ${data.cuotas_pagadas}</div>
-     <div class="info"><b>Modalidad del Prestamo:</b> ${data.modalidad}</div>
+    <div class="info"><b>Cuotas:</b> ${pagadas} de ${total}</div>
+    <div class="info"><b>Cuotas Faltantes:</b> ${faltantes >= 0 ? faltantes : 0}</div>
+    <div class="info"><b>Modalidad:</b> ${data.modalidad || "N/A"}</div>
+    <div class="info"><b>Balance Restante:</b> RD$ ${parseFloat(data.balance_nuevo).toFixed(2)}</div>
+
+
+
+
+
+
     
-    <div class="info"><b>Balance Pendiente:</b> RD$ ${parseFloat(data.balance_nuevo).toFixed(2)}</div>
 `;
 
 
@@ -83,5 +96,19 @@ document.getElementById("contenido").innerHTML = `
 
     cargarRecibo();
 </script>
+    window.onafterprint = () => {
+    window.close(); // Intenta cerrar la ventana abierta con window.open
+    // Si no se cierra (porque no fue abierta por JS), redirige:
+    window.location.href = "cobros.html"; 
+
+    setTimeout(() => {
+            window.print();
+            setTimeout(() => {
+                window.close();
+                // Si la ventana no se cerró, redirige al usuario a la página de cobros
+                window.location.href = "cobros.html"; 
+            }, 1000);
+        }, 800);
+};
 </body>
 </html>
