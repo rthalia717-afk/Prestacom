@@ -14,27 +14,10 @@
     .line { border-top: 1px dashed #ccc; margin: 10px 0; }
     .resumen { margin-top: 15px; border-top: 2px solid #000; padding-top: 10px; }
     .monto-final { font-size: 18px; font-weight: bold; text-align: center; margin-top: 10px; }
-    .print-btn { width: 100%; padding: 12px; margin-top: 15px; background: #ff6600; border: none; color: white; font-weight: bold; cursor: pointer; }
+    .print-btn { width: 100%; padding: 12px; margin-top: 15px; border: none; color: white; font-weight: bold; cursor: pointer; }
+    .btn-web { background: #ff6600; }
+    .btn-bt { background: #28a745; }
     @media print { .print-btn { display: none; } body { background: white; } }
-   @media print {
-    /* Ocultar todo lo que no sea el ticket */
-    body * { visibility: hidden; }
-    .ticket, .ticket * { visibility: visible; }
-    
-    /* Posicionar el ticket arriba a la izquierda para que no se corte */
-    .ticket {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-        margin: 0;
-        padding: 5px;
-        border: none;
-    }
-    
-    /* Ocultar el botón de imprimir */
-    .print-btn { display: none; }
-}
 </style>
 </head>
 
@@ -47,13 +30,14 @@
     <div class="line"></div>
     <div id="contenido">Cargando datos...</div>
     <div class="line"></div>
-    <button class="print-btn" onclick="window.print()">🖨 Imprimir Recibo</button>
+    
+    <button class="print-btn btn-web" onclick="window.print()">🖨 Imprimir Recibo</button>
+    <button id="btnBluetooth" class="print-btn btn-bt">🖨 Imprimir Bluetooth</button>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-    
 
     const firebaseConfig = {
         apiKey: "AIzaSyDbmVXLBIsBzk-wE60yVtchZ8WI4NWnAW4",
@@ -66,6 +50,9 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    
+    // Variable global para guardar los datos y usarlos en Bluetooth
+    let dataGlobal = null;
 
     const urlParams = new URLSearchParams(window.location.search);
     const id_pago = urlParams.get("id");
@@ -82,32 +69,58 @@
             return;
         }
 
-        const data = snap.data();
+        dataGlobal = snap.data(); // Guardamos los datos aquí
 
-        const total = parseInt(data.cuotas_totales) || 0;
-        const pagadas = parseInt(data.cuotas_pagadas) || 0;
+        const total = parseInt(dataGlobal.cuotas_totales) || 0;
+        const pagadas = parseInt(dataGlobal.cuotas_pagadas) || 0;
         const faltantes = total - pagadas;
 
         document.getElementById("contenido").innerHTML = `
-            <div class="info"><b>Cliente:</b> ${data.cliente_nombre}</div>
-            <div class="info"><b>Fecha:</b> ${new Date(data.fecha).toLocaleString()}</div>
+            <div class="info"><b>Cliente:</b> ${dataGlobal.cliente_nombre}</div>
+            <div class="info"><b>Fecha:</b> ${new Date(dataGlobal.fecha).toLocaleString()}</div>
             <div class="line"></div>
-            <div class="info"><b>Monto Pagado:</b> RD$ ${parseFloat(data.monto_pagado).toFixed(2)}</div>
+            <div class="info"><b>Monto Pagado:</b> RD$ ${parseFloat(dataGlobal.monto_pagado).toFixed(2)}</div>
             <div class="info"><b>Cuotas:</b> ${pagadas} de ${total}</div>
             <div class="info"><b>Cuotas Faltantes:</b> ${faltantes >= 0 ? faltantes : 0}</div>
-            <div class="info"><b>Modalidad:</b> ${data.modalidad || "N/A"}</div>
-            <div class="info"><b>Balance Restante:</b> RD$ ${parseFloat(data.balance_nuevo).toFixed(2)}</div>
+            <div class="info"><b>Modalidad:</b> ${dataGlobal.modalidad || "N/A"}</div>
+            <div class="info"><b>Balance Restante:</b> RD$ ${parseFloat(dataGlobal.balance_nuevo).toFixed(2)}</div>
         `;
-
-        // Impresión y cierre automático
-        
     }
 
+    // Nueva función para Bluetooth
+    async function imprimirBluetooth() {
+        if (!dataGlobal) return alert("Esperando datos...");
+        
+        try {
+            const device = await navigator.bluetooth.requestDevice({
+                filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }]
+            });
+            const server = await device.gatt.connect();
+            const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
+            const characteristic = await service.getCharacteristic('00002ae1-0000-1000-8000-00805f9b34fb');
+
+            const encoder = new TextEncoder();
+            const ticketText = `
+PRESA-FACIL
+Comprobante de Pago
+----------------
+Cliente: ${dataGlobal.cliente_nombre}
+Fecha: ${new Date(dataGlobal.fecha).toLocaleString()}
+----------------
+Monto Pagado: RD$ ${parseFloat(dataGlobal.monto_pagado).toFixed(2)}
+Cuotas: ${dataGlobal.cuotas_pagadas} de ${dataGlobal.cuotas_totales}
+Balance Restante: RD$ ${parseFloat(dataGlobal.balance_nuevo).toFixed(2)}
+----------------
+\n\n\n`;
+            await characteristic.writeValue(encoder.encode(ticketText));
+        } catch (err) {
+            console.error(err);
+            alert("No se pudo conectar a la impresora.");
+        }
+    }
+
+    document.getElementById("btnBluetooth").addEventListener("click", imprimirBluetooth);
     cargarRecibo();
-    setTimeout(() => {
-        window.print();
-        setTimeout(() => window.close(), 1000); 
-    }, 800);
 </script>
 </body>
 </html>
