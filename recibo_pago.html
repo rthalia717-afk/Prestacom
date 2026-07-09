@@ -19,42 +19,64 @@
         <h2 id="empresa-nombre">PRESTACOM 2.0</h2>
     </div>
 
-    <div class="section-title">DETALLES</div>
-    <div class="row"><span>Fecha:</span> <span id="lbl-fecha">---</span></div>
-    <div class="row"><span>Cliente:</span> <span id="lbl-cliente">---</span></div>
-    
-    <div class="section-title">ESTADO</div>
-    <div class="row"><span>Cuota #:</span> <span id="lbl-cuota">---</span></div>
-    <div class="row"><span>Faltantes:</span> <span id="lbl-restantes">---</span></div>
-    
-    <div class="total-box row">
-        <span>PAGADO:</span>
-        <span>RD$ <span id="lbl-monto">0.00</span></span>
+    <div id="contenido">
+        <div class="section-title">DETALLES</div>
+        <div class="row"><span>Fecha:</span> <span id="lbl-fecha">---</span></div>
+        <div class="row"><span>Cliente:</span> <span id="lbl-cliente">---</span></div>
+        
+        <div class="section-title">ESTADO</div>
+        <div class="row"><span>Cuota #:</span> <span id="lbl-cuota">---</span></div>
+        <div class="row"><span>Faltantes:</span> <span id="lbl-restantes">---</span></div>
+        
+        <div class="total-box row">
+            <span>PAGADO:</span>
+            <span>RD$ <span id="lbl-monto">0.00</span></span>
+        </div>
     </div>
 
-    <script>
-        const ticket = JSON.parse(localStorage.getItem('ultimo_ticket'));
-        
-        if (ticket) {
-            // Carga de datos
-            document.getElementById('lbl-cliente').innerText = ticket.cliente || "---";
-            document.getElementById('lbl-fecha').innerText = ticket.fecha || "---";
-            document.getElementById('lbl-cuota').innerText = ticket.cuota_num || "---";
-            document.getElementById('lbl-restantes').innerText = ticket.cuotas_restantes || "---";
-            
-            // Corrección de decimales
-            const monto = parseFloat(ticket.monto_pagado || 0);
-            document.getElementById('lbl-monto').innerText = monto.toFixed(2);
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-            // Impresión inmediata
+        const firebaseConfig = {
+            apiKey: "AIzaSyDbmVXLBIsBzk-wE60yVtchZ8WI4NWnAW4",
+            projectId: "prestacom-sistema-a2830",
+            appId: "1:500739174929:web:1694f07bf65714606f77b0"
+        };
+        const db = getFirestore(initializeApp(firebaseConfig));
+
+        // Función para renderizar y imprimir
+        function renderizar(data) {
+            document.getElementById('lbl-cliente').innerText = data.cliente || data.cliente_nombre || "---";
+            document.getElementById('lbl-fecha').innerText = data.fecha || "---";
+            document.getElementById('lbl-cuota').innerText = data.cuota_num || data.cuotas_pagadas || "---";
+            document.getElementById('lbl-restantes').innerText = data.cuotas_restantes || "---";
+            document.getElementById('lbl-monto').innerText = parseFloat(data.monto_pagado || 0).toFixed(2);
+
             setTimeout(() => {
                 window.print();
-                setTimeout(() => { window.history.back(); }, 1000);
-            }, 500);
-        } else {
-            alert("No hay datos de ticket.");
-            window.history.back();
+                setTimeout(() => window.history.back(), 1000);
+            }, 800);
         }
+
+        // Lógica de carga
+        async function cargarDatos() {
+            const ticketLocal = JSON.parse(localStorage.getItem('ultimo_ticket'));
+            const params = new URLSearchParams(window.location.search);
+            const id = params.get("id");
+
+            if (ticketLocal) {
+                renderizar(ticketLocal);
+            } else if (id) {
+                const snap = await getDoc(doc(db, "pagos", id));
+                if (snap.exists()) renderizar(snap.data());
+                else alert("Error: Ticket no encontrado en base de datos.");
+            } else {
+                alert("No hay datos para mostrar.");
+            }
+        }
+
+        cargarDatos();
     </script>
 </body>
 </html>
