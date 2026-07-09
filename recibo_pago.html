@@ -5,14 +5,53 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recibo de Pago - PRESTACOM</title>
     <style>
-        body { font-family: 'Courier New', Courier, monospace; width: 80mm; margin: 0; padding: 10px; font-size: 13px; color: #000; }
-        .header { text-align: center; border-bottom: 2px solid #000; margin-bottom: 10px; padding-bottom: 5px; }
-        .header h2 { font-size: 18px; margin: 0; text-transform: uppercase; }
-        .section-title { font-weight: bold; border-bottom: 1px solid #000; margin: 10px 0 5px 0; padding-bottom: 2px; }
-        .row { display: flex; justify-content: space-between; margin-bottom: 3px; }
-        .total-box { border-top: 2px solid #000; border-bottom: 2px solid #000; margin-top: 10px; padding: 5px 0; font-weight: bold; font-size: 16px; }
-        @media print { @page { size: 80mm auto; margin: 0; } body { padding: 0; } }
-    </style>
+    /* Estructura para 58mm */
+    body { 
+        font-family: 'Courier New', Courier, monospace; 
+        width: 56mm; /* Un poco menos de 58mm para evitar cortes en los bordes */
+        margin: 0; 
+        padding: 2px; 
+        font-size: 14px; /* Tamaño ideal para 58mm */
+        color: #000; 
+    }
+
+    /* Encabezado */
+    .header { text-align: center; border-bottom: 2px solid #000; margin-bottom: 5px; padding-bottom: 3px; }
+    .header h2 { font-size: 18px; margin: 0; text-transform: uppercase; }
+
+    /* Títulos de sección */
+    .section-title { 
+        font-weight: bold; 
+        font-size: 15px; 
+        border-bottom: 1px solid #000; 
+        margin: 8px 0 4px 0; 
+        padding-bottom: 1px; 
+    }
+
+    /* Filas de datos - mantenemos compacto para que no salte de línea */
+    .row { 
+        display: flex; 
+        justify-content: space-between; 
+        margin-bottom: 2px; 
+        font-size: 14px;
+    }
+
+    /* Caja del total - el monto debe resaltar */
+    .total-box { 
+        border-top: 2px solid #000; 
+        border-bottom: 2px solid #000; 
+        margin-top: 8px; 
+        padding: 5px 0; 
+        font-weight: bold; 
+        font-size: 17px; /* Grande pero sin desbordar los 58mm */
+    }
+
+    /* Configuración para la impresora térmica */
+    @media print { 
+        @page { size: 58mm auto; margin: 0; } 
+        body { padding: 0; } 
+    }
+</style>
 </head>
 <body>
 
