@@ -2,132 +2,59 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recibo de Pago - PRESTACOM</title>
+    <title>Recibo de Pago</title>
     <style>
-    /* Estructura para 58mm */
-    body { 
-        font-family: 'Courier New', Courier, monospace; 
-        width: 56mm; /* Un poco menos de 58mm para evitar cortes en los bordes */
-        margin: 0; 
-        padding: 2px; 
-        font-size: 14px; /* Tamaño ideal para 58mm */
-        color: #000; 
-    }
-
-    /* Encabezado */
-    .header { text-align: center; border-bottom: 2px solid #000; margin-bottom: 5px; padding-bottom: 3px; }
-    .header h2 { font-size: 18px; margin: 0; text-transform: uppercase; }
-
-    /* Títulos de sección */
-    .section-title { 
-        font-weight: bold; 
-        font-size: 15px; 
-        border-bottom: 1px solid #000; 
-        margin: 8px 0 4px 0; 
-        padding-bottom: 1px; 
-    }
-
-    /* Filas de datos - mantenemos compacto para que no salte de línea */
-    .row { 
-        display: flex; 
-        justify-content: space-between; 
-        margin-bottom: 2px; 
-        font-size: 14px;
-    }
-
-    /* Caja del total - el monto debe resaltar */
-    .total-box { 
-        border-top: 2px solid #000; 
-        border-bottom: 2px solid #000; 
-        margin-top: 8px; 
-        padding: 5px 0; 
-        font-weight: bold; 
-        font-size: 17px; /* Grande pero sin desbordar los 58mm */
-    }
-
-    /* Configuración para la impresora térmica */
-    @media print { 
-        @page { size: 58mm auto; margin: 0; } 
-        body { padding: 0; } 
-    }
-</style>
+        body { font-family: 'Courier New', Courier, monospace; width: 56mm; margin: 0; padding: 5px; font-size: 14px; font-weight: bold; color: #000; }
+        .header { text-align: center; border-bottom: 2px solid #000; margin-bottom: 10px; padding-bottom: 5px; }
+        .header h2 { font-size: 18px; margin: 0; text-transform: uppercase; }
+        .section-title { font-weight: bold; border-bottom: 1px solid #000; margin: 10px 0 5px 0; padding-bottom: 2px; }
+        .row { display: flex; justify-content: space-between; margin-bottom: 3px; font-weight: bold; }
+        .total-box { border-top: 2px solid #000; border-bottom: 2px solid #000; margin-top: 10px; padding: 5px 0; font-weight: bold; font-size: 17px; }
+        @media print { @page { size: 58mm auto; margin: 0; } body { padding: 0; } }
+    </style>
 </head>
 <body>
 
     <div class="header">
-        <h2>PRESTACOM</h2>
-        <p>Comprobante de Pago</p>
+        <h2 id="empresa-nombre">PRESTACOM 2.0</h2>
     </div>
 
-    <div id="contenido">
-        <div class="section-title">DETALLES</div>
-        <div class="row"><span>Fecha:</span> <span id="lbl-fecha">Cargando...</span></div>
-        <div class="row"><span>Cliente:</span> <span id="lbl-cliente">...</span></div>
-        
-        <div class="section-title">ESTADO</div>
-        <div class="row"><span>Cuota #:</span> <span id="lbl-cuota">...</span></div>
-        <div class="row"><span>Balance:</span> <span id="lbl-balance">...</span></div>
-        
-        <div class="total-box row">
-            <span>PAGADO:</span>
-            <span>RD$ <span id="lbl-monto">0.00</span></span>
-        </div>
+    <div class="section-title">DETALLES</div>
+    <div class="row"><span>Fecha:</span> <span id="lbl-fecha">---</span></div>
+    <div class="row"><span>Cliente:</span> <span id="lbl-cliente">---</span></div>
+    
+    <div class="section-title">ESTADO</div>
+    <div class="row"><span>Cuota #:</span> <span id="lbl-cuota">---</span></div>
+    <div class="row"><span>Faltantes:</span> <span id="lbl-restantes">---</span></div>
+    
+    <div class="total-box row">
+        <span>PAGADO:</span>
+        <span>RD$ <span id="lbl-monto">0.00</span></span>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyDbmVXLBIsBzk-wE60yVtchZ8WI4NWnAW4",
-            projectId: "prestacom-sistema-a2830",
-            appId: "1:500739174929:web:1694f07bf65714606f77b0"
-        };
+    <script>
+        const ticket = JSON.parse(localStorage.getItem('ultimo_ticket'));
         
-        const db = getFirestore(initializeApp(firebaseConfig));
-
-        async function init() {
-            const params = new URLSearchParams(window.location.search);
-            const id = params.get("id");
-
-            try {
-                // Si hay ID, buscamos en Firebase
-                if (id) {
-                    const snap = await getDoc(doc(db, "pagos", id));
-                    if (snap.exists()) {
-                        renderizar(snap.data());
-                    } else {
-                        throw new Error("Recibo no encontrado");
-                    }
-                } else {
-                    // Si no hay ID, probamos con localStorage (Plan B)
-                    const localData = JSON.parse(localStorage.getItem('ultimo_ticket'));
-                    if (localData) renderizar(localData);
-                    else document.getElementById("contenido").innerText = "No hay datos para mostrar.";
-                }
-            } catch (e) {
-                document.getElementById("contenido").innerText = "Error: " + e.message;
-            }
-        }
-
-        function renderizar(data) {
-            document.getElementById('lbl-fecha').innerText = new Date(data.fecha).toLocaleDateString();
-            document.getElementById('lbl-cliente').innerText = data.cliente_nombre || data.cliente;
-            document.getElementById('lbl-cuota').innerText = data.cuotas_pagadas || data.cuota_num;
-            document.getElementById('lbl-Num_cuota').innerText = data.cuotas || data.cuota_num;
-            document.getElementById('lbl-balance').innerText = "RD$ " + (data.balance_nuevo || "0.00");
-            document.getElementById('lbl-monto').innerText = parseFloat(data.monto_pagado).toFixed(2);
+        if (ticket) {
+            // Carga de datos
+            document.getElementById('lbl-cliente').innerText = ticket.cliente || "---";
+            document.getElementById('lbl-fecha').innerText = ticket.fecha || "---";
+            document.getElementById('lbl-cuota').innerText = ticket.cuota_num || "---";
+            document.getElementById('lbl-restantes').innerText = ticket.cuotas_restantes || "---";
             
+            // Corrección de decimales
+            const monto = parseFloat(ticket.monto_pagado || 0);
+            document.getElementById('lbl-monto').innerText = monto.toFixed(2);
 
-            // Impresión automática con un pequeño margen para asegurar renderizado
+            // Impresión inmediata
             setTimeout(() => {
                 window.print();
-                setTimeout(() => window.history.back(), 1000);
-            }, 800);
+                setTimeout(() => { window.history.back(); }, 1000);
+            }, 500);
+        } else {
+            alert("No hay datos de ticket.");
+            window.history.back();
         }
-
-        init();
     </script>
 </body>
 </html>
