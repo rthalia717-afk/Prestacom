@@ -36,32 +36,34 @@
         </div>
     </div>
 
-    <script type="module">
-        // Helper para decimales
-        const fmt = (v) => parseFloat(v || 0).toFixed(2);
+<script>
+    // Helper para decimales
+    const fmt = (v) => parseFloat(v || 0).toFixed(2);
 
-        function renderizar(data) {
-            document.getElementById('lbl-fecha').innerText = data.fecha || new Date().toLocaleDateString();
-            document.getElementById('lbl-cliente').innerText = data.cliente_nombre || data.cliente || "N/A";
-            document.getElementById('lbl-cuota').innerText = data.cuota_num || "0";
-            document.getElementById('lbl-faltantes').innerText = data.cuotas_faltantes || "0";
-            document.getElementById('lbl-balance').innerText = fmt(data.balance_nuevo);
-            document.getElementById('lbl-monto').innerText = fmt(data.monto_pagado);
+    function renderizar() {
+        const params = new URLSearchParams(window.location.search);
+        const dataBase64 = params.get("data");
 
-            // Imprimir
+        if (dataBase64) {
+            const data = JSON.parse(atob(dataBase64)); // Decodificamos
+            
+            document.getElementById('lbl-fecha').innerText = data.fecha;
+            document.getElementById('lbl-cliente').innerText = data.cliente;
+            document.getElementById('lbl-cuota').innerText = data.cuota_num;
+            document.getElementById('lbl-faltantes').innerText = data.cuotas_faltantes;
+            document.getElementById('lbl-balance').innerText = fmt(data.balance);
+            document.getElementById('lbl-monto').innerText = fmt(data.pagado);
+
             setTimeout(() => {
                 window.print();
                 setTimeout(() => window.history.back(), 1000);
             }, 800);
-        }
-
-        // Carga de datos (Prioridad: localStorage)
-        const localData = JSON.parse(localStorage.getItem('ultimo_ticket'));
-        if (localData) {
-            renderizar(localData);
         } else {
-            document.getElementById("contenido").innerHTML = "Error: No hay datos de ticket.";
+            document.getElementById("contenido").innerHTML = "Error: No se recibieron datos para el recibo.";
         }
-    </script>
+    }
+
+    renderizar();
+</script>
 </body>
 </html>
