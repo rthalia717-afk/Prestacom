@@ -4,18 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recibo de Pago - Prestacóm</title>
-    <style>
-        body { font-family: Arial; background: #f1f5f9; display: flex; justify-content: center; }
-        .ticket { width: 320px; background: white; padding: 20px; margin-top: 20px; border: 1px solid #ccc; }
-        .center { text-align: center; }
-        h2 { font-size: 18px; margin-bottom: 5px; }
-        .info { font-size: 14px; margin: 8px 0; }
-        .line { border-top: 1px dashed #ccc; margin: 10px 0; }
-        .print-btn { width: 100%; padding: 12px; margin-top: 10px; border: none; color: white; font-weight: bold; cursor: pointer; }
-        .btn-web { background: #ff6600; }
-        .btn-bt { background: #28a745; }
-        @media print { .print-btn { display: none; } }
-    </style>
+   <style>
+    /* 1. Fuente y fondo */
+    body { font-family: 'Courier New', Courier, monospace; background: #f1f5f9; display: flex; justify-content: center; margin: 0; padding: 20px; }
+    
+    /* 2. Ajuste para el ticket */
+    .ticket { width: 100%; max-width: 300px; background: white; padding: 15px; border: 1px solid #ccc; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    
+    .center { text-align: center; }
+    h2 { font-size: 20px; margin: 5px 0; text-transform: uppercase; }
+    
+    /* 3. Ajuste de legibilidad */
+    .info { font-size: 13px; margin: 4px 0; display: flex; justify-content: space-between; }
+    .info b { margin-right: 5px; }
+    
+    .line { border-top: 1px dashed #333; margin: 10px 0; }
+    
+    /* 4. Estilo de botones */
+    .print-btn { width: 100%; padding: 12px; margin-top: 10px; border: none; color: white; font-weight: bold; cursor: pointer; border-radius: 4px; }
+    .btn-web { background: #ff6600; }
+    .btn-bt { background: #28a745; }
+    
+    /* Asegurar que al imprimir se vea bien */
+    @media print { 
+        body { background: white; padding: 0; }
+        .ticket { border: none; box-shadow: none; width: 100%; }
+        .print-btn { display: none; } 
+    }
+</style>
 </head>
 <body>
 
