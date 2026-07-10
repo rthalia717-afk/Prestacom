@@ -54,49 +54,53 @@
 
     async function cargarRecibo() {
         if (!id_pago) return;
-        const snap = await getDoc(doc(db, "pagos", id_pago));
-        if (!snap.exists()) return;
-        
-        datosTicket = snap.data();
-        
-        const pagadas = parseInt(datosTicket.cuotas_pagadas || 0);
-        const total = parseInt(datosTicket.cuotas_totales || 0);
-        const monto = parseFloat(datosTicket.monto_pagado || 0).toFixed(2);
-        const balance = parseFloat(datosTicket.balance_nuevo || 0).toFixed(2);
-        const prestado = parseFloat(datosTicket.monto_prestamo || 0).toFixed(2);
+        try {
+            const snap = await getDoc(doc(db, "pagos", id_pago));
+            if (!snap.exists()) { document.getElementById("contenido").innerHTML = "Pago no existe."; return; }
+            
+            const datosPago = snap.data();
+            let montoPrestado = 0;
+            
+            if (datosPago.id_prestamo) {
+                const snapP = await getDoc(doc(db, "prestamos", datosPago.id_prestamo));
+                if (snapP.exists()) montoPrestado = snapP.data().monto || 0;
+            }
 
-        document.getElementById("contenido").innerHTML = `
-            <div class="info"><span>Cliente:</span> <span>${datosTicket.cliente_nombre}</span></div>
-            <div class="info"><span>Prestamo:</span> <span>RD$ ${prestado}</span></div>
-            <div class="info"><span>Abono:</span> <span>RD$ ${monto}</span></div>
-            <div class="info"><span>Cuotas:</span> <span>${pagadas} de ${total}</span></div>
-            <div class="info"><span>Restantes:</span> <span>${total - pagadas}</span></div>
-            <div class="info"><span>Balance:</span> <span>RD$ ${balance}</span></div>
-        `;
+            datosTicket = { ...datosPago, monto_prestamo: montoPrestado };
+            
+            const pagadas = parseInt(datosTicket.cuotas_pagadas || 0);
+            const total = parseInt(datosTicket.cuotas_totales || 0);
+            const monto = parseFloat(datosTicket.monto_pagado || 0).toFixed(2);
+            const balance = parseFloat(datosTicket.balance_nuevo || 0).toFixed(2);
+            const prestado = parseFloat(datosTicket.monto_prestamo).toFixed(2);
+
+            document.getElementById("contenido").innerHTML = `
+                <div class="info"><span>Cliente:</span> <span>${datosTicket.cliente_nombre}</span></div>
+                <div class="info"><span>Prestamo:</span> <span>RD$ ${prestado}</span></div>
+                <div class="info"><span>Abono:</span> <span>RD$ ${monto}</span></div>
+                <div class="info"><span>Cuotas:</span> <span>${pagadas} de ${total}</span></div>
+                <div class="info"><span>Balance:</span> <span>RD$ ${balance}</span></div>
+            `;
+        } catch (e) { console.error(e); }
     }
 
     async function imprimirBluetooth() {
         if (!datosTicket) return;
         try {
-            const device = await navigator.bluetooth.requestDevice({
-                filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }]
-            });
+            const device = await navigator.bluetooth.requestDevice({ filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }] });
             const server = await device.gatt.connect();
             const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
             const characteristic = await service.getCharacteristic('00002ae1-0000-1000-8000-00805f9b34fb');
-
-            const encoder = new TextEncoder();
-            const text = `PRESA-FACIL\nCOMPROBANTE DE PAGO\n--------------------------------\nCLIENTE: ${datosTicket.cliente_nombre}\nPRESTAMO: RD$ ${datosTicket.monto_prestamo}\nABONO: RD$ ${datosTicket.monto_pagado}\nCUOTAS: ${datosTicket.cuotas_pagadas}/${datosTicket.cuotas_totales}\nBALANCE: RD$ ${datosTicket.balance_nuevo}\n--------------------------------\nGRACIAS POR SU PAGO\n\n\n`;
-            await characteristic.writeValue(encoder.encode(text));
-            alert("¡Ticket enviado a la impresora!");
-        } catch (error) {
-            alert("Error: Asegúrate de tener Bluetooth encendido.");
-            console.error(error);
-        }
+            const text = `PRESA-FACIL\nCOMPROBANTE\n--------------------------------\nCLIENTE: ${datosTicket.cliente_nombre}\nPRESTAMO: RD$ ${datosTicket.monto_prestamo}\nABONO: RD$ ${datosTicket.monto_pagado}\nCUOTAS: ${datosTicket.cuotas_pagadas}/${datosTicket.cuotas_totales}\nBALANCE: RD$ ${datosTicket.balance_nuevo}\n--------------------------------\nGRACIAS\n\n\n`;
+            await characteristic.writeValue(new TextEncoder().encode(text));
+        } catch (e) { alert("Error Bluetooth."); }
     }
 
     document.getElementById("btnBluetooth").addEventListener("click", imprimirBluetooth);
     cargarRecibo();
 </script>
+
+
+    
 </body>
 </html>
