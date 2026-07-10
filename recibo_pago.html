@@ -80,11 +80,12 @@
             <div class="info"><b>Cliente:</b> ${datosTicket.cliente_nombre || 'N/A'}</div>
             <div class="info"><b>Fecha:</b> ${new Date(datosTicket.fecha).toLocaleString()}</div>
             <div class="line"></div>
-            <div class="info"><b>Monto Prestado:</b> RD$ ${prestado}</div>
-            <div class="info"><b>Monto Abonado:</b> RD$ ${monto}</div>
+            
+            <div class="info"><b>Monto Pagado:</b> RD$ ${monto}</div>
+             <div class="info"><b>Monto Prestado:</b> RD$ ${prestado}</div>
             <div class="line"></div>
             <div class="info"><b>Cuotas Pagadas:</b> ${pagadas} </div>
-            <div class="info"><b>Cuotas Restantes:</b> ${restantes}</div>
+            <div class="info"><b>Cuotas Totales:</b> ${total}</div>
             <div class="info"><b>Balance Pendiente:</b> RD$ ${balance}</div>
          
 
