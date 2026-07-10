@@ -53,28 +53,38 @@
     const id_pago = urlParams.get("id");
 
     async function cargarRecibo() {
-        if (!id_pago) return;
+        if (!id_pago) {
+            document.getElementById("contenido").innerHTML = "Error: No se encontró el ID del pago.";
+            return;
+        }
+        
         const snap = await getDoc(doc(db, "pagos", id_pago));
-        if (!snap.exists()) return;
+        if (!snap.exists()) {
+            document.getElementById("contenido").innerHTML = "Error: El pago no existe.";
+            return;
+        }
         
         datosTicket = snap.data();
-        const total = parseInt(datosTicket.cuotas_totales) || 0;
-        const pagadas = parseInt(datosTicket.cuotas_pagadas) || 0;
+        
+        // Formateo de datos
+        const pagadas = datosTicket.cuotas_pagadas || 0;
+        const total = datosTicket.cuotas_totales || 0;
+        const monto = parseFloat(datosTicket.monto_pagado || 0).toFixed(2);
+        const balance = parseFloat(datosTicket.balance_nuevo || 0).toFixed(2);
+        const prestado = parseFloat(datosTicket.monto_prestamo || 0).toFixed(2); // Asegúrate que este campo exista en Firebase
 
         document.getElementById("contenido").innerHTML = `
             <div class="info"><b>Cliente:</b> ${datosTicket.cliente_nombre}</div>
             <div class="info"><b>Fecha:</b> ${new Date(datosTicket.fecha).toLocaleString()}</div>
-            <div class="info"><b>Monto:</b> RD$ ${parseFloat(datosTicket.monto_pagado).toFixed(2)}</div>
+            <div class="info"><b>Monto Pagado:</b> RD$ ${monto}</div>
             <div class="info"><b>Cuotas:</b> ${pagadas} de ${total}</div>
-            <div class="info"><b>Cuotas:</b> ${pagadas} de ${cuotas_total}</div>
-            <div class="info"><b>Balance:</b> RD$ ${parseFloat(datosTicket.balance_nuevo).toFixed(2)}</div>
-            <div class="data"><p>Cuotas Pgd:</p><p><span id="cuotas"></span></p></div>
-            <div class="data"><p>Monto Prestado:</p><p>RD$ <span id="prestado"></span></p></div>
+            <div class="info"><b>Balance Pendiente:</b> RD$ ${balance}</div>
+            <div class="info"><b>Monto Prestado:</b> RD$ ${prestado}</div>
         `;
     }
 
-    // Lógica Bluetooth
     async function imprimirBluetooth() {
+        if (!datosTicket) return;
         try {
             const device = await navigator.bluetooth.requestDevice({
                 filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }]
@@ -88,7 +98,7 @@
             await characteristic.writeValue(encoder.encode(text));
             alert("¡Ticket enviado a la impresora!");
         } catch (error) {
-            alert("Error de conexión Bluetooth: Asegúrate de que el Bluetooth esté encendido.");
+            alert("Error: Asegúrate de tener Bluetooth encendido y la impresora vinculada.");
             console.error(error);
         }
     }
