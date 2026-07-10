@@ -2,51 +2,98 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recibo de Pago - Prestacóm</title>
     <style>
-        body { width: 58mm; font-family: 'Courier New', monospace; font-size: 12px; margin: 0; padding: 5px; }
+        body { font-family: Arial; background: #f1f5f9; display: flex; justify-content: center; }
+        .ticket { width: 320px; background: white; padding: 20px; margin-top: 20px; border: 1px solid #ccc; }
         .center { text-align: center; }
-        .line { border-bottom: 1px dashed #000; margin: 5px 0; }
-        .data { display: flex; justify-content: space-between; }
-        .monto { font-size: 16px; font-weight: bold; margin: 10px 0; }
+        h2 { font-size: 18px; margin-bottom: 5px; }
+        .info { font-size: 14px; margin: 8px 0; }
+        .line { border-top: 1px dashed #ccc; margin: 10px 0; }
+        .print-btn { width: 100%; padding: 12px; margin-top: 10px; border: none; color: white; font-weight: bold; cursor: pointer; }
+        .btn-web { background: #ff6600; }
+        .btn-bt { background: #28a745; }
+        @media print { .print-btn { display: none; } }
     </style>
 </head>
 <body>
+
+<div class="ticket">
     <div class="center">
         <h2>PRESA-FACIL</h2>
-        <p>Tel: **********</p>
-        <div class="line"></div>
+        <p class="info">Comprobante de Pago</p>
     </div>
-    
-    <p id="fecha"></p>
-    <p>Cliente: <span id="cliente"></span></p>
+    <div class="line"></div>
+    <div id="contenido">Cargando datos...</div>
     <div class="line"></div>
     
-    <div class="data"><p>Monto Prestado:</p><p>RD$ <span id="prestado"></span></p></div>
-    <div class="data"><p>Cuota Pagada:</p><p>RD$ <span id="pagado"></span></p></div>
-    <div class="data"><p>Cuotas Pgd:</p><p><span id="cuotas"></span></p></div>
-    <div class="data"><p>Balance:</p><p>RD$ <span id="balance"></span></p></div>
-    
-    <div class="line"></div>
-    <p class="center">¡Gracias por su pago!</p>
-    <p class="center">--------------------</p>
+    <button class="print-btn btn-web" onclick="window.print()">🖨 Imprimir (Sistema)</button>
+    <button id="btnBluetooth" class="print-btn btn-bt">🖨 Imprimir (Bluetooth)</button>
+</div>
 
-    <script>
-        // Obtener datos de la URL
-        const params = new URLSearchParams(window.location.search);
-        document.getElementById('fecha').innerText = "Fecha: " + new Date().toLocaleString();
-        document.getElementById('cliente').innerText = params.get('cliente') || "N/A";
-        document.getElementById('prestado').innerText = params.get('monto_prestado') || "0";
-        document.getElementById('pagado').innerText = params.get('monto_pagado') || "0";
-        document.getElementById('cuotas').innerText = params.get('cuotas_pagadas') || "0";
-	document.getElementById('cuotas').innerText = params.get('cuotas_totales') || "0";
-        document.getElementById('balance').innerText = params.get('balance_nuevo') || "0";
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // Imprimir automáticamente
-        window.onload = () => {
-            window.print();
-            // Opcional: cerrar ventana tras imprimir
-            // setTimeout(() => window.close(), 1000);
-        };
-    </script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyDbmVXLBIsBzk-wE60yVtchZ8WI4NWnAW4",
+        authDomain: "prestacom-sistema-a2830.firebaseapp.com",
+        projectId: "prestacom-sistema-a2830",
+        storageBucket: "prestacom-sistema-a2830.appspot.com",
+        messagingSenderId: "500739174929",
+        appId: "1:500739174929:web:1694f07bf65714606f77b0"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    let datosTicket = null;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const id_pago = urlParams.get("id");
+
+    async function cargarRecibo() {
+        if (!id_pago) return;
+        const snap = await getDoc(doc(db, "pagos", id_pago));
+        if (!snap.exists()) return;
+        
+        datosTicket = snap.data();
+        const total = parseInt(datosTicket.cuotas_totales) || 0;
+        const pagadas = parseInt(datosTicket.cuotas_pagadas) || 0;
+
+        document.getElementById("contenido").innerHTML = `
+            <div class="info"><b>Cliente:</b> ${datosTicket.cliente_nombre}</div>
+            <div class="info"><b>Fecha:</b> ${new Date(datosTicket.fecha).toLocaleString()}</div>
+            <div class="info"><b>Monto:</b> RD$ ${parseFloat(datosTicket.monto_pagado).toFixed(2)}</div>
+            <div class="info"><b>Cuotas:</b> ${pagadas} de ${total}</div>
+            <div class="info"><b>Balance:</b> RD$ ${parseFloat(datosTicket.balance_nuevo).toFixed(2)}</div>
+            <div class="data"><p>Cuotas Pgd:</p><p><span id="cuotas"></span></p></div>
+            <div class="data"><p>Monto Prestado:</p><p>RD$ <span id="prestado"></span></p></div>
+        `;
+    }
+
+    // Lógica Bluetooth
+    async function imprimirBluetooth() {
+        try {
+            const device = await navigator.bluetooth.requestDevice({
+                filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }]
+            });
+            const server = await device.gatt.connect();
+            const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
+            const characteristic = await service.getCharacteristic('00002ae1-0000-1000-8000-00805f9b34fb');
+
+            const encoder = new TextEncoder();
+            const text = `PRESA-FACIL\nRecibo de Pago\n----------------\nCliente: ${datosTicket.cliente_nombre}\nMonto: RD$ ${datosTicket.monto_pagado}\nBalance: ${datosTicket.balance_nuevo}\n\n\n`;
+            await characteristic.writeValue(encoder.encode(text));
+            alert("¡Ticket enviado a la impresora!");
+        } catch (error) {
+            alert("Error de conexión Bluetooth: Asegúrate de que el Bluetooth esté encendido.");
+            console.error(error);
+        }
+    }
+
+    document.getElementById("btnBluetooth").addEventListener("click", imprimirBluetooth);
+    cargarRecibo();
+</script>
 </body>
 </html>
