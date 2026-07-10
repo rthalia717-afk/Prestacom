@@ -62,16 +62,11 @@
         const pagadas = parseInt(datosTicket.cuotas_pagadas) || 0;
 
         document.getElementById("contenido").innerHTML = `
-            <div class="info"><b>Cliente:</b> ${datosTicket.cliente_nombre}</div>
-            <div class="info"><b>Fecha:</b> ${new Date(datosTicket.fecha).toLocaleString()}</div>
-            <div class="info"><b>Monto:</b> RD$ ${parseFloat(datosTicket.monto_pagado).toFixed(2)}</div>
-            <div class="info"><b>Cuotas:</b> ${pagadas} de ${total}</div>
-            <div class="info"><b>Cuota:</b> ${datosTicket.cuotaActual} / ${datosTicket.totalCuotas}</div>
-            <div class="info"><b>Balance:</b> RD$ ${parseFloat(datosTicket.balance_nuevo).toFixed(2)}</div>
-// Asegúrate de que 'datosTicket' sea el objeto con la estructura que me pasaste
-        <div class="info"><b>Cuotas:</b> ${datosTicket.cuotas_pagadas} de ${datosTicket.cuotas}</div>
-        <div class="info"><b>Balance:</b> RD$ ${parseFloat(datosTicket.total).toFixed(2)}</div>
-
+           <div class="info"><b>Cliente:</b> ${datosTicket.cliente_nombre}</div>
+<div class="info"><b>Fecha:</b> ${new Date(datosTicket.fecha_creacion).toLocaleString()}</div>
+<div class="info"><b>Monto:</b> RD$ ${parseFloat(datosTicket.monto).toFixed(2)}</div>
+<div class="info"><b>Cuotas:</b> ${datosTicket.cuotas_pagadas} de ${datosTicket.cuotas}</div>
+<div class="info"><b>Balance:</b> RD$ ${parseFloat(datosTicket.total).toFixed(2)}</div>
 
 
 
