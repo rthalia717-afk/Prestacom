@@ -67,19 +67,28 @@
         datosTicket = snap.data();
         
         // Formateo de datos
-        const pagadas = datosTicket.cuotas_pagadas || 0;
-        const total = datosTicket.cuotas_totales || 0;
+        const pagadas = parseInt(datosTicket.cuotas_pagadas || 0);
+        const total = parseInt(datosTicket.cuotas_totales || 0);
         const monto = parseFloat(datosTicket.monto_pagado || 0).toFixed(2);
         const balance = parseFloat(datosTicket.balance_nuevo || 0).toFixed(2);
-        const prestado = parseFloat(datosTicket.monto_prestamo || 0).toFixed(2); // Asegúrate que este campo exista en Firebase
+        const prestado = parseFloat(datosTicket.monto_prestamo || 0).toFixed(2);
+        const restantes = total - pagadas;
 
         document.getElementById("contenido").innerHTML = `
-            <div class="info"><b>Cliente:</b> ${datosTicket.cliente_nombre}</div>
+            
+          
+            <div class="info"><b>Cliente:</b> ${datosTicket.cliente_nombre || 'N/A'}</div>
             <div class="info"><b>Fecha:</b> ${new Date(datosTicket.fecha).toLocaleString()}</div>
-            <div class="info"><b>Monto Pagado:</b> RD$ ${monto}</div>
-            <div class="info"><b>Cuotas:</b> ${pagadas} de ${total}</div>
-            <div class="info"><b>Balance Pendiente:</b> RD$ ${balance}</div>
+            <div class="line"></div>
             <div class="info"><b>Monto Prestado:</b> RD$ ${prestado}</div>
+            <div class="info"><b>Monto Abonado:</b> RD$ ${monto}</div>
+            <div class="line"></div>
+            <div class="info"><b>Cuotas Pagadas:</b> ${pagadas} de ${total}</div>
+            <div class="info"><b>Cuotas Restantes:</b> ${restantes}</div>
+            <div class="info"><b>Balance Pendiente:</b> RD$ ${balance}</div>
+         
+
+           
         `;
     }
 
