@@ -68,6 +68,14 @@
             <div class="info"><b>Cuotas:</b> ${pagadas} de ${total}</div>
             <div class="info"><b>Cuota:</b> ${datosTicket.cuotaActual} / ${datosTicket.totalCuotas}</div>
             <div class="info"><b>Balance:</b> RD$ ${parseFloat(datosTicket.balance_nuevo).toFixed(2)}</div>
+// Asegúrate de que 'datosTicket' sea el objeto con la estructura que me pasaste
+        <div class="info"><b>Cuotas:</b> ${datosTicket.cuotas_pagadas} de ${datosTicket.cuotas}</div>
+        <div class="info"><b>Balance:</b> RD$ ${parseFloat(datosTicket.total).toFixed(2)}</div>
+
+
+
+
+            
         `;
     }
 
