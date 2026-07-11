@@ -61,7 +61,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, collection, query, where, getDocs, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // CONFIGURACIÓN (Ojo: ¡No compartas esto en público!)
+        
         const firebaseConfig = {
     apiKey: "AIzaSyDbmVXLBIsBzk-wE60yVtchZ8WI4NWnAW4",
     authDomain: "prestacom-sistema-a2830.firebaseapp.com",
@@ -75,19 +75,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const idEmpresaLogueada = localStorage.getItem('id_empresa');
-
-
-
-
-
-
-
-
-
-
-
-
-        
+    
 
         let prestamosGlobales = [];
 
@@ -122,8 +110,8 @@
                 card.className = 'loan-card';
                 card.innerHTML = `
                     <div class="loan-header">
-                        <div><h3>${p.nombre_cliente}</h3><small>${p.fecha_inicio}</small></div>
-                        <span class="status-badge status-${p.status === 'Finalizado' ? 'finalizado' : 'al-dia'}">${p.status || 'Activo'}</span>
+                        <div><h3>${p.cliente_nombre}</h3><small>${p.fecha_inicio}</small></div>
+                        <span class="estado-badge estado-${p.estado === 'Finalizado' ? 'finalizado' : 'al-dia'}">${p.estado || 'Activo'}</span>
                     </div>
                     <div class="loan-details">
                         <div class="detail-item"><span>Monto</span><strong>$${Number(p.monto_original).toLocaleString()}</strong></div>
@@ -136,7 +124,7 @@
 
         window.filtrar = (tipo) => {
             if(tipo === 'todos') renderizar(prestamosGlobales);
-            else renderizar(prestamosGlobales.filter(p => p.status === tipo));
+            else renderizar(prestamosGlobales.filter(p => p.estado === tipo));
             
             // UI Botones
             document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
