@@ -149,7 +149,7 @@ async function cargarRecibo(){
         };
 
         const pagadas=parseInt(datosTicket.cuotas_pagadas || 0);
-        const total=parseInt(datosTicket.cuotas_totales || 0);
+        const cuotas=parseInt(datosTicket.cuotas || 0);
 
         const monto=parseFloat(datosTicket.monto_pagado || 0).toFixed(2);
         const balance=parseFloat(datosTicket.balance_nuevo || 0).toFixed(2);
@@ -202,7 +202,7 @@ async function cargarRecibo(){
 
             <div class="info">
                 <span>Cuotas:</span>
-                <span>${pagadas}/${total}</span>
+                <span>${pagadas}/${cuotas}</span>
             </div>
 
             <div class="info">
