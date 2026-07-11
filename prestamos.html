@@ -62,10 +62,32 @@
         import { getFirestore, collection, query, where, getDocs, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         // CONFIGURACIÓN (Ojo: ¡No compartas esto en público!)
-        const firebaseConfig = { /* ... tu configuración aquí ... */ };
+        const firebaseConfig = {
+    apiKey: "AIzaSyDbmVXLBIsBzk-wE60yVtchZ8WI4NWnAW4",
+    authDomain: "prestacom-sistema-a2830.firebaseapp.com",
+    projectId: "prestacom-sistema-a2830",
+    storageBucket: "prestacom-sistema-a2830.appspot.com",
+    messagingSenderId: "500739174929",
+    appId: "1:500739174929:web:1694f07bf65714606f77b0"
+     };
+
+        
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const idEmpresaLogueada = localStorage.getItem('id_empresa');
+
+
+
+
+
+
+
+
+
+
+
+
+        
 
         let prestamosGlobales = [];
 
