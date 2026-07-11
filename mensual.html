@@ -65,6 +65,7 @@
         snapshot.forEach((docSnap) => {
             const data = docSnap.data();
             const div = document.createElement("div");
+            if ((parseFloat(data.total) || 0) <= 0) return;
             div.className = "card";
 
             div.innerHTML = `
