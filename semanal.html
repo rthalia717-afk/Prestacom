@@ -104,7 +104,7 @@
                     balance_anterior: data.total,
                     balance_nuevo: nuevoBalance,
                     fecha: new Date().toISOString(),
-                    tipo: "diario"
+                    tipo: "semanal"
                 });
 
                 await updateDoc(doc(db, "prestamos", docSnap.id), {
