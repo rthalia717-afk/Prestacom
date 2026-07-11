@@ -93,26 +93,33 @@
                 </button>
             `;
 
-            div.querySelector("button").addEventListener("click", async (e) => {
-                const btn = e.target;
-                const montoPagado = parseFloat(div.querySelector(".input-pago").value) || 0;
-                const balanceAnterior = parseFloat(data.total) || 0;
-                onst nuevoBalance = balanceAnterior - montoPagado;
-                const nuevasCuotasPagadas = (data.cuotas_pagadas || 0) + 1;
+           div.querySelector("button").addEventListener("click", async (e) => {
+    const btn = e.target;
+    const montoPagado = parseFloat(div.querySelector(".input-pago").value) || 0;
+    const balanceAnterior = parseFloat(data.total) || 0;
 
-                
-                if (balanceAnterior <= 0) {
-                    alert("¡Este préstamo ya está saldado!");
-                    return; 
-                }
+    if (balanceAnterior <= 0) {
+        alert("¡Este préstamo ya está saldado!");
+        return;
+    }
 
-                btn.disabled = true;
-                btn.innerText = "Procesando...";
+    btn.disabled = true;
+    btn.innerText = "Procesando...";
 
-                try {
-                    let nuevoBalance = balanceAnterior - montoPagado;
-                    if (nuevoBalance < 0) nuevoBalance = 0; 
-                    const nuevasCuotasPagadas = (parseInt(data.cuotas_pagadas) || 0) + 1;
+    try {
+        const nuevoBalance = Math.max(0, balanceAnterior - montoPagado);
+        const nuevasCuotasPagadas = (parseInt(data.cuotas_pagadas) || 0) + 1;
+
+        // Registrar el pago
+        const docRef = await addDoc(collection(db, "pagos"), {
+            id_prestamo: docSnap.id,
+            id_empresa: idEmpresa,
+            cliente_nombre: data.cliente_nombre,
+            monto_pagado: montoPagado,
+            balance_nuevo: nuevoBalance,
+            fecha: new Date().toISOString(),
+            tipo: "semanal"
+        });
 
                    // ... dentro de tu función asíncrona de registro ...
 
@@ -140,23 +147,26 @@ tipo: "semanal"
 // 2. Aquí usas docRef.id (el ID del nuevo recibo) para abrir la ventana
 window.open("recibo_pago.html?id=" + docRef.id, "_blank");
 
-                    await updateDoc(doc(db, "prestamos", docSnap.id), {
-                        pagado_hoy: true,
-                        total: nuevoBalance,
-                        cuotas_pagadas: nuevasCuotasPagadas,
-                        estado: (nuevoBalance <= 0) ? "finalizado" : "activo"
-                    });
+                   await updateDoc(doc(db, "prestamos", docSnap.id), {
+            pagado_hoy: true,
+            total: nuevoBalance,
+            cuotas_pagadas: nuevasCuotasPagadas,
+            estado: (nuevoBalance <= 0) ? "finalizado" : "activo"
+        });
 
-                    window.open("recibo_pago.html?id=" + docSRef.id, "_blank");
-                } catch (err) {
-                    alert("Error al registrar pago");
-                    btn.disabled = false;
-                    btn.innerText = "Marcar Pago";
-                }
-            });
+        // Abrir recibo solo una vez
+        window.open("recibo_pago.html?id=" + docRef.id, "_blank");
+        
+    } catch (err) {
+        console.error(err);
+        alert("Error al registrar pago");
+        btn.disabled = false;
+        btn.innerText = "Marcar Pago";
+    }
+});
             lista.appendChild(div);
         });
-    });
+
 </script>
 </body>
 </html>
