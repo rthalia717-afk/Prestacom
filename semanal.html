@@ -73,19 +73,12 @@
                     <div class="status ${data.pagado_hoy ? 'paid' : ''}">
                         ${data.pagado_hoy ? "Pagado Hoy" : "Pendiente"}
                     </div>
-
-
-
-
                 </div>
                 <div class="info">
+                    Monto Préstamo: <strong>RD$ ${Number(data.monto || 0).toLocaleString()}</strong><br>
+                    Cuota: <strong>RD$ ${Number(data.cuota || 0).toLocaleString()}</strong><br>
                     Balance Pendiente: <strong>RD$ ${Number(data.total || 0).toLocaleString()}</strong><br>
                     Cuotas: ${data.cuotas_pagadas || 0} de ${data.cuotas || 0}
-                   Monto Préstamo: RD$ ${data.monto || 0} <br>
-                    Cuota: RD$ ${data.cuota || 0} <br>
-                    Balance Pendiente: RD$ ${data.total || 0} <br>
-                    Cuotas Pagadas: ${data.cuotas_pagadas || 0} de ${data.cuotas || 0} <br>
-                    Cuotas Restantes: ${(data.cuotas || 0) - (data.cuotas_pagadas || 0)}
                 </div>
                 <input type="number" value="${data.cuota || 0}" class="input-pago">
                 <button class="${data.pagado_hoy ? 'btn-extra' : ''}">
@@ -93,80 +86,52 @@
                 </button>
             `;
 
-           div.querySelector("button").addEventListener("click", async (e) => {
-    const btn = e.target;
-    const montoPagado = parseFloat(div.querySelector(".input-pago").value) || 0;
-    const balanceAnterior = parseFloat(data.total) || 0;
+            div.querySelector("button").addEventListener("click", async (e) => {
+                const btn = e.target;
+                const montoPagado = parseFloat(div.querySelector(".input-pago").value) || 0;
+                const balanceAnterior = parseFloat(data.total) || 0;
 
-    if (balanceAnterior <= 0) {
-        alert("¡Este préstamo ya está saldado!");
-        return;
-    }
+                if (balanceAnterior <= 0) {
+                    alert("¡Este préstamo ya está saldado!");
+                    return;
+                }
 
-    btn.disabled = true;
-    btn.innerText = "Procesando...";
+                btn.disabled = true;
+                btn.innerText = "Procesando...";
 
-    try {
-        const nuevoBalance = Math.max(0, balanceAnterior - montoPagado);
-        const nuevasCuotasPagadas = (parseInt(data.cuotas_pagadas) || 0) + 1;
+                try {
+                    const nuevoBalance = Math.max(0, balanceAnterior - montoPagado);
+                    const nuevasCuotasPagadas = (parseInt(data.cuotas_pagadas) || 0) + 1;
 
-        // Registrar el pago
-        const docRef = await addDoc(collection(db, "pagos"), {
-            id_prestamo: docSnap.id,
-            id_empresa: idEmpresa,
-            cliente_nombre: data.cliente_nombre,
-            monto_pagado: montoPagado,
-            balance_nuevo: nuevoBalance,
-            fecha: new Date().toISOString(),
-            tipo: "semanal"
-        });
+                    const docRef = await addDoc(collection(db, "pagos"), {
+                        id_prestamo: docSnap.id,
+                        id_empresa: idEmpresa,
+                        cliente_nombre: data.cliente_nombre,
+                        monto_pagado: montoPagado,
+                        balance_nuevo: nuevoBalance,
+                        cuotas_pagadas: nuevasCuotasPagadas,
+                        fecha: new Date().toISOString(),
+                        tipo: "semanal"
+                    });
 
-                   // ... dentro de tu función asíncrona de registro ...
+                    await updateDoc(doc(db, "prestamos", docSnap.id), {
+                        pagado_hoy: true,
+                        total: nuevoBalance,
+                        cuotas_pagadas: nuevasCuotasPagadas,
+                        estado: (nuevoBalance <= 0) ? "finalizado" : "activo"
+                    });
 
-           
-
-
- // 1. Aquí capturas el resultado del addDoc en una variable
-        const docRef = await addDoc(collection(db, "pagos"), {
-    id_prestamo: docSnap.id,
-    id_empresa: idEmpresa,
-
-    cliente_nombre: data.cliente_nombre,
-monto_prestado: data.monto,
-cuota: data.cuota,
-cuotas: data.cuotas,
-balance_nuevo: nuevoBalance,
-    monto_pagado: montoPagado,
-    cuotas_pagadas: nuevasCuotasPagadas,
-    balance_nuevo: nuevoBalance,
-    fecha: new Date().toISOString()
-tipo: "semanal"
-
-});
-
-// 2. Aquí usas docRef.id (el ID del nuevo recibo) para abrir la ventana
-window.open("recibo_pago.html?id=" + docRef.id, "_blank");
-
-                   await updateDoc(doc(db, "prestamos", docSnap.id), {
-            pagado_hoy: true,
-            total: nuevoBalance,
-            cuotas_pagadas: nuevasCuotasPagadas,
-            estado: (nuevoBalance <= 0) ? "finalizado" : "activo"
-        });
-
-        // Abrir recibo solo una vez
-        window.open("recibo_pago.html?id=" + docRef.id, "_blank");
-        
-    } catch (err) {
-        console.error(err);
-        alert("Error al registrar pago");
-        btn.disabled = false;
-        btn.innerText = "Marcar Pago";
-    }
-});
+                    window.open("recibo_pago.html?id=" + docRef.id, "_blank");
+                    btn.innerText = "Pago Registrado";
+                } catch (err) {
+                    alert("Error al registrar pago");
+                    btn.disabled = false;
+                    btn.innerText = "Marcar Pago";
+                }
+            });
             lista.appendChild(div);
         });
-
+    });
 </script>
 </body>
 </html>
