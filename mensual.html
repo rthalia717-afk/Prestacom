@@ -112,7 +112,7 @@
                         balance_nuevo: nuevoBalance,
                         cuotas_pagadas: nuevasCuotasPagadas,
                         fecha: new Date().toISOString(),
-                        tipo: "semanal"
+                        tipo: "mensual"
                     });
 
                     await updateDoc(doc(db, "prestamos", docSnap.id), {
