@@ -18,6 +18,8 @@
         .input-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
         label { font-size: 0.85rem; font-weight: 600; }
         input, textarea { width: 100%; padding: 12px; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 0.95rem; background-color: #FAFAFA; }
+        .btn-gps-locator { width: 100%; background-color: #111827; color: #FFFFFF; border-radius: 8px; padding: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 5px; }
+        .btn-gps-locator.success { background-color: #22c55e; }
         .submit-btn { width: 100%; background-color: #FF6600; color: #FFFFFF; border: none; border-radius: 8px; padding: 14px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
@@ -30,7 +32,6 @@
         </header>
 
         <form id="form-nuevo-cliente">
-            <!-- Sección Datos Personales -->
             <div class="form-section">
                 <div class="section-title">Datos Personales</div>
                 <div class="input-group">
@@ -42,16 +43,20 @@
                 <div class="input-group"><label>Referido por</label><input type="text" id="referido_por"></div>
             </div>
 
-            <!-- Sección Contacto -->
             <div class="form-section">
                 <div class="section-title">Contacto y Ruta</div>
                 <div class="input-group"><label>Teléfono</label><input type="tel" id="telefono" required></div>
                 <div class="input-group"><label>Sector / Zona</label><input type="text" id="sector" required></div>
                 <div class="input-group"><label>Dirección</label><textarea id="direccion" required></textarea></div>
-                <input type="hidden" id="latitud"><input type="hidden" id="longitud">
+                
+                <!-- Campos GPS Reintegrados -->
+                <input type="hidden" id="latitud">
+                <input type="hidden" id="longitud">
+                <button type="button" id="btn-gps" class="btn-gps-locator" onclick="obtenerCoordenadasCelular()">
+                    <i class='bx bx-current-location'></i> <span id="txt-gps">Fijar Ubicación GPS</span>
+                </button>
             </div>
 
-            <!-- Sección Evaluación -->
             <div class="form-section">
                 <div class="section-title">Evaluación Financiera</div>
                 <div class="input-group"><label>Ingresos Mensuales ($)</label><input type="number" id="ingresos" required></div>
@@ -79,7 +84,18 @@
 
         const db = getFirestore(initializeApp(firebaseConfig));
         
-        // Formateador de Cédula
+        // GPS y Formateador
+        window.obtenerCoordenadasCelular = () => {
+            const btn = document.getElementById('btn-gps');
+            if (!navigator.geolocation) return alert("GPS no disponible");
+            navigator.geolocation.getCurrentPosition((pos) => {
+                document.getElementById('latitud').value = pos.coords.latitude;
+                document.getElementById('longitud').value = pos.coords.longitude;
+                btn.classList.add('success');
+                document.getElementById('txt-gps').innerText = "✓ Ubicación capturada";
+            }, () => alert("Error al obtener GPS"));
+        };
+
         window.formatearCedula = function(input) {
             let value = input.value.replace(/\D/g, '');
             if (value.length > 3 && value.length <= 10) value = value.replace(/(\d{3})(\d+)/, '$1-$2');
@@ -90,7 +106,6 @@
         document.getElementById('form-nuevo-cliente').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            // Validación estricta
             const inputs = document.querySelectorAll('input[required], textarea[required]');
             for(let i of inputs) { if(!i.value.trim()) return alert("El campo " + i.previousElementSibling.innerText + " es obligatorio."); }
 
@@ -99,7 +114,6 @@
             btn.innerText = "Guardando...";
 
             try {
-                // Generar ID único CLI-XXXXXX
                 const numeroCliente = "CLI-" + Math.floor(100000 + Math.random() * 900000);
 
                 const nuevoCliente = {
@@ -111,6 +125,8 @@
                     telefono: document.getElementById('telefono').value.trim(),
                     ruta_sector: document.getElementById('sector').value.trim(),
                     direccion: document.getElementById('direccion').value.trim(),
+                    latitud: document.getElementById('latitud').value ? Number(document.getElementById('latitud').value) : null,
+                    longitud: document.getElementById('longitud').value ? Number(document.getElementById('longitud').value) : null,
                     ingresos: Number(document.getElementById('ingresos').value),
                     ocupacion: document.getElementById('ocupacion').value.trim(),
                     fecha_registro: new Date().toISOString()
