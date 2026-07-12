@@ -4,257 +4,121 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PRESTACOM 2.0 - Nuevo Préstamo</title>
-
     <style>
         * { margin:0; padding:0; box-sizing:border-box; font-family:Arial; }
-
-        body {
-            background:#f1f5f9;
-            display:flex;
-            justify-content:center;
-        }
-
-        .container {
-            width:100%;
-            max-width:480px;
-            background:#fff;
-            min-height:100vh;
-        }
-
-        header {
-            background:#1e293b;
-            color:#fff;
-            padding:15px;
-            display:flex;
-            gap:10px;
-            align-items:center;
-            position:sticky;
-            top:0;
-        }
-
-        header a {
-            color:#fff;
-            text-decoration:none;
-            font-size:20px;
-        }
-
-        h1 { font-size:18px; }
-
+        body { background:#f1f5f9; display:flex; justify-content:center; }
+        .container { width:100%; max-width:480px; background:#fff; min-height:100vh; }
+        header { background:#1e293b; color:#fff; padding:15px; display:flex; gap:10px; align-items:center; position:sticky; top:0; }
+        header a { color:#fff; text-decoration:none; font-size:20px; }
         form { padding:15px; display:flex; flex-direction:column; gap:15px; }
-
-        .card {
-            border:1px solid #e5e7eb;
-            border-radius:10px;
-            padding:12px;
-            background:#f8fafc;
-        }
-
-        label { font-size:13px; display:block; margin-bottom:5px; }
-
-        input, select {
-            width:100%;
-            padding:10px;
-            border-radius:8px;
-            border:1px solid #ccc;
-        }
-
-        .cliente-box {
-            background:#fff;
-            padding:10px;
-            border-radius:8px;
-            font-size:13px;
-            border:1px solid #ddd;
-        }
-
-        button {
-            width:100%;
-            padding:12px;
-            background:#ff6600;
-            color:#fff;
-            border:none;
-            border-radius:8px;
-            font-weight:bold;
-            cursor:pointer;
-        }
-
-        .resumen {
-            font-size:13px;
-            background:#fff;
-            padding:10px;
-            border-radius:8px;
-        }
+        .card { border:1px solid #e5e7eb; border-radius:10px; padding:12px; background:#f8fafc; }
+        label { font-size:13px; display:block; margin-bottom:5px; font-weight:bold; }
+        input, select { width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; }
+        .cliente-box { background:#fff; padding:10px; border-radius:8px; font-size:13px; border:1px solid #ddd; margin-top:5px; }
+        button { width:100%; padding:12px; background:#ff6600; color:#fff; border:none; border-radius:8px; font-weight:bold; cursor:pointer; }
+        button:disabled { background:#cbd5e1; cursor:not-allowed; }
+        .resumen { font-size:14px; background:#fff; padding:10px; border-radius:8px; border:1px solid #ff6600; }
     </style>
 </head>
-
 <body>
-
 <div class="container">
-
-<header>
-    <a href="index.html">⬅</a>
-    <h1>Nuevo Préstamo</h1>
-</header>
-
-<form id="form">
-
-    <!-- CLIENTE -->
-    <div class="card">
-        <label>Buscar Cliente (Cédula o Nombre)</label>
-        <input type="text" id="buscar">
-
-        <div class="cliente-box" id="clienteBox">
-            Ningún cliente seleccionado
+    <header>
+        <a href="index.html">⬅</a>
+        <h1>Nuevo Préstamo</h1>
+    </header>
+    <form id="form">
+        <div class="card">
+            <label>Buscar Cliente (Escribe CLI-XXXXXX)</label>
+            <input type="text" id="buscar" placeholder="Ej: CLI-123456" autofocus>
+            <div class="cliente-box" id="clienteBox">Esperando cliente...</div>
+            <input type="hidden" id="cliente_id">
+            <input type="hidden" id="cliente_nombre">
         </div>
-
-        <input type="hidden" id="cliente_id">
-        <input type="hidden" id="cliente_nombre">
-    </div>
-
-    <!-- PRESTAMO -->
-    <div class="card">
-        <label>Monto</label>
-        <input type="number" id="monto">
-
-        <label>Interés (%)</label>
-        <input type="number" id="interes" value="0">
-
-        <label>Modalidad</label>
-        <select id="modalidad">
-            <option value="diario">Diario</option>
-            <option value="semanal">Semanal</option>
-            <option value="quincenal">Quincenal</option>
-            <option value="mensual">Mensual</option>
-        </select>
-
-        <label>Cuotas</label>
-        <input type="number" id="cuotas">
-
-        <label>Fecha inicio</label>
-        <input type="date" id="fecha">
-    </div>
-
-    <!-- RESUMEN -->
-    <div class="card resumen">
-        <p><b>Total:</b> <span id="total">0</span></p>
-        <p><b>Cuota:</b> <span id="cuota">0</span></p>
-    </div>
-
-    <button type="submit">Guardar Préstamo</button>
-
-</form>
-
+        <div class="card">
+            <label>Monto</label> <input type="number" id="monto" required>
+            <label>Interés (%)</label> <input type="number" id="interes" value="20">
+            <label>Modalidad</label>
+            <select id="modalidad">
+                <option value="diario">Diario</option>
+                <option value="semanal">Semanal</option>
+            </select>
+            <label>Cuotas</label> <input type="number" id="cuotas" required>
+            <label>Fecha inicio</label> <input type="date" id="fecha" required>
+        </div>
+        <div class="card resumen">
+            <p><b>Total a pagar:</b> RD$ <span id="total">0.00</span></p>
+            <p><b>Cuota:</b> RD$ <span id="cuota">0.00</span></p>
+        </div>
+        <button type="submit" id="btn-guardar" disabled>Guardar Préstamo</button>
+    </form>
 </div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-import {
-    getFirestore,
-    collection,
-    query,
-    where,
-    getDocs,
-    addDoc
-} from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getFirestore, collection, query, where, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-const firebaseConfig = {
-    apiKey: "AIzaSyDbmVXLBIsBzk-wE60yVtchZ8WI4NWnAW4",
-    authDomain: "prestacom-sistema-a2830.firebaseapp.com",
-    projectId: "prestacom-sistema-a2830",
-    storageBucket: "prestacom-sistema-a2830.appspot.com",
-    messagingSenderId: "500739174929",
-    appId: "1:500739174929:web:1694f07bf65714606f77b0"
-};
+    const firebaseConfig = { /* Tus datos de Firebase aquí */ };
+    const db = getFirestore(initializeApp(firebaseConfig));
+    const idEmpresa = localStorage.getItem("id_empresa");
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+    // Fecha hoy automática
+    document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
 
-const idEmpresa = localStorage.getItem("id_empresa");
-if (!idEmpresa) window.location.href = "login.html";
+    // Búsqueda rápida
+    document.getElementById("buscar").addEventListener("input", async (e) => {
+        const val = e.target.value.trim().toUpperCase();
+        if (val.length < 5) return;
 
-// ---------------- CLIENTE SEARCH ----------------
-const buscar = document.getElementById("buscar");
-const clienteBox = document.getElementById("clienteBox");
+        const q = query(collection(db, "clientes_prestamo"), where("numero_cliente", "==", val));
+        const snap = await getDocs(q);
 
-buscar.addEventListener("input", async () => {
-    const val = buscar.value.trim();
-    if (val.length < 3) return;
-
-    const q = query(
-        collection(db, "clientes_prestamo"),
-        where("id_empresa", "==", idEmpresa)
-    );
-
-    const snap = await getDocs(q);
-
-    snap.forEach(doc => {
-        const c = doc.data();
-
-        if (
-            c.nombre.toLowerCase().includes(val.toLowerCase()) ||
-            c.cedula.includes(val)
-        ) {
-            clienteBox.innerHTML = `
-                <b>${c.nombre}</b><br>
-                ${c.cedula}
-                <button type="button" onclick="seleccionarCliente('${doc.id}','${c.nombre}')">
-                    Seleccionar
-                </button>
-            `;
+        if (!snap.empty) {
+            const doc = snap.docs[0];
+            const c = doc.data();
+            document.getElementById("clienteBox").innerHTML = `<b>${c.nombre}</b><br><span style="color:green">Cliente validado ✓</span>`;
+            document.getElementById("cliente_id").value = doc.id;
+            document.getElementById("cliente_nombre").value = c.nombre;
+            document.getElementById("btn-guardar").disabled = false; // Habilitamos el botón
+        } else {
+            document.getElementById("clienteBox").innerHTML = "No existe este código.";
+            document.getElementById("btn-guardar").disabled = true;
         }
     });
-});
 
-// seleccionar cliente
-window.seleccionarCliente = (id, nombre) => {
-    document.getElementById("cliente_id").value = id;
-    document.getElementById("cliente_nombre").value = nombre;
-    clienteBox.innerHTML = "Cliente: " + nombre;
-};
+    // Cálculo dinámico
+    function calcular() {
+        let m = parseFloat(document.getElementById("monto").value) || 0;
+        let i = parseFloat(document.getElementById("interes").value) || 0;
+        let c = parseInt(document.getElementById("cuotas").value) || 1;
+        let total = m + (m * i / 100);
+        document.getElementById("total").innerText = total.toFixed(2);
+        document.getElementById("cuota").innerText = (total / c).toFixed(2);
+    }
+    ["monto","interes","cuotas"].forEach(id => document.getElementById(id).addEventListener("input", calcular));
 
-// ---------------- CALCULO ----------------
-function calcular() {
-    let m = parseFloat(document.getElementById("monto").value) || 0;
-    let i = parseFloat(document.getElementById("interes").value) || 0;
-    let c = parseInt(document.getElementById("cuotas").value) || 1;
+    // Guardar
+    document.getElementById("form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById("btn-guardar");
+        btn.innerText = "Guardando...";
+        btn.disabled = true;
 
-    let total = m + (m * i / 100);
-    let cuota = total / c;
+        const data = {
+            id_empresa: idEmpresa,
+            cliente_id: document.getElementById("cliente_id").value,
+            cliente_nombre: document.getElementById("cliente_nombre").value,
+            monto: parseFloat(document.getElementById("monto").value),
+            total: parseFloat(document.getElementById("total").innerText),
+            cuota: parseFloat(document.getElementById("cuota").innerText),
+            fecha_inicio: document.getElementById("fecha").value,
+            estado: "activo",
+            fecha_creacion: new Date().toISOString()
+        };
 
-    document.getElementById("total").innerText = total.toFixed(2);
-    document.getElementById("cuota").innerText = cuota.toFixed(2);
-}
-
-["monto","interes","cuotas"].forEach(id=>{
-    document.getElementById(id).addEventListener("input", calcular);
-});
-
-// ---------------- GUARDAR ----------------
-document.getElementById("form").addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const data = {
-        id_empresa: idEmpresa,
-        cliente_id: document.getElementById("cliente_id").value,
-        cliente_nombre: document.getElementById("cliente_nombre").value,
-        monto: parseFloat(document.getElementById("monto").value),
-        interes: parseFloat(document.getElementById("interes").value),
-        modalidad: document.getElementById("modalidad").value,
-        cuotas: parseInt(document.getElementById("cuotas").value),
-        cuotas_pagadas: 0,
-        fecha_inicio: document.getElementById("fecha").value,
-        total: parseFloat(document.getElementById("total").innerText),
-        cuota: parseFloat(document.getElementById("cuota").innerText),
-        estado: "activo",
-        pagado_hoy: false,
-        fecha_creacion: new Date().toISOString()
-    };
-
-    await addDoc(collection(db, "prestamos"), data);
-
-    alert("Préstamo guardado");
-    window.location.href = "index.html";
-});
+        await addDoc(collection(db, "prestamos"), data);
+        alert("¡Préstamo registrado correctamente!");
+        window.location.href = "index.html";
+    });
 </script>
-
 </body>
 </html>
