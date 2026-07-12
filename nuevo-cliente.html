@@ -3,28 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRESTACOM 2.0 - Nuevo Cliente</title>
+    <title>PRESTACOM 2.0 - Registro Cliente</title>
     <link rel="stylesheet" href="css/variable.css">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: var(--color-background, #f1f5f9); color: var(--color-text-main, #334155); display: flex; justify-content: center; min-height: 100vh; }
-        .app-container { width: 100%; max-width: 480px; background-color: var(--color-background, #f1f5f9); display: flex; flex-direction: column; position: relative; }
-        header { background-color: var(--color-primary, #1e293b); color: white; padding: 15px 20px; display: flex; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 10; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: #f1f5f9; color: #334155; display: flex; justify-content: center; min-height: 100vh; }
+        .app-container { width: 100%; max-width: 480px; background-color: #f1f5f9; display: flex; flex-direction: column; }
+        header { background-color: #1e293b; color: white; padding: 15px 20px; display: flex; align-items: center; position: sticky; top: 0; z-index: 10; }
         .back-btn { text-decoration: none; color: white; font-size: 1.5rem; margin-right: 15px; }
-        header h1 { font-size: 1.25rem; font-weight: bold; }
         form { padding: 20px; display: flex; flex-direction: column; gap: 20px; padding-bottom: 90px; }
-        .form-section { background-color: var(--color-surface, #ffffff); border-radius: 12px; padding: 15px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02); border: 1px solid rgba(0,0,0,0.03); }
-        .section-title { font-size: 0.9rem; color: var(--color-primary, #ff6600); font-weight: 700; text-transform: uppercase; margin-bottom: 12px; border-bottom: 1px solid rgba(255, 102, 0, 0.1); padding-bottom: 4px; }
+        .form-section { background-color: #ffffff; border-radius: 12px; padding: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
+        .section-title { font-size: 0.9rem; color: #ff6600; font-weight: 700; text-transform: uppercase; margin-bottom: 12px; border-bottom: 1px solid rgba(255,102,0,0.1); padding-bottom: 4px; }
         .input-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
         label { font-size: 0.85rem; font-weight: 600; }
-        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 0.95rem; background-color: #FAFAFA; }
-        textarea { resize: none; height: 70px; }
-        .btn-gps-locator { width: 100%; background-color: #111827; color: #FFFFFF; border-radius: 8px; padding: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 5px; }
-        .btn-gps-locator.success { background-color: #22c55e; }
-        .footer-action { position: fixed; bottom: 0; width: 100%; max-width: 480px; background-color: var(--color-background, #f1f5f9); padding: 15px 20px; box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.08); z-index: 100; }
-        .submit-btn { width: 100%; background-color: #FF6600; color: #FFFFFF; border: none; border-radius: 8px; padding: 14px; font-size: 1.05rem; font-weight: bold; cursor: pointer; }
+        input, textarea { width: 100%; padding: 12px; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 0.95rem; background-color: #FAFAFA; }
+        .submit-btn { width: 100%; background-color: #FF6600; color: #FFFFFF; border: none; border-radius: 8px; padding: 14px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -36,31 +30,35 @@
         </header>
 
         <form id="form-nuevo-cliente">
+            <!-- Sección Datos Personales -->
             <div class="form-section">
                 <div class="section-title">Datos Personales</div>
-                <div class="input-group"><label>Cédula</label><input type="text" id="cedula" required></div>
+                <div class="input-group">
+                    <label>Cédula</label>
+                    <input type="text" id="cedula" placeholder="000-0000000-0" maxlength="13" oninput="formatearCedula(this)" required>
+                </div>
                 <div class="input-group"><label>Nombre Completo</label><input type="text" id="nombre" required></div>
                 <div class="input-group"><label>Apodo</label><input type="text" id="apodo"></div>
+                <div class="input-group"><label>Referido por</label><input type="text" id="referido_por"></div>
             </div>
 
+            <!-- Sección Contacto -->
             <div class="form-section">
                 <div class="section-title">Contacto y Ruta</div>
                 <div class="input-group"><label>Teléfono</label><input type="tel" id="telefono" required></div>
                 <div class="input-group"><label>Sector / Zona</label><input type="text" id="sector" required></div>
                 <div class="input-group"><label>Dirección</label><textarea id="direccion" required></textarea></div>
                 <input type="hidden" id="latitud"><input type="hidden" id="longitud">
-                <button type="button" id="btn-gps" class="btn-gps-locator" onclick="obtenerCoordenadasCelular()">
-                    <i class='bx bx-current-location'></i> <span id="txt-gps">Fijar Ubicación GPS</span>
-                </button>
             </div>
 
+            <!-- Sección Evaluación -->
             <div class="form-section">
                 <div class="section-title">Evaluación Financiera</div>
                 <div class="input-group"><label>Ingresos Mensuales ($)</label><input type="number" id="ingresos" required></div>
                 <div class="input-group"><label>Ocupación</label><input type="text" id="ocupacion" required></div>
             </div>
 
-            <div class="footer-action">
+            <div class="footer-action" style="padding: 15px 20px;">
                 <button type="submit" class="submit-btn" id="btn-guardar">Guardar Cliente</button>
             </div>
         </form>
@@ -70,7 +68,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // CONFIGURACIÓN ACTUALIZADA
         const firebaseConfig = {
             apiKey: "AIzaSyDbmVXLBIsBzk-wE60yVtchZ8WI4NWnAW4",
             authDomain: "prestacom-sistema-a2830.firebaseapp.com",
@@ -78,54 +75,51 @@
             storageBucket: "prestacom-sistema-a2830.firebasestorage.app",
             messagingSenderId: "500739174929",
             appId: "1:500739174929:web:1694f07bf65714606f77b0"
-        
         };
 
         const db = getFirestore(initializeApp(firebaseConfig));
-        const idEmpresa = localStorage.getItem('id_empresa');
-        const nombreUsuario = localStorage.getItem('nombre_usuario') || "Admin";
-
-        if (!idEmpresa) window.location.href = "login.html";
-
-        window.obtenerCoordenadasCelular = () => {
-            const btn = document.getElementById('btn-gps');
-            if (!navigator.geolocation) return alert("GPS no disponible");
-            navigator.geolocation.getCurrentPosition((pos) => {
-                document.getElementById('latitud').value = pos.coords.latitude;
-                document.getElementById('longitud').value = pos.coords.longitude;
-                btn.classList.add('success');
-                document.getElementById('txt-gps').innerText = "✓ Ubicación capturada";
-            }, () => alert("Error al obtener GPS"));
+        
+        // Formateador de Cédula
+        window.formatearCedula = function(input) {
+            let value = input.value.replace(/\D/g, '');
+            if (value.length > 3 && value.length <= 10) value = value.replace(/(\d{3})(\d+)/, '$1-$2');
+            else if (value.length > 10) value = value.replace(/(\d{3})(\d{7})(\d+)/, '$1-$2-$3');
+            input.value = value;
         };
 
         document.getElementById('form-nuevo-cliente').addEventListener('submit', async (e) => {
             e.preventDefault();
+            
+            // Validación estricta
+            const inputs = document.querySelectorAll('input[required], textarea[required]');
+            for(let i of inputs) { if(!i.value.trim()) return alert("El campo " + i.previousElementSibling.innerText + " es obligatorio."); }
+
             const btn = document.getElementById('btn-guardar');
             btn.disabled = true;
             btn.innerText = "Guardando...";
 
             try {
+                // Generar ID único CLI-XXXXXX
+                const numeroCliente = "CLI-" + Math.floor(100000 + Math.random() * 900000);
+
                 const nuevoCliente = {
-                    id_empresa: idEmpresa,
+                    numero_cliente: numeroCliente,
                     cedula: document.getElementById('cedula').value.trim(),
                     nombre: document.getElementById('nombre').value.trim(),
                     apodo: document.getElementById('apodo').value.trim(),
+                    referido_por: document.getElementById('referido_por').value.trim(),
                     telefono: document.getElementById('telefono').value.trim(),
                     ruta_sector: document.getElementById('sector').value.trim(),
                     direccion: document.getElementById('direccion').value.trim(),
-                    latitud: document.getElementById('latitud').value ? Number(document.getElementById('latitud').value) : null,
-                    longitud: document.getElementById('longitud').value ? Number(document.getElementById('longitud').value) : null,
                     ingresos: Number(document.getElementById('ingresos').value),
                     ocupacion: document.getElementById('ocupacion').value.trim(),
-                    fecha_registro: new Date().toISOString(),
-                    creado_por: nombreUsuario
+                    fecha_registro: new Date().toISOString()
                 };
 
                 await addDoc(collection(db, "clientes_prestamo"), nuevoCliente);
-                alert("¡Cliente guardado con éxito!");
+                alert("¡Éxito! Cliente creado. ID: " + numeroCliente);
                 window.location.href = "clientes.html";
             } catch (err) {
-                console.error("Error al guardar:", err);
                 alert("Error: " + err.message);
                 btn.disabled = false;
                 btn.innerText = "Guardar Cliente";
