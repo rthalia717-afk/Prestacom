@@ -331,7 +331,7 @@
             contenedor.innerHTML = '<p style="text-align: center; padding: 20px; color: #6B7280;">Buscando morosidad en la nube...</p>';
             
             try {
-                const q = query(collection(db, "prestamos"), where("id_empresa", "==", idEmpresaLogueada), where("status", "==", "Activo"));
+                const q = query(collection(db, "prestamos"), where("id_empresa", "==", idEmpresaLogueada), where("estado", "==", "Activo"));
                 const querySnapshot = await getDocs(q);
 
                 if (querySnapshot.empty) {
@@ -351,7 +351,7 @@
 
                     // CORREGIDO: Filtrado seguro incluyendo estados 'Pendiente' y 'Abonado' que ya expiraron
                     const cuotasAtrasadas = (prestamo.cuotas_detalle || []).filter(cuota => {
-                        if (cuota.status !== 'Pendiente' && cuota.status !== 'Abonado') return false;
+                        if (cuota.estado !== 'Pendiente' && cuota.estadp !== 'Abonado') return false;
                         const fechaVencimiento = parsearFechaString(cuota.fecha_vencimiento);
                         return fechaVencimiento < hoy;
                     });
@@ -375,7 +375,7 @@
                         card.id = `mora-card-${idPrestamo}`;
                         card.innerHTML = `
                             <div class="atraso-info">
-                                <h3>${prestamo.nombre_cliente}</h3>
+                                <h3>${prestamo.cliente_nombre}</h3>
                                 <div class="atraso-meta">
                                     <span>Debiendo: ${cuotasAtrasadas.length} ${cuotasAtrasadas.length === 1 ? 'cuota' : 'cuotas seguidas'}</span>
                                     <span class="alerta-dias">⚠️ ${diasRetraso} días de retraso</span>
@@ -396,7 +396,7 @@
                             datosCompletosPrestamo = prestamo;
                             cuotasVencidasSeleccionadas = cuotasAtrasadas;
 
-                            abrirModalAtraso(prestamo.nombre_cliente, mapaDeudaMora);
+                            abrirModalAtraso(prestamo.cliente_nombre, mapaDeudaMora);
                         });
                     }
                 });
@@ -462,14 +462,14 @@
 
                         if (fondoDisponible >= saldoPendienteEnCuota) {
                             fondoDisponible -= saldoPendienteEnCuota;
-                            cuota.status = 'Pagado';
+                            cuota.estado = 'Pagado';
                             cuota.monto_abonado = cuota.monto_cuota; // Se salda por completo
                             cuota.fecha_pago = fechaHoyStr;
                             cuota.monto_ultimo_pago_dia = saldoPendienteEnCuota; 
                         } else {
                             // Abono parcial inteligente acumula sobre el abono anterior
                             cuota.monto_abonado = abonoPrevio + fondoDisponible;
-                            cuota.status = 'Abonado';
+                            cuota.estadp = 'Abonado';
                             cuota.fecha_pago = fechaHoyStr;
                             cuota.monto_ultimo_pago_dia = fondoDisponible;
                             fondoDisponible = 0;
@@ -478,7 +478,7 @@
                     return cuota;
                 });
 
-                const cuotasRestantes = cuotasModificadas.filter(c => c.status !== 'Pagado').length;
+                const cuotasRestantes = cuotasModificadas.filter(c => c.estado !== 'Pagado').length;
                 const nuevoBalancePendiente = Math.max(0, datosCompletosPrestamo.balance_pendiente - montoRecibido);
                 const nuevoStatusPrestamo = cuotasRestantes === 0 ? 'Finalizado' : 'Activo';
 
@@ -487,7 +487,7 @@
                     cuotas_detalle: cuotasModificadas,
                     balance_pendiente: nuevoBalancePendiente,
                     cuotas_restantes: cuotasRestantes,
-                    status: nuevoStatusPrestamo
+                    estado: nuevoStatusPrestamo
                 });
 
                 // Cambios en la UI
