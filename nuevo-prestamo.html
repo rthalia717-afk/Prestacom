@@ -78,6 +78,56 @@
 
     document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
 
+    const buscar = document.getElementById("buscar");
+    const clienteBox = document.getElementById("clienteBox");
+    const btnGuardar = document.getElementById("btn-guardar");
+
+    async function mostrarLista(filtro = "") {
+        clienteBox.style.display = "block";
+        const q = query(collection(db, "clientes_prestamo"), where("id_empresa", "==", idEmpresa));
+        const snap = await getDocs(q);
+        
+        let html = '<button type="button" onclick="document.getElementById(\'clienteBox\').style.display=\'none\'" style="background:#ef4444; color:white; border:none; padding:5px; width:100%; border-radius:4px; margin-bottom:5px;">Cerrar Lista</button>';
+        
+        let encontrado = false;
+        snap.forEach(doc => {
+            const c = doc.data();
+            const nombre = c.nombre || "";
+            const id = c.numero_cliente || "";
+            
+            if (nombre.toUpperCase().includes(filtro.toUpperCase()) || id.toUpperCase().includes(filtro.toUpperCase())) {
+                encontrado = true;
+                html += `
+                    <div style="padding:10px; border-bottom:1px solid #eee; cursor:pointer;" 
+                         onclick="window.seleccionarCliente('${doc.id}','${nombre}')">
+                        <b>${nombre}</b> <br> <small>${id}</small>
+                    </div>`;
+            }
+        });
+        clienteBox.innerHTML = encontrado ? html : '<div style="padding:10px;">No se encontraron clientes.</div>';
+    }
+
+    buscar.addEventListener("focus", () => mostrarLista(buscar.value));
+    buscar.addEventListener("input", (e) => mostrarLista(e.target.value));
+
+    window.seleccionarCliente = (id, nombre) => {
+        document.getElementById("cliente_id").value = id;
+        document.getElementById("cliente_nombre").value = nombre;
+        buscar.value = nombre;
+        clienteBox.style.display = "none";
+        btnGuardar.disabled = false;
+    };
+
+    function calcular() {
+        let m = parseFloat(document.getElementById("monto").value) || 0;
+        let i = parseFloat(document.getElementById("interes").value) || 0;
+        let c = parseInt(document.getElementById("cuotas").value) || 1;
+        let total = m + (m * i / 100);
+        document.getElementById("total").innerText = total.toFixed(2);
+        document.getElementById("cuota").innerText = (total / c).toFixed(2);
+    }
+    ["monto","interes","cuotas"].forEach(id => document.getElementById(id).addEventListener("input", calcular));
+
     document.getElementById("form").addEventListener("submit", async (e) => {
         e.preventDefault();
         btnGuardar.disabled = true;
@@ -90,12 +140,11 @@
                 monto: parseFloat(document.getElementById("monto").value),
                 total: parseFloat(document.getElementById("total").innerText),
                 cuota: parseFloat(document.getElementById("cuota").innerText),
-                // --- CAMPOS CORREGIDOS QUE FALTABAN ---
+                // Campos restaurados y verificados
                 modalidad: document.getElementById("modalidad").value,
                 cuotas: parseInt(document.getElementById("cuotas").value),
                 cuotas_pagadas: 0,
                 estado: "activo",
-                // --------------------------------------
                 fecha_inicio: document.getElementById("fecha").value,
                 fecha_creacion: new Date().toISOString()
             });
@@ -105,8 +154,6 @@
             alert("Error: " + e.message);
             btnGuardar.disabled = false;
             btnGuardar.innerText = "Guardar Préstamo";
-        
-    
         }
     });
 </script>
