@@ -1,3 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRESTACOM 2.0 - Nuevo Préstamo</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; font-family:Arial, sans-serif; }
+        body { background:#f1f5f9; display:flex; justify-content:center; }
+        .container { width:100%; max-width:480px; background:#fff; min-height:100vh; padding-bottom: 20px; }
+        header { background:#1e293b; color:#fff; padding:15px; display:flex; gap:10px; align-items:center; position:sticky; top:0; z-index:100; }
+        header a { color:#fff; text-decoration:none; font-size:20px; }
+        form { padding:15px; display:flex; flex-direction:column; gap:15px; }
+        .card { border:1px solid #e5e7eb; border-radius:10px; padding:12px; background:#f8fafc; }
+        label { font-size:13px; display:block; margin-bottom:5px; font-weight:bold; }
+        input, select { width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; font-size: 16px; }
+        .cliente-box { background:#fff; padding:10px; border-radius:8px; font-size:13px; border:1px solid #ddd; margin-top:5px; min-height: 50px; }
+        button { width:100%; padding:14px; background:#ff6600; color:#fff; border:none; border-radius:8px; font-weight:bold; cursor:pointer; font-size: 16px; }
+        button:disabled { background:#cbd5e1; cursor:not-allowed; }
+        .resumen { font-size:14px; background:#fff; padding:10px; border-radius:8px; border:1px solid #ff6600; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <a href="index.html">⬅</a>
+        <h1>Nuevo Préstamo</h1>
+    </header>
+
+    <form id="form">
+        <div class="card">
+            <label>Cliente</label>
+            <input type="text" id="buscar" placeholder="Escribe nombre, ID o busca en lista..." autocomplete="off">
+            <div id="clienteBox" class="cliente-box" style="display:none; max-height: 200px; overflow-y: auto;"></div>
+            <input type="hidden" id="cliente_id">
+            <input type="hidden" id="cliente_nombre">
+        </div>
+
+        <div class="card">
+            <label>Monto</label> <input type="number" id="monto" required>
+            <label>Interés (%)</label> <input type="number" id="interes" value="20">
+            <label>Modalidad</label>
+            <select id="modalidad">
+                <option value="diario">Diario</option>
+                <option value="semanal">Semanal</option>
+                <option value="quincenal">Quincenal</option>
+                <option value="mensual">Mensual</option>
+            </select>
+            <label>Cuotas</label> <input type="number" id="cuotas" required>
+            <label>Fecha inicio</label> <input type="date" id="fecha" required>
+        </div>
+
+        <div class="card resumen">
+            <p><b>Total a pagar:</b> RD$ <span id="total">0.00</span></p>
+            <p><b>Cuota:</b> RD$ <span id="cuota">0.00</span></p>
+        </div>
+
+        <button type="submit" id="btn-guardar" disabled>Guardar Préstamo</button>
+    </form>
+</div>
+
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getFirestore, collection, query, where, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
@@ -56,7 +118,6 @@
         btnGuardar.disabled = false;
     };
 
-    // Cálculos dinámicos
     function calcular() {
         let m = parseFloat(document.getElementById("monto").value) || 0;
         let i = parseFloat(document.getElementById("interes").value) || 0;
@@ -67,12 +128,10 @@
     }
     ["monto","interes","cuotas"].forEach(id => document.getElementById(id).addEventListener("input", calcular));
 
-    // Guardar
     document.getElementById("form").addEventListener("submit", async (e) => {
         e.preventDefault();
         btnGuardar.disabled = true;
         btnGuardar.innerText = "Guardando...";
-
         try {
             await addDoc(collection(db, "prestamos"), {
                 id_empresa: idEmpresa,
@@ -94,3 +153,5 @@
         }
     });
 </script>
+</body>
+</html>
