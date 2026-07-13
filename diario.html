@@ -53,13 +53,16 @@
     const db = getFirestore(initializeApp(firebaseConfig));
     const idEmpresa = localStorage.getItem("id_empresa");
 
-    let todosLosPrestamos = [];
+    let todosLosPrestamos = []; // Aquí guardaremos la base maestra
 
     const q = query(collection(db, "prestamos"), where("id_empresa", "==", idEmpresa), where("modalidad", "==", "diario"), where("estado", "==", "activo"));
 
     onSnapshot(q, (snapshot) => {
-        todosLosPrestamos = [];
-        snapshot.forEach((doc) => { todosLosPrestamos.push({ id: doc.id, ...doc.data() }); });
+        todosLosPrestamos = []; // Limpiamos la memoria
+        snapshot.forEach((doc) => { 
+            todosLosPrestamos.push({ id: doc.id, ...doc.data() }); 
+        });
+        // Renderizamos todo por defecto al cargar o al actualizarse Firebase
         renderizar(todosLosPrestamos);
     });
 
@@ -112,10 +115,17 @@
         });
     }
 
+    // El buscador ahora es un "filtro" sobre la lista maestra
     document.getElementById("buscar").addEventListener("input", (e) => {
         const busqueda = e.target.value.toUpperCase();
-        const filtrados = todosLosPrestamos.filter(p => p.cliente_nombre.toUpperCase().includes(busqueda));
-        renderizar(filtrados);
+        if (busqueda === "") {
+            renderizar(todosLosPrestamos); // Si borra, muestra todo de nuevo
+        } else {
+            const filtrados = todosLosPrestamos.filter(p => 
+                (p.cliente_nombre || "").toUpperCase().includes(busqueda)
+            );
+            renderizar(filtrados);
+        }
     });
 </script>
 </body>
