@@ -55,7 +55,8 @@
 
     let todosLosPrestamos = []; // Aquí guardaremos la base maestra
 
-    const q = query(collection(db, "prestamos"), where("id_empresa", "==", idEmpresa), where("modalidad", "==", "diario"), where("estado", "==", "activo"));
+    const q = query(collection(db, "prestamos"), where("id_empresa", "==", idEmpresa), where("modalidad", "==", "diario"));
+                  //  , where("estado", "==", "activo"));
 
     onSnapshot(q, (snapshot) => {
         todosLosPrestamos = []; // Limpiamos la memoria
