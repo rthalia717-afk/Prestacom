@@ -1,68 +1,3 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRESTACOM 2.0 - Nuevo Préstamo</title>
-    <style>
-        * { margin:0; padding:0; box-sizing:border-box; font-family:Arial, sans-serif; }
-        body { background:#f1f5f9; display:flex; justify-content:center; }
-        .container { width:100%; max-width:480px; background:#fff; min-height:100vh; padding-bottom: 20px; }
-        header { background:#1e293b; color:#fff; padding:15px; display:flex; gap:10px; align-items:center; position:sticky; top:0; z-index:100; }
-        header a { color:#fff; text-decoration:none; font-size:20px; }
-        form { padding:15px; display:flex; flex-direction:column; gap:15px; }
-        .card { border:1px solid #e5e7eb; border-radius:10px; padding:12px; background:#f8fafc; }
-        label { font-size:13px; display:block; margin-bottom:5px; font-weight:bold; }
-        input, select { width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; font-size: 16px; }
-        .cliente-box { background:#fff; padding:10px; border-radius:8px; font-size:13px; border:1px solid #ddd; margin-top:5px; min-height: 50px; }
-        button { width:100%; padding:14px; background:#ff6600; color:#fff; border:none; border-radius:8px; font-weight:bold; cursor:pointer; font-size: 16px; }
-        button:disabled { background:#cbd5e1; cursor:not-allowed; }
-        .resumen { font-size:14px; background:#fff; padding:10px; border-radius:8px; border:1px solid #ff6600; }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <header>
-        <a href="index.html">⬅</a>
-        <h1>Nuevo Préstamo</h1>
-    </header>
-
-    <form id="form">
-        <!-- BUSCADOR HÍBRIDO -->
-        <div class="card">
-            <label>Buscar Cliente (Nombre o ID)</label>
-            <input type="text" id="buscar" placeholder="Ej: Juan o CLI-123456" autofocus>
-            <div class="cliente-box" id="clienteBox">Escribe para buscar...</div>
-            <input type="hidden" id="cliente_id">
-            <input type="hidden" id="cliente_nombre">
-        </div>
-
-        <!-- DATOS PRESTAMO -->
-        <div class="card">
-            <label>Monto</label> <input type="number" id="monto" required>
-            <label>Interés (%)</label> <input type="number" id="interes" value="20">
-            <label>Modalidad</label>
-            <select id="modalidad">
-                <option value="diario">Diario</option>
-                <option value="semanal">Semanal</option>
-                <option value="quincenal">Quincenal</option>
-                <option value="mensual">Mensual</option>
-            </select>
-            <label>Cuotas</label> <input type="number" id="cuotas" required>
-            <label>Fecha inicio</label> <input type="date" id="fecha" required>
-        </div>
-
-        <!-- RESUMEN -->
-        <div class="card resumen">
-            <p><b>Total a pagar:</b> RD$ <span id="total">0.00</span></p>
-            <p><b>Cuota:</b> RD$ <span id="cuota">0.00</span></p>
-        </div>
-
-        <button type="submit" id="btn-guardar" disabled>Guardar Préstamo</button>
-    </form>
-</div>
-
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getFirestore, collection, query, where, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
@@ -79,52 +14,49 @@
     const db = getFirestore(initializeApp(firebaseConfig));
     const idEmpresa = localStorage.getItem("id_empresa");
 
-    // Fecha hoy
     document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
 
-    // Búsqueda Híbrida
     const buscar = document.getElementById("buscar");
     const clienteBox = document.getElementById("clienteBox");
     const btnGuardar = document.getElementById("btn-guardar");
 
-    buscar.addEventListener("input", async (e) => {
-        const val = e.target.value.trim().toUpperCase();
-        if (val.length < 3) {
-            clienteBox.innerHTML = "Escribe al menos 3 caracteres...";
-            return;
-        }
-
+    async function mostrarLista(filtro = "") {
+        clienteBox.style.display = "block";
         const q = query(collection(db, "clientes_prestamo"), where("id_empresa", "==", idEmpresa));
         const snap = await getDocs(q);
-
+        
+        let html = '<button type="button" onclick="document.getElementById(\'clienteBox\').style.display=\'none\'" style="background:#ef4444; color:white; border:none; padding:5px; width:100%; border-radius:4px; margin-bottom:5px;">Cerrar Lista</button>';
+        
         let encontrado = false;
         snap.forEach(doc => {
             const c = doc.data();
-            if (c.nombre.toUpperCase().includes(val) || c.numero_cliente.toUpperCase().includes(val)) {
+            const nombre = c.nombre || "";
+            const id = c.numero_cliente || "";
+            
+            if (nombre.toUpperCase().includes(filtro.toUpperCase()) || id.toUpperCase().includes(filtro.toUpperCase())) {
                 encontrado = true;
-                clienteBox.innerHTML = `
-                    <div style="padding: 10px; border: 1px solid #ff6600; border-radius: 8px;">
-                        <b>${c.nombre}</b> <br>
-                        <small>ID: ${c.numero_cliente}</small><br>
-                        <button type="button" style="margin-top:5px; background:#22c55e; color:white; border:none; padding:8px; border-radius:5px; width:100%" 
-                                onclick="window.seleccionarCliente('${doc.id}','${c.nombre}')">
-                            Seleccionar
-                        </button>
-                    </div>
-                `;
+                html += `
+                    <div style="padding:10px; border-bottom:1px solid #eee; cursor:pointer;" 
+                         onclick="window.seleccionarCliente('${doc.id}','${nombre}')">
+                        <b>${nombre}</b> <br> <small>${id}</small>
+                    </div>`;
             }
         });
-        if (!encontrado) clienteBox.innerHTML = "No se encontró.";
-    });
+        clienteBox.innerHTML = encontrado ? html : '<div style="padding:10px;">No se encontraron clientes.</div>';
+    }
+
+    buscar.addEventListener("focus", () => mostrarLista(buscar.value));
+    buscar.addEventListener("input", (e) => mostrarLista(e.target.value));
 
     window.seleccionarCliente = (id, nombre) => {
         document.getElementById("cliente_id").value = id;
         document.getElementById("cliente_nombre").value = nombre;
-        clienteBox.innerHTML = `<b style="color:green">✓ ${nombre} seleccionado</b>`;
+        buscar.value = nombre;
+        clienteBox.style.display = "none";
         btnGuardar.disabled = false;
     };
 
-    // Cálculos
+    // Cálculos dinámicos
     function calcular() {
         let m = parseFloat(document.getElementById("monto").value) || 0;
         let i = parseFloat(document.getElementById("interes").value) || 0;
@@ -141,23 +73,24 @@
         btnGuardar.disabled = true;
         btnGuardar.innerText = "Guardando...";
 
-        const data = {
-            id_empresa: idEmpresa,
-            cliente_id: document.getElementById("cliente_id").value,
-            cliente_nombre: document.getElementById("cliente_nombre").value,
-            monto: parseFloat(document.getElementById("monto").value),
-            total: parseFloat(document.getElementById("total").innerText),
-            cuota: parseFloat(document.getElementById("cuota").innerText),
-            fecha_inicio: document.getElementById("fecha").value,
-            estado: "activo",
-            fecha_creacion: new Date().toISOString()
-        };
-
-        await addDoc(collection(db, "prestamos"), data);
-        alert("¡Préstamo registrado!");
-        window.location.href = "index.html";
+        try {
+            await addDoc(collection(db, "prestamos"), {
+                id_empresa: idEmpresa,
+                cliente_id: document.getElementById("cliente_id").value,
+                cliente_nombre: document.getElementById("cliente_nombre").value,
+                monto: parseFloat(document.getElementById("monto").value),
+                total: parseFloat(document.getElementById("total").innerText),
+                cuota: parseFloat(document.getElementById("cuota").innerText),
+                fecha_inicio: document.getElementById("fecha").value,
+                estado: "activo",
+                fecha_creacion: new Date().toISOString()
+            });
+            alert("Préstamo registrado.");
+            window.location.href = "index.html";
+        } catch (e) {
+            alert("Error: " + e.message);
+            btnGuardar.disabled = false;
+            btnGuardar.innerText = "Guardar Préstamo";
+        }
     });
 </script>
-
-</body>
-</html>
