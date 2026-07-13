@@ -116,15 +116,23 @@
 
         window.renderizar = (lista) => {
             const cont = document.getElementById('contenedor-prestamos');
-            cont.innerHTML = lista.length ? "" : '<p style="text-align:center;">No hay resultados.</p>';
+            cont.innerHTML = ""; 
             
-            lista.forEach(p => {
+            // Filtramos la lista para quitar los finalizados
+            const listaActiva = lista.filter(p => p.estado !== 'finalizado');
+            
+            if (listaActiva.length === 0) {
+                cont.innerHTML = '<p style="text-align:center;">No hay préstamos activos.</p>';
+                return;
+            }
+            
+            listaActiva.forEach(p => {
                 const card = document.createElement('div');
                 card.className = 'loan-card';
                 card.innerHTML = `
                     <div class="loan-header">
                         <div><h3>${p.cliente_nombre}</h3></div>
-                        <span class="status-badge ${p.estado === 'activo' ? 'status-activo' : 'status-finalizado'}">${p.estado}</span>
+                        <span class="status-badge status-activo">ACTIVO</span>
                     </div>
                     <div class="loan-details">
                         <div class="detail-item"><span>Monto</span><strong>$${p.monto.toLocaleString()}</strong></div>
@@ -135,6 +143,7 @@
                 cont.appendChild(card);
             });
         };
+              
 
         window.filtrar = (tipo, btn) => {
             const listaFiltrada = (tipo === 'todos') ? prestamosGlobales : prestamosGlobales.filter(p => p.estado === tipo);
