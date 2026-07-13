@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Centro de Reportes - PRESA-FACIL</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .report-card {
+            transition: all 0.2s ease;
+        }
+        .report-card:hover {
+            background-color: #f8fafc;
+            transform: translateY(-2px);
+            border-color: #f97316;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen pb-10">
+
+    <!-- Header -->
+    <header class="bg-[#111827] text-white p-6 shadow-md">
+        <div class="flex items-center gap-4">
+            <a href="index.html" class="text-2xl">←</a>
+            <div>
+                <h1 class="text-xl font-bold">Centro de Reportes</h1>
+                <p class="text-xs text-gray-400">Mi Empresa</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-lg mx-auto p-4 space-y-8">
+        
+        <!-- PRÉSTAMOS Y CAPITAL -->
+        <section>
+            <h2 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 ml-1">Préstamos y Capital</h2>
+            <div class="space-y-3">
+                <a href="prestamos-emitidos.html" class="report-card flex items-center bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                    <div class="bg-green-50 p-3 rounded-lg mr-4">📈</div>
+                    <div class="flex-grow">
+                        <h3 class="font-bold text-gray-800">Préstamos Emitidos</h3>
+                        <p class="text-xs text-gray-500">Análisis de colocación de capital por fechas.</p>
+                    </div>
+                    <span class="text-gray-400">›</span>
+                </a>
+                <a href="capital-calle.html" class="report-card flex items-center bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                    <div class="bg-green-50 p-3 rounded-lg mr-4">💵</div>
+                    <div class="flex-grow">
+                        <h3 class="font-bold text-gray-800">Capital en la Calle</h3>
+                        <p class="text-xs text-gray-500">Saldos pendientes y dinero activo circulando.</p>
+                    </div>
+                    <span class="text-gray-400">›</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- RENDIMIENTO Y COBRANZA -->
+        <section>
+            <h2 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 ml-1">Rendimiento y Cobranza</h2>
+            <div class="space-y-3">
+                <a href="reporte-mensajeros.html" class="report-card flex items-center bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                    <div class="bg-blue-50 p-3 rounded-lg mr-4">🛵</div>
+                    <div class="flex-grow">
+                        <h3 class="font-bold text-gray-800">Reporte por Mensajeros</h3>
+                        <p class="text-xs text-gray-500">Cobros ejecutados y efectividad por ruta.</p>
+                    </div>
+                    <span class="text-gray-400">›</span>
+                </a>
+                <a href="cuotas-atrasadas.html" class="report-card flex items-center bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                    <div class="bg-blue-50 p-3 rounded-lg mr-4">🕒</div>
+                    <div class="flex-grow">
+                        <h3 class="font-bold text-gray-800">Cuotas Atrasadas y Mora</h3>
+                        <p class="text-xs text-gray-500">Clientes fuera de fecha ordenados por atraso.</p>
+                    </div>
+                    <span class="text-gray-400">›</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- GESTIÓN DE CLIENTES -->
+        <section>
+            <h2 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 ml-1">Gestión de Clientes</h2>
+            <div class="space-y-3">
+                <a href="reporte-clientes.html" class="report-card flex items-center bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                    <div class="bg-orange-50 p-3 rounded-lg mr-4">👥</div>
+                    <div class="flex-grow">
+                        <h3 class="font-bold text-gray-800">Reporte de Clientes</h3>
+                        <p class="text-xs text-gray-500">Estados de cuenta, perfiles y niveles de riesgo.</p>
+                    </div>
+                    <span class="text-gray-400">›</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- AUDITORÍA Y CUADRES -->
+        <section>
+            <h2 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 ml-1">Auditoría y Cuadres</h2>
+            <div class="space-y-3">
+                <a href="historial-cierres.html" class="report-card flex items-center bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                    <div class="bg-purple-50 p-3 rounded-lg mr-4">🔒</div>
+                    <div class="flex-grow">
+                        <h3 class="font-bold text-gray-800">Historial de Cierres de Caja</h3>
+                        <p class="text-xs text-gray-500">Registro detallado de ingresos y arqueos diarios.</p>
+                    </div>
+                    <span class="text-gray-400">›</span>
+                </a>
+            </div>
+        </section>
+
+    </main>
+
+</body>
+</html>
