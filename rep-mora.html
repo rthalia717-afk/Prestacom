@@ -13,7 +13,7 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRESTACOM 2.0 - Reporte por Mensajeros</title>
+    <title>PRESTACOM 2.0 - Reporte de Mora</title>
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 
     <style>
@@ -80,7 +80,7 @@
             gap: 12px;
         }
 
-        /* 🛵 FILTROS DE SELECCIÓN */
+        /* 🔍 PANEL DE FILTROS */
         .filter-card {
             background: white;
             border-radius: 16px;
@@ -93,7 +93,7 @@
 
         .filter-row {
             display: grid;
-            grid-template-columns: 1.2fr 1fr;
+            grid-template-columns: 1fr 1fr;
             gap: 10px;
         }
 
@@ -110,7 +110,7 @@
             text-transform: uppercase;
         }
 
-        .input-group select, .input-group input {
+        .input-group select {
             padding: 9px 12px;
             border: 1px solid #CBD5E1;
             border-radius: 10px;
@@ -122,7 +122,7 @@
         }
 
         .search-btn {
-            background: #6c5ce7; /* Color del módulo de mensajeros */
+            background: #e74c3c; /* Alerta / Mora */
             color: white;
             border: none;
             padding: 10px;
@@ -138,7 +138,7 @@
 
         .search-btn:active { transform: scale(0.98); }
 
-        /* 📊 INDICADORES DE RUTA */
+        /* 📊 MÉTRICAS DE MORA */
         .metrics-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -167,14 +167,13 @@
             font-size: 1.2rem;
         }
 
-        .icon-purple { color: #6c5ce7; background: rgba(108, 92, 231, 0.1); }
-        .icon-green { color: #2ecc71; background: rgba(46, 204, 113, 0.1); }
         .icon-red { color: #e74c3c; background: rgba(231, 76, 60, 0.1); }
+        .icon-orange { color: #f39c12; background: rgba(243, 156, 18, 0.1); }
 
         .metric-data p { font-size: 0.7rem; color: #6B7280; font-weight: 600; }
         .metric-data h3 { font-size: 1rem; font-weight: 700; color: #1E293B; }
 
-        /* 📜 HISTORIAL DE RECAUDACIÓN */
+        /* 📜 LISTA DE CLIENTES EN MORA */
         .section-subtitle {
             font-size: 0.8rem;
             text-transform: uppercase;
@@ -184,32 +183,85 @@
             margin-bottom: -4px;
         }
 
-        .receipts-container {
+        .mora-container {
             flex: 1;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 10px;
             padding-bottom: 10px;
         }
 
-        .receipt-card {
-            background: rgba(255, 255, 255, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.6);
+        .mora-card {
+            background: white;
+            border-left: 4px solid #e74c3c;
             border-radius: 12px;
             padding: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .mora-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .client-info h4 { font-size: 0.9rem; font-weight: 700; color: #1E293B; }
+        .client-info p { font-size: 0.72rem; color: #6B7280; margin-top: 1px; }
+
+        .mora-badge {
+            background: rgba(231, 76, 60, 0.1);
+            color: #e74c3c;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 6px;
+        }
+
+        .mora-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            background: #f8fafc;
+            padding: 8px 10px;
+            border-radius: 8px;
+            font-size: 0.78rem;
+        }
+
+        .mora-details div p { color: #64748b; font-size: 0.68rem; }
+        .mora-details div span { font-weight: 700; color: #1e293b; }
+
+        .mora-footer {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border-top: 1px solid #f1f5f9;
+            padding-top: 8px;
         }
 
-        .receipt-left h4 { font-size: 0.88rem; font-weight: 600; color: #1E293B; }
-        .receipt-left p { font-size: 0.7rem; color: #6B7280; margin-top: 2px; }
-        .receipt-left span { color: #6c5ce7; font-weight: 600; }
+        .loan-meta { font-size: 0.72rem; color: #94a3b8; }
+        
+        .action-links {
+            display: flex;
+            gap: 8px;
+        }
 
-        .receipt-right { text-align: right; }
-        .receipt-val { font-size: 0.92rem; font-weight: 700; color: #2ecc71; }
-        .receipt-time { font-size: 0.68rem; color: #9CA3AF; margin-top: 2px; }
+        .action-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 4px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .whatsapp-btn { color: #27ae60; background: rgba(39, 174, 96, 0.1); }
+        .call-btn { color: #2980b9; background: rgba(41, 128, 185, 0.1); }
 
         .no-data {
             text-align: center;
@@ -226,145 +278,92 @@
         <header>
             <button class="back-btn" onclick="window.location.href='reportes.html'"><i class='bx bx-left-arrow-alt'></i></button>
             <div class="header-title">
-                <h1>Rendimiento por Mensajero</h1>
+                <h1>Auditoría de Cartera en Mora</h1>
             </div>
         </header>
 
         <main>
-            <!-- 🛵 Panel de Filtro Activo -->
+            <!-- 🔍 Filtros de Cartera -->
             <div class="filter-card">
                 <div class="filter-row">
                     <div class="input-group">
-                        <label for="select-mensajero">Mensajero</label>
-                        <select id="select-mensajero">
-                            <option value="">Seleccione un cobrador...</option>
-                            <!-- Se cargará dinámicamente -->
+                        <label for="select-rango">Rango de Atraso</label>
+                        <select id="select-rango">
+                            <option value="todos">Todos los atrasos</option>
+                            <option value="1-7">1 a 7 días</option>
+                            <option value="8-15">8 a 15 días</option>
+                            <option value="16-30">16 a 30 días</option>
+                            <option value="mas30">Más de 30 días</option>
                         </select>
                     </div>
                     <div class="input-group">
-                        <label for="fecha-reporte">Fecha</label>
-                        <input type="date" id="fecha-reporte">
+                        <label for="select-mensajero">Cobrador / Ruta</label>
+                        <select id="select-mensajero">
+                            <option value="">Todas las rutas</option>
+                            <!-- Dinámico -->
+                        </select>
                     </div>
                 </div>
-                <button class="search-btn" id="btn-consultar">
-                    <i class='bx bx-cycling'></i> Consultar Ruta
+                <button class="search-btn" id="btn-consultar-mora">
+                    <i class='bx bx-search-alt'></i> Filtrar Cartera Vencida
                 </button>
             </div>
 
-            <!-- 📊 Resumen de Recaudación -->
+            <!-- 📊 Resumen Financiero de Mora -->
             <div class="metrics-grid">
                 <div class="metric-card full-width">
-                    <div class="metric-icon icon-purple"><i class='bx bx-wallet'></i></div>
+                    <div class="metric-icon icon-red"><i class='bx bx-error-circle'></i></div>
                     <div class="metric-data">
-                        <p>Total Cobrado (Efectivo en Mano)</p>
-                        <h3 id="txt-total-cobrado">RD$ 0.00</h3>
+                        <p>Total Cartera Vencida (Monto en Riesgo)</p>
+                        <h3 id="txt-total-mora">RD$ 0.00</h3>
                     </div>
                 </div>
                 <div class="metric-card">
-                    <div class="metric-icon icon-green"><i class='bx bx-check-circle'></i></div>
+                    <div class="metric-icon icon-orange"><i class='bx bx-user-x'></i></div>
                     <div class="metric-data">
-                        <p>Cobros Efectivos</p>
-                        <h3 id="txt-visitas-exito">0 / 0</h3>
+                        <p>Clientes Atrasados</p>
+                        <h3 id="txt-cant-clientes">0</h3>
                     </div>
                 </div>
                 <div class="metric-card">
-                    <div class="metric-icon icon-red"><i class='bx bx-calendar-exclamation'></i></div>
+                    <div class="metric-icon icon-red"><i class='bx bx-time-five'></i></div>
                     <div class="metric-data">
-                        <p>Monto Pendiente</p>
-                        <h3 id="txt-monto-pendiente">RD$ 0.00</h3>
+                        <p>Promedio Días Retraso</p>
+                        <h3 id="txt-promedio-dias">0 días</h3>
                     </div>
                 </div>
             </div>
 
-            <!-- 📜 Lista de Recibos Recaudados -->
-            <h3 class="section-subtitle">Recibos Emitidos en la Ruta</h3>
-            <div class="receipts-container" id="lista-recibos">
-                <div class="no-data">Selecciona un mensajero y fecha para auditar la ruta.</div>
+            <!-- 📜 Lista Detallada de Préstamos en Mora -->
+            <h3 class="section-subtitle">Detalle por Cliente y Préstamo</h3>
+            <div class="mora-container" id="lista-mora">
+                <div class="no-data">Selecciona los filtros para auditar los préstamos en mora.</div>
             </div>
         </main>
     </div>
 
     <script type="module">
-        // Setear fecha de hoy por defecto
-        document.getElementById('fecha-reporte').value = new Date().toISOString().split('T')[0];
+        document.getElementById('btn-consultar-mora').addEventListener('click', consultarMora);
 
-        document.getElementById('btn-consultar').addEventListener('click', consultarRuta);
-
-        // Simulación de carga de mensajeros desde la base de datos local
-        function cargarMensajeros() {
-            const select = document.getElementById('select-mensajero');
-            
-            // Reemplazar este array con tus mensajeros reales almacenados
-            const mensajerosSimulados = [
-                { id: "1", nombre: "Juan Carlos Espinal" },
-                { id: "2", nombre: "Pedro Almonte" }
-            ];
-
-            mensajerosSimulados.forEach(m => {
-                const opt = document.createElement('option');
-                opt.value = m.id;
-                opt.textContent = m.nombre;
-                select.appendChild(opt);
-            });
-        }
-
-        function consultarRuta() {
-            const idMensajero = document.getElementById('select-mensajero').value;
-            const fecha = document.getElementById('fecha-reporte').value;
-            const container = document.getElementById('lista-recibos');
-
-            if (!idMensajero) {
-                container.innerHTML = '<div class="no-data" style="color: #e74c3c;">Debe seleccionar un mensajero válido.</div>';
-                return;
-            }
-
-            container.innerHTML = '<div class="no-data"><i class="bx bx-loader-alt bx-spin"></i> Auditando transacciones de la calle...</div>';
+        function consultarMora() {
+            const container = document.getElementById('lista-mora');
+            container.innerHTML = '<div class="no-data"><i class="bx bx-loader-alt bx-spin"></i> Analizando base de datos de préstamos...</div>';
 
             setTimeout(() => {
-                // Simulación de los recibos que traería el backend de ese mensajero específico en esa fecha
-                const recibosSimulados = [];
+                // Aquí conectarías con tu lógica de Firebase cruzando Clientes, Préstamos y Cuotas vencidas
+                const prestamosEnMora = []; // Simulado vacío por defecto
 
-                if (recibosSimulados.length === 0) {
-                    container.innerHTML = '<div class="no-data">Este mensajero no registra cobros en la fecha seleccionada.</div>';
-                    document.getElementById('txt-total-cobrado').textContent = "RD$ 0.00";
-                    document.getElementById('txt-visitas-exito').textContent = "0 / 0";
-                    document.getElementById('txt-monto-pendiente').textContent = "RD$ 0.00";
+                if (prestamosEnMora.length === 0) {
+                    container.innerHTML = '<div class="no-data">¡Excelente! No hay clientes en mora bajo los filtros seleccionados.</div>';
+                    document.getElementById('txt-total-mora').textContent = "RD$ 0.00";
+                    document.getElementById('txt-cant-clientes').textContent = "0";
+                    document.getElementById('txt-promedio-dias').textContent = "0 días";
                     return;
                 }
 
-                container.innerHTML = "";
-                let totalCobrado = 0;
-                let visitadosConExito = recibosSimulados.length;
-                let totalRutaAsignada = 15; // Ejemplo estático de clientes en la ruta
-
-                recibosSimulados.forEach(recibo => {
-                    totalCobrado += parseFloat(recibo.monto);
-
-                    const card = document.createElement('div');
-                    card.className = 'receipt-card';
-                    card.innerHTML = `
-                        <div class="receipt-left">
-                            <h4>${recibo.cliente}</h4>
-                            <p>Recibo: <span>#${recibo.num_recibo}</span></p>
-                        </div>
-                        <div class="receipt-right">
-                            <div class="receipt-val">RD$ ${parseFloat(recibo.monto).toLocaleString('es-DO', {minimumFractionDigits: 2})}</div>
-                            <div class="receipt-time"><i class="bx bx-time"></i> ${recibo.hora}</div>
-                        </div>
-                    `;
-                    container.appendChild(card);
-                });
-
-                // Actualizar contadores superiores
-                document.getElementById('txt-total-cobrado').textContent = `RD$ ${totalCobrado.toLocaleString('es-DO', {minimumFractionDigits: 2})}`;
-                document.getElementById('txt-visitas-exito').textContent = `${visitadosConExito} / ${totalRutaAsignada}`;
-                document.getElementById('txt-monto-pendiente').textContent = `RD$ ${(8500).toLocaleString('es-DO', {minimumFractionDigits: 2})}`; // Ejemplo simulado de mora restante
-
+                // Renderizado de tarjetas si existieran datos...
             }, 500);
         }
-
-        // Inicializar nombres al cargar la vista
-        cargarMensajeros();
     </script>
 </body>
 </html>
