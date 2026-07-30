@@ -1,5 +1,297 @@
-<script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRESTACOM 2.0 - Control de Atrasos</title>
+    <link rel="stylesheet" href="css/variable.css">
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--color-background);
+            color: var(--color-text-main);
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 480px;
+            background-color: var(--color-background);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        header {
+            background-color: #C0392B; /* Rojo estricto para alertar morosidad */
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .back-btn {
+            text-decoration: none;
+            color: white;
+            font-size: 1.5rem;
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        header h1 {
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
+
+        /* Tarjeta de Pérdida o Total en Mora */
+        .danger-card {
+            background-color: #FDEDEC;
+            border-left: 5px solid #C0392B;
+            margin: 15px 20px 5px 20px;
+            padding: 15px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .danger-card span {
+            font-size: 0.85rem;
+            color: #7B241C;
+            font-weight: 600;
+        }
+
+        .danger-card strong {
+            font-size: 1.2rem;
+            color: #C0392B;
+        }
+
+        /* Lista de morosos */
+        .atrasos-list {
+            padding: 15px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .atraso-card {
+            background-color: var(--color-surface);
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+            border: 1px solid rgba(0,0,0,0.03);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: opacity 0.3s;
+        }
+
+        .atraso-card.resuelto {
+            opacity: 0.5;
+        }
+
+        .atraso-info h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .atraso-meta {
+            font-size: 0.8rem;
+            color: #6B7280;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .alerta-dias {
+            color: #C0392B;
+            font-weight: 700;
+        }
+
+        .atraso-action {
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            align-items: flex-end;
+        }
+
+        .monto-mora {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #C0392B;
+        }
+
+        .btn-cobrar-mora {
+            background-color: #C0392B;
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .badge-resuelto {
+            background-color: rgba(46, 204, 113, 0.15);
+            color: #27AE60;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            display: none;
+        }
+
+        /* MODAL FLOTANTE */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .modal-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            background-color: white;
+            width: 90%;
+            max-width: 400px;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .modal-header h2 {
+            font-size: 1.15rem;
+        }
+
+        .modal-header p {
+            font-size: 0.85rem;
+            color: #6B7280;
+            margin-top: 2px;
+        }
+
+        .modal-body label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .modal-body input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #D1D5DB;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-align: center;
+            color: #C0392B;
+        }
+
+        .modal-body input:focus {
+            outline: none;
+            border-color: #C0392B;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-cancelar {
+            flex: 1;
+            background-color: #E5E7EB;
+            color: var(--color-text-main);
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-confirmar {
+            flex: 1;
+            background-color: #C0392B;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <header>
+            <a href="index.html" class="back-btn">⬅</a>
+            <h1>Control de Atrasos</h1>
+        </header>
+
+        <div class="danger-card">
+            <span>Total en Atraso Catastrófico</span>
+            <strong id="total-mora">$0.00</strong>
+        </div>
+
+        <main class="atrasos-list" id="contenedor-atrasos">
+            <p style="text-align: center; padding: 20px; color: #6B7280;">Buscando reportes de morosidad...</p>
+        </main>
+    </div>
+
+    <div class="modal-overlay" id="modal-atraso">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-atraso-cliente">Cobrar Atraso</h2>
+                <p id="modal-atraso-sugerido">Deuda total vencida: $0.00</p>
+            </div>
+            <div class="modal-body">
+                <label for="monto-atraso-ingresado">Monto Recibido ($)</label>
+                <input type="number" id="monto-atraso-ingresado" step="0.01" min="0">
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancelar" id="btn-cerrar-modal">Cancelar</button>
+                <button class="btn-confirmar" id="btn-guardar-mora">Confirmar Recibo</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+
+
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, collection, query, where, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
        const firebaseConfig = {
@@ -230,5 +522,7 @@
                 btnConfirmar.disabled = false;
                 btnConfirmar.innerText = "Confirmar Recibo";
             }
-        }
+              }     
     </script>
+</body>
+</html>
