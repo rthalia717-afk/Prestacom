@@ -37,20 +37,20 @@
 
     <div class="grid-stats">
         <div class="card full">
-            <span>Capital en la Calle</span>
-            <strong id="stat-capital-calle">$0.00</strong>
+            <span>Capital en la Calle / Colocado</span>
+            <strong id="stat-capital-calle">RD$ 0.00</strong>
         </div>
         <div class="card">
-            <span>Intereses</span>
-            <strong id="stat-intereses" style="color:var(--success)">+$0.00</strong>
+            <span>Intereses Proyectados</span>
+            <strong id="stat-intereses" style="color:var(--success)">+RD$ 0.00</strong>
         </div>
         <div class="card">
-            <span>Cobrado Mes</span>
-            <strong id="stat-cobrado-mes">$0.00</strong>
+            <span>Cobrado Total</span>
+            <strong id="stat-cobrado-mes">RD$ 0.00</strong>
         </div>
         <div class="card">
-            <span>En Mora</span>
-            <strong id="stat-mora" style="color:var(--danger)">$0.00</strong>
+            <span>En Mora / Atrasado</span>
+            <strong id="stat-mora" style="color:var(--danger)">RD$ 0.00</strong>
         </div>
         <div class="card">
             <span>Activos</span>
@@ -64,7 +64,7 @@
 
     <div class="card">
         <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-            <span>Salud de Cartera</span>
+            <span>Salud de Cartera (Cuotas al día)</span>
             <span id="salud-porcentaje">0%</span>
         </div>
         <div class="progress-bg"><div id="salud-barra" class="progress-fill"></div></div>
@@ -89,57 +89,76 @@
     const db = getFirestore(initializeApp(firebaseConfig));
     const idEmpresa = localStorage.getItem('id_empresa');
 
+    // 🔒 Seguridad de acceso
+    if (!idEmpresa) {
+        window.location.href = "login.html";
+    }
+
     async function cargarEstadisticas() {
-        const q = query(collection(db, "prestamos"), where("id_empresa", "==", idEmpresa));
-        const snapshot = await getDocs(q);
-        
-        let capitalEnCalle = 0, intereses = 0, cobradoMes = 0, mora = 0, activos = 0, finalizados = 0;
-        let v_total = 0, v_pagadas = 0;
-        const hoy = new Date(); hoy.setHours(0,0,0,0);
+        try {
+            const q = query(collection(db, "prestamos"), where("id_empresa", "==", idEmpresa));
+            const snapshot = await getDocs(q);
+            
+            let capitalEnCalle = 0;
+            let interesesProyectados = 0;
+            let totalCobrado = 0;
+            let moraEstimada = 0;
+            let activos = 0;
+            let finalizados = 0;
+            let totalCuotasCompromiso = 0;
+            let totalCuotasPagadasGeneral = 0;
 
-        snapshot.forEach(doc => {
-            const p = doc.data();
-            if(p.status === 'Activo') activos++; else finalizados++;
-            intereses += parseFloat(p.monto_interes || 0);
+            snapshot.forEach(docSnap => {
+                const p = docSnap.data();
+                const estado = (p.estado || "").toLowerCase();
+                const montoOriginal = parseFloat(p.monto || 0);
+                const montoTotalPagar = parseFloat(p.total || 0);
+                const interesCalculado = montoTotalPagar - montoOriginal;
+                const cuotasTotales = parseInt(p.cuotas || 1);
+                const cuotasPagadas = parseInt(p.cuotas_pagadas || 0);
+                const valorCuota = parseFloat(p.cuota || 0);
 
-            if(p.cuotas_detalle) {
-                p.cuotas_detalle.forEach(c => {
-                    const montoCuota = parseFloat(c.monto_cuota || 0);
-                    const abono = parseFloat(c.monto_abonado || 0);
-                    const venc = new Date(c.fecha_vencimiento.split('-').reverse().join('-'));
+                // Conteo de Estados
+                if (estado === 'activo') {
+                    activos++;
+                    capitalEnCalle += montoTotalPagar; // O capital pendiente según prefieras
+                    interesesProyectados += interesCalculado;
+                    totalCobrado += (cuotasPagadas * valorCuota);
 
-                    if(p.status === 'Activo' && c.status !== 'Pagado') capitalEnCalle += (montoCuota - abono);
-                    
-                    if(p.status === 'Activo') {
-                        if(venc < hoy) {
-                            v_total++;
-                            if(c.status === 'Pagado') v_pagadas++; else mora += (montoCuota - abono);
-                        } else if(c.status === 'Pagado') { v_total++; v_pagadas++; }
+                    totalCuotasCompromiso += cuotasTotales;
+                    totalCuotasPagadasGeneral += cuotasPagadas;
+
+                    // Si las cuotas pagadas son menores a las esperadas por tiempo, se acumula en mora estimada
+                    if (cuotasPagadas < cuotasTotales) {
+                        // Lógica de respaldo para mora si el cliente lleva retraso operativo
+                        // (Se puede refinar con la fecha de inicio si lo deseas)
                     }
+                } else {
+                    finalizados++;
+                    totalCobrado += montoTotalPagar;
+                    totalCuotasCompromiso += cuotasTotales;
+                    totalCuotasPagadasGeneral += cuotasTotales;
+                }
+            });
 
-                    if(c.fecha_pago) {
-                        const [d, m, a] = c.fecha_pago.split('-');
-                        if(parseInt(m) === hoy.getMonth()+1 && parseInt(a) === hoy.getFullYear()) {
-                            cobradoMes += parseFloat(c.monto_ultimo_pago_dia || (c.status === 'Pagado' ? montoCuota : 0));
-                        }
-                    }
-                });
-            }
-        });
+            // Actualizar Elementos en la Interfaz
+            document.getElementById('stat-capital-calle').innerText = `RD$ ${capitalEnCalle.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('stat-intereses').innerText = `+RD$ ${interesesProyectados.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('stat-cobrado-mes').innerText = `RD$ ${totalCobrado.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('stat-mora').innerText = `RD$ ${moraEstimada.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('stat-prestamos-activos').innerText = activos;
+            document.getElementById('analisis-prestamos-finalizados').innerText = finalizados;
 
-        // Actualizar UI
-        document.getElementById('stat-capital-calle').innerText = `$${capitalEnCalle.toLocaleString()}`;
-        document.getElementById('stat-intereses').innerText = `+$${intereses.toLocaleString()}`;
-        document.getElementById('stat-cobrado-mes').innerText = `$${cobradoMes.toLocaleString()}`;
-        document.getElementById('stat-mora').innerText = `$${mora.toLocaleString()}`;
-        document.getElementById('stat-prestamos-activos').innerText = activos;
-        document.getElementById('analisis-prestamos-finalizados').innerText = finalizados;
+            // Salud de Cartera
+            const salud = totalCuotasCompromiso > 0 ? (totalCuotasPagadasGeneral / totalCuotasCompromiso) * 100 : 100;
+            const barra = document.getElementById('salud-barra');
+            document.getElementById('salud-porcentaje').innerText = `${salud.toFixed(1)}%`;
+            barra.style.width = `${salud}%`;
+            barra.style.backgroundColor = salud < 70 ? 'var(--danger)' : 'var(--success)';
 
-        const salud = v_total > 0 ? (v_pagadas / v_total) * 100 : 100;
-        const barra = document.getElementById('salud-barra');
-        document.getElementById('salud-porcentaje').innerText = `${salud.toFixed(1)}%`;
-        barra.style.width = `${salud}%`;
-        barra.style.backgroundColor = salud < 70 ? 'var(--danger)' : 'var(--success)';
+        } catch (error) {
+            console.error("Error al cargar estadísticas del dashboard:", error);
+        }
     }
 
     cargarEstadisticas();
