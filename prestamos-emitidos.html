@@ -1,65 +1,208 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <script>
+        // 🔒 FILTRO DE SEGURIDAD CRÍTICO
+        if (!localStorage.getItem('id_empresa')) {
+            window.location.href = "login.html";
+        }
+        if (localStorage.getItem('rol_usuario') === 'Mensajero') {
+            window.location.href = "index.html";
+        }
+    </script>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Préstamos Emitidos - PRESA-FACIL</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>PRESTACOM - Préstamos Emitidos</title>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+
+    <!-- Firebase App (Core) y Firestore versión Compat -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: #f1f5f9; color: #1F2937; display: flex; justify-content: center; align-items: center; height: 100dvh; overflow: hidden; }
+        .app-container { width: 100%; max-width: 1000px; height: 100%; display: flex; flex-direction: column; background: white; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+        
+        header { background-color: #111827; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+        .header-title h1 { font-size: 1.1rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .header-actions { display: flex; gap: 15px; color: #9CA3AF; font-size: 1.4rem; }
+
+        main { padding: 15px; display: flex; flex-direction: column; flex: 1; min-height: 0; gap: 15px; overflow: hidden; }
+
+        /* Panel de Filtros según tu boceto */
+        .filter-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px 15px; display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end; flex-shrink: 0; }
+        .filter-group { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 140px; }
+        .filter-group label { font-size: 0.7rem; font-weight: 700; color: #64748B; text-transform: uppercase; }
+        .filter-group input, .filter-group select { padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.85rem; background: white; color: #1e293b; outline: none; }
+        
+        .filter-buttons { display: flex; gap: 8px; }
+        .btn-buscar { background: #1e293b; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 0.85rem; }
+        .btn-volver { background: #e2e8f0; color: #334155; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 0.85rem; text-decoration: none; }
+
+        .list-section-title { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: #64748B; font-weight: 700; flex-shrink: 0; }
+
+        /* Contenedor de la Tabla */
+        .table-container { flex: 1; overflow: auto; border: 1px solid #e2e8f0; border-radius: 10px; background: white; }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.82rem; }
+        th { background: #f1f5f9; color: #475569; padding: 10px 12px; font-weight: 700; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 10; white-space: nowrap; }
+        td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; color: #1e293b; white-space: nowrap; }
+        tr:hover { background: #f8fafc; }
+
+        .badge-modalidad { background: #e2e8f0; color: #334155; padding: 3px 8px; border-radius: 6px; font-weight: 600; font-size: 0.75rem; }
+        .no-data { text-align: center; color: #94a3b8; padding: 30px; font-weight: 500; }
+    </style>
 </head>
-<body class="bg-gray-50 min-h-screen pb-10">
+<body>
 
-    <header class="bg-[#111827] text-white p-6 shadow-md">
-        <div class="flex items-center gap-4">
-            <a href="centro_de_reportes.html" class="text-2xl hover:bg-gray-700 p-2 rounded-full transition">←</a>
-            <div>
-                <h1 class="text-lg font-bold">Préstamos Emitidos</h1>
-                <p class="text-xs text-gray-400">Detalle de capital colocado</p>
+    <div class="app-container">
+        <header>
+            <div class="header-title"><h1>Préstamos Emitidos</h1></div>
+            <div class="header-actions">
+                <i class='bx bx-search'></i>
+                <i class='bx bx-user-circle'></i>
             </div>
-        </div>
-    </header>
+        </header>
 
-    <main class="max-w-4xl mx-auto p-4 space-y-6">
-        <div class="grid grid-cols-2 gap-4">
-            <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-                <p class="text-xs text-gray-500 uppercase font-bold">Total Colocado</p>
-                <p class="text-xl font-bold text-green-600">$ 0.00</p>
+        <main>
+            <!-- FILTROS DE BÚSQUEDA -->
+            <div class="filter-card">
+                <div class="filter-group">
+                    <label>Buscar por Fecha (Desde / Hasta)</label>
+                    <div style="display: flex; gap: 5px;">
+                        <input type="date" id="fecha-desde">
+                        <input type="date" id="fecha-hasta">
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <label>Filtrar por Modalidad</label>
+                    <select id="filtro-modalidad">
+                        <option value="todos">Todos</option>
+                        <option value="diario">Diario</option>
+                        <option value="semanal">Semanal</option>
+                        <option value="quincenal">Quincenal</option>
+                        <option value="mensual">Mensual</option>
+                    </select>
+                </div>
+
+                <div class="filter-buttons">
+                    <button class="btn-buscar" id="btn-filtrar"><i class='bx bx-search-alt'></i> Buscar</button>
+                    <a href="index.html" class="btn-volver"><i class='bx bx-left-arrow-alt'></i> Volver Atrás</a>
+                </div>
             </div>
-            <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-                <p class="text-xs text-gray-500 uppercase font-bold">Préstamos</p>
-                <p class="text-xl font-bold text-blue-600">0</p>
-            </div>
-        </div>
 
-        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-            <input type="text" placeholder="Buscar por cliente..." class="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500">
-        </div>
+            <h3 class="list-section-title">Listado de Préstamos Activos</h3>
 
-        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm text-left">
-                    <thead class="bg-gray-50 border-b">
+            <!-- TABLA INFORMATIVA -->
+            <div class="table-container">
+                <table>
+                    <thead>
                         <tr>
-                            <th class="p-3">Cliente</th>
-                            <th class="p-3">Fecha</th>
-                            <th class="p-3 text-right">Monto</th>
+                            <th>Nombre Cliente</th>
+                            <th>Monto Préstamo</th>
+                            <th>Modalidad</th>
+                            <th>Cuotas Pagadas</th>
+                            <th>Cuotas Pendientes</th>
+                            <th>Fecha Préstamo</th>
+                            <th>Balance Pendiente</th>
                         </tr>
                     </thead>
-                    <tbody id="lista-prestamos">
-                        <!-- Aquí se insertarán los datos dinámicamente -->
+                    <tbody id="tabla-cuerpo">
                         <tr>
-                            <td colspan="3" class="p-6 text-center text-gray-400 italic">No hay préstamos registrados aún.</td>
+                            <td colspan="7" class="no-data">Cargando datos desde Firebase...</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
-        </div>
-    </main>
+        </main>
+    </div>
 
     <script>
-        // Aquí es donde en el futuro pondremos la lógica para leer Firebase
-        // Por ahora, el espacio está listo y esperando.
-        console.log("Sistema de reportes listo para integrar con Firebase.");
-    </script>
+        // Inicializar Firebase
+        const firebaseConfig = {  
+            apiKey: "AIzaSyDbmVXLBIsBzk-wE60yVtchZ8WI4NWnAW4",
+            authDomain: "prestacom-sistema-a2830.firebaseapp.com",
+            projectId: "prestacom-sistema-a2830",
+            storageBucket: "prestacom-sistema-a2830.appspot.com",
+            messagingSenderId: "500739174929",
+            appId: "1:500739174929:web:1694f07bf65714606f77b0"
+        };
+        
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
 
+        // Empresa actual del localStorage
+        const idEmpresa = localStorage.getItem('id_empresa');
+
+        document.getElementById('btn-filtrar').addEventListener('click', cargarReporteFirebase);
+
+        async function cargarReporteFirebase() {
+            const fechaDesde = document.getElementById('fecha-desde').value;
+            const fechaHasta = document.getElementById('fecha-hasta').value;
+            const modalidadFiltro = document.getElementById('filtro-modalidad').value;
+            const tbody = document.getElementById('tabla-cuerpo');
+
+            tbody.innerHTML = `<tr><td colspan="7" class="no-data">Consultando base de datos...</td></tr>`;
+
+            try {
+                let queryRef = db.collection('prestamos').where('id_empresa', '==', idEmpresa);
+                const snapshot = await queryRef.get();
+
+                if (snapshot.empty) {
+                    tbody.innerHTML = `<tr><td colspan="7" class="no-data">No hay préstamos registrados en el sistema.</td></tr>`;
+                    return;
+                }
+
+                let prestamos = [];
+                snapshot.forEach(doc => {
+                    prestamos.push({ id: doc.id, ...doc.data() });
+                });
+
+                // Filtrado por fecha_inicio y modalidad
+                const resultados = prestamos.filter(p => {
+                    const fechaPrestamo = p.fecha_inicio || "";
+                    const cumpleFecha = (!fechaDesde || !fechaHasta) || (fechaPrestamo >= fechaDesde && fechaPrestamo <= fechaHasta);
+                    const cumpleModalidad = modalidadFiltro === 'todos' || p.modalidad === modalidadFiltro;
+                    return cumpleFecha && cumpleModalidad;
+                });
+
+                if (resultados.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7" class="no-data">No se encontraron préstamos con los filtros seleccionados.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = "";
+                resultados.forEach(p => {
+                    const cuotasTotales = parseInt(p.cuotas || 0);
+                    const cuotasPagadas = parseInt(p.cuotas_pagadas || 0);
+                    const cuotasPendientes = Math.max(0, cuotasTotales - cuotasPagadas);
+                    const balancePendiente = parseFloat(p.total || 0); // O puedes ajustarlo si manejas pagos parciales
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><strong>${p.cliente_nombre || 'N/A'}</strong></td>
+                        <td>RD$ ${parseFloat(p.monto || 0).toLocaleString('es-DO', {minimumFractionDigits: 2})}</td>
+                        <td><span class="badge-modalidad">${p.modalidad || 'N/A'}</span></td>
+                        <td>${cuotasPagadas}</td>
+                        <td>${cuotasPendientes}</td>
+                        <td>${p.fecha_inicio || 'N/A'}</td>
+                        <td><strong>RD$ ${balancePendiente.toLocaleString('es-DO', {minimumFractionDigits: 2})}</strong></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+            } catch (error) {
+                console.error("Error al cargar los préstamos:", error);
+                tbody.innerHTML = `<tr><td colspan="7" class="no-data" style="color: #ef4444;">Error al conectar con la base de datos: ${error.message}</td></tr>`;
+            }
+        }
+
+        // Carga inicial automática al abrir la pantalla
+        cargarReporteFirebase();
+    </script>
 </body>
 </html>
