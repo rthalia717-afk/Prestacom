@@ -16,7 +16,7 @@
     <title>PRESTACOM - Préstamos Emitidos</title>
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 
-    <!-- Firebase App (Core) y Firestore -->
+    <!-- Firebase App (Core) y Firestore versión Compat -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
@@ -77,20 +77,13 @@
                 </div>
 
                 <div class="filter-group">
-                    <label>Filtrar por Mensajero</label>
-                    <select id="filtro-mensajero">
-                        <option value="todos">Todos</option>
-                    </select>
-                </div>
-
-                <div class="filter-group">
                     <label>Filtrar por Modalidad</label>
                     <select id="filtro-modalidad">
                         <option value="todos">Todos</option>
-                        <option value="Diario">Diario</option>
-                        <option value="Semanal">Semanal</option>
-                        <option value="Quincenal">Quincenal</option>
-                        <option value="Mensual">Mensual</option>
+                        <option value="diario">Diario</option>
+                        <option value="semanal">Semanal</option>
+                        <option value="quincenal">Quincenal</option>
+                        <option value="mensual">Mensual</option>
                     </select>
                 </div>
 
@@ -151,16 +144,13 @@
             const fechaDesde = document.getElementById('fecha-desde').value;
             const fechaHasta = document.getElementById('fecha-hasta').value;
             const modalidadFiltro = document.getElementById('filtro-modalidad').value;
-            const mensajeroFiltro = document.getElementById('filtro-mensajero').value;
             const tbody = document.getElementById('tabla-cuerpo');
 
             tbody.innerHTML = `<tr><td colspan="7" class="no-data">Consultando base de datos...</td></tr>`;
 
             try {
-                // Consulta a Firestore filtrando por empresa para mantener la seguridad multi-tenant
-                let query = db.collection('prestamos').where('id_empresa', '==', idEmpresa);
-                
-                const snapshot = await query.get();
+                let queryRef = db.collection('prestamos').where('id_empresa', '==', idEmpresa);
+                const snapshot = await queryRef.get();
 
                 if (snapshot.empty) {
                     tbody.innerHTML = `<tr><td colspan="7" class="no-data">No hay préstamos registrados en el sistema.</td></tr>`;
@@ -172,12 +162,12 @@
                     prestamos.push({ id: doc.id, ...doc.data() });
                 });
 
-                // Filtrado local adicional para fechas, modalidad y mensajero
+                // Filtrado por fecha_inicio y modalidad
                 const resultados = prestamos.filter(p => {
-                    const cumpleFecha = (!fechaDesde || !fechaHasta) || (p.fecha >= fechaDesde && p.fecha <= fechaHasta);
+                    const fechaPrestamo = p.fecha_inicio || "";
+                    const cumpleFecha = (!fechaDesde || !fechaHasta) || (fechaPrestamo >= fechaDesde && fechaPrestamo <= fechaHasta);
                     const cumpleModalidad = modalidadFiltro === 'todos' || p.modalidad === modalidadFiltro;
-                    const cumpleMensajero = mensajeroFiltro === 'todos' || p.mensajero === mensajeroFiltro;
-                    return cumpleFecha && cumpleModalidad && cumpleMensajero;
+                    return cumpleFecha && cumpleModalidad;
                 });
 
                 if (resultados.length === 0) {
@@ -187,22 +177,27 @@
 
                 tbody.innerHTML = "";
                 resultados.forEach(p => {
+                    const cuotasTotales = parseInt(p.cuotas || 0);
+                    const cuotasPagadas = parseInt(p.cuotas_pagadas || 0);
+                    const cuotasPendientes = Math.max(0, cuotasTotales - cuotasPagadas);
+                    const balancePendiente = parseFloat(p.total || 0); // O puedes ajustarlo si manejas pagos parciales
+
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td><strong>${p.nombre_cliente || p.cliente || 'N/A'}</strong></td>
+                        <td><strong>${p.cliente_nombre || 'N/A'}</strong></td>
                         <td>RD$ ${parseFloat(p.monto || 0).toLocaleString('es-DO', {minimumFractionDigits: 2})}</td>
                         <td><span class="badge-modalidad">${p.modalidad || 'N/A'}</span></td>
-                        <td>${p.cuotas_pagadas || 0}</td>
-                        <td>${p.cuotas_pendientes || 0}</td>
-                        <td>${p.fecha || 'N/A'}</td>
-                        <td><strong>RD$ ${parseFloat(p.balance_pendiente || p.balance || 0).toLocaleString('es-DO', {minimumFractionDigits: 2})}</strong></td>
+                        <td>${cuotasPagadas}</td>
+                        <td>${cuotasPendientes}</td>
+                        <td>${p.fecha_inicio || 'N/A'}</td>
+                        <td><strong>RD$ ${balancePendiente.toLocaleString('es-DO', {minimumFractionDigits: 2})}</strong></td>
                     `;
                     tbody.appendChild(tr);
                 });
 
             } catch (error) {
                 console.error("Error al cargar los préstamos:", error);
-                tbody.innerHTML = `<tr><td colspan="7" class="no-data" style="color: #ef4444;">Error al conectar con la base de datos.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="no-data" style="color: #ef4444;">Error al conectar con la base de datos: ${error.message}</td></tr>`;
             }
         }
 
