@@ -12,8 +12,10 @@
         header a { color:#fff; text-decoration:none; font-size:20px; }
         form { padding:15px; display:flex; flex-direction:column; gap:15px; }
         .card { border:1px solid #e5e7eb; border-radius:10px; padding:12px; background:#f8fafc; }
+        .card-mora { border:1px solid #fed7aa; background:#fff7ed; } /* Estilo distintivo para reglas de mora */
         label { font-size:13px; display:block; margin-bottom:5px; font-weight:bold; }
-        input, select { width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; font-size: 16px; }
+        input, select { width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; font-size: 16px; margin-bottom: 10px; }
+        input:last-child, select:last-child { margin-bottom: 0; }
         .cliente-box { background:#fff; padding:10px; border-radius:8px; font-size:13px; border:1px solid #ddd; margin-top:5px; min-height: 50px; }
         button { width:100%; padding:14px; background:#ff6600; color:#fff; border:none; border-radius:8px; font-weight:bold; cursor:pointer; font-size: 16px; }
         button:disabled { background:#cbd5e1; cursor:not-allowed; }
@@ -49,6 +51,22 @@
             </select>
             <label>Cuotas</label> <input type="number" id="cuotas" required>
             <label>Fecha inicio</label> <input type="date" id="fecha" required>
+        </div>
+
+        <!-- ⚙️ CONFIGURACIÓN DE GRACIA Y MORA (Alta Gama) -->
+        <div class="card card-mora">
+            <label style="color: #c2410c;">⚙️ Configuración de Mora y Gracia</label>
+            <label>Días de Gracia (Tolerancia)</label> 
+            <input type="number" id="dias_gracia" value="0" min="0" placeholder="Ej. 2 días antes de cobrar mora">
+            
+            <label>Política de Recargo por Mora</label>
+            <select id="mora_tipo">
+                <option value="fijo">Monto Fijo por Atraso</option>
+                <option value="porcentaje">Porcentaje sobre Cuota Vencida</option>
+            </select>
+
+            <label>Valor del Recargo (RD$ o %)</label> 
+            <input type="number" id="mora_valor" value="0" min="0" placeholder="Ej. 100 o 5">
         </div>
 
         <div class="card resumen">
@@ -140,15 +158,18 @@
                 monto: parseFloat(document.getElementById("monto").value),
                 total: parseFloat(document.getElementById("total").innerText),
                 cuota: parseFloat(document.getElementById("cuota").innerText),
-                // Campos restaurados y verificados
                 modalidad: document.getElementById("modalidad").value,
                 cuotas: parseInt(document.getElementById("cuotas").value),
                 cuotas_pagadas: 0,
                 estado: "activo",
                 fecha_inicio: document.getElementById("fecha").value,
-                fecha_creacion: new Date().toISOString()
+                fecha_creacion: new Date().toISOString(),
+                // ⚙️ Nuevos parámetros de control de mora incorporados
+                dias_gracia: parseInt(document.getElementById("dias_gracia").value) || 0,
+                mora_tipo: document.getElementById("mora_tipo").value,
+                mora_valor: parseFloat(document.getElementById("mora_valor").value) || 0
             });
-            alert("Préstamo registrado.");
+            alert("Préstamo registrado con éxito.");
             window.location.href = "index.html";
         } catch (e) {
             alert("Error: " + e.message);
