@@ -122,7 +122,7 @@
         }
 
         .search-btn {
-            background: #6c5ce7; /* Color del módulo de mensajeros */
+            background: #6c5ce7;
             color: white;
             border: none;
             padding: 10px;
@@ -238,7 +238,6 @@
                         <label for="select-mensajero">Mensajero</label>
                         <select id="select-mensajero">
                             <option value="">Seleccione un cobrador...</option>
-                            <!-- Se cargará dinámicamente -->
                         </select>
                     </div>
                     <div class="input-group">
@@ -263,15 +262,15 @@
                 <div class="metric-card">
                     <div class="metric-icon icon-green"><i class='bx bx-check-circle'></i></div>
                     <div class="metric-data">
-                        <p>Cobros Efectivos</p>
-                        <h3 id="txt-visitas-exito">0 / 0</h3>
+                        <p>Cobros Realizados</p>
+                        <h3 id="txt-visitas-exito">0</h3>
                     </div>
                 </div>
                 <div class="metric-card">
                     <div class="metric-icon icon-red"><i class='bx bx-calendar-exclamation'></i></div>
                     <div class="metric-data">
-                        <p>Monto Pendiente</p>
-                        <h3 id="txt-monto-pendiente">RD$ 0.00</h3>
+                        <p>Modalidad Activa</p>
+                        <h3 id="txt-modalidad-auditada">General</h3>
                     </div>
                 </div>
             </div>
@@ -285,85 +284,117 @@
     </div>
 
     <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDbmVXLBIsBzk-wE60yVtchZ8WI4NWnAW4",
+            authDomain: "prestacom-sistema-a2830.firebaseapp.com",
+            projectId: "prestacom-sistema-a2830",
+            storageBucket: "prestacom-sistema-a2830.appspot.com",
+            messagingSenderId: "500739174929",
+            appId: "1:500739174929:web:1694f07bf65714606f77b0"
+        };
+
+        const db = getFirestore(initializeApp(firebaseConfig));
+        const idEmpresa = localStorage.getItem("id_empresa");
+
         // Setear fecha de hoy por defecto
         document.getElementById('fecha-reporte').value = new Date().toISOString().split('T')[0];
 
-        document.getElementById('btn-consultar').addEventListener('click', consultarRuta);
-
-        // Simulación de carga de mensajeros desde la base de datos local
-        function cargarMensajeros() {
+        // Cargar dinámicamente los usuarios que han registrado pagos o los usuarios de la empresa
+        async function cargarMensajeros() {
             const select = document.getElementById('select-mensajero');
-            
-            // Reemplazar este array con tus mensajeros reales almacenados
-            const mensajerosSimulados = [
-                { id: "1", nombre: "Juan Carlos Espinal" },
-                { id: "2", nombre: "Pedro Almonte" }
-            ];
-
-            mensajerosSimulados.forEach(m => {
-                const opt = document.createElement('option');
-                opt.value = m.id;
-                opt.textContent = m.nombre;
-                select.appendChild(opt);
-            });
+            try {
+                // Buscamos los usuarios asociados a la empresa para listarlos
+                const q = query(collection(db, "usuarios"), where("id_empresa", "==", idEmpresa));
+                const snap = await getDocs(q);
+                
+                select.innerHTML = '<option value="">Seleccione un cobrador...</option>';
+                snap.forEach(docSnap => {
+                    const u = docSnap.data();
+                    const opt = document.createElement('option');
+                    opt.value = u.nombre; // Usamos el nombre que coincide con "registrado_por"
+                    opt.textContent = u.nombre + (u.rol ? ` (${u.rol})` : '');
+                    select.appendChild(opt);
+                });
+            } catch (err) {
+                console.error("Error al cargar mensajeros:", err);
+            }
         }
 
-        function consultarRuta() {
-            const idMensajero = document.getElementById('select-mensajero').value;
-            const fecha = document.getElementById('fecha-reporte').value;
+        async function consultarRuta() {
+            const nombreMensajero = document.getElementById('select-mensajero').value;
+            const fechaSeleccionada = document.getElementById('fecha-reporte').value; // Formato YYYY-MM-DD
             const container = document.getElementById('lista-recibos');
 
-            if (!idMensajero) {
+            if (!nombreMensajero) {
                 container.innerHTML = '<div class="no-data" style="color: #e74c3c;">Debe seleccionar un mensajero válido.</div>';
                 return;
             }
 
             container.innerHTML = '<div class="no-data"><i class="bx bx-loader-alt bx-spin"></i> Auditando transacciones de la calle...</div>';
 
-            setTimeout(() => {
-                // Simulación de los recibos que traería el backend de ese mensajero específico en esa fecha
-                const recibosSimulados = [];
+            try {
+                // Consultar los pagos de la empresa
+                const q = query(collection(db, "pagos"), where("id_empresa", "==", idEmpresa));
+                const querySnapshot = await getDocs(q);
 
-                if (recibosSimulados.length === 0) {
+                let totalCobrado = 0;
+                let cantidadCobros = 0;
+                let htmlRecibos = "";
+
+                querySnapshot.forEach((docSnap) => {
+                    const pago = docSnap.data();
+                    
+                    // Validar si fue registrado por este mensajero y coincide con la fecha (YYYY-MM-DD)
+                    if (pago.registrado_por === nombreMensajero && pago.fecha && pago.fecha.startsWith(fechaSeleccionada)) {
+                        totalCobrado += Number(pago.monto_pagado || 0);
+                        cantidadCobros++;
+
+                        // Extraer hora limpia de la fecha ISO
+                        let horaStr = "N/A";
+                        try {
+                            horaStr = new Date(pago.fecha).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                        } catch (e) {}
+
+                        htmlRecibos += `
+                            <div class="receipt-card">
+                                <div class="receipt-left">
+                                    <h4>${pago.cliente_nombre || "Cliente"}</h4>
+                                    <p>Modalidad: <span>${pago.tipo || General}</span></p>
+                                </div>
+                                <div class="receipt-right">
+                                    <div class="receipt-val">RD$ ${Number(pago.monto_pagado || 0).toLocaleString('es-DO', {minimumFractionDigits: 2})}</div>
+                                    <div class="receipt-time"><i class="bx bx-time"></i> ${horaStr}</div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+
+                if (cantidadCobros === 0) {
                     container.innerHTML = '<div class="no-data">Este mensajero no registra cobros en la fecha seleccionada.</div>';
                     document.getElementById('txt-total-cobrado').textContent = "RD$ 0.00";
-                    document.getElementById('txt-visitas-exito').textContent = "0 / 0";
-                    document.getElementById('txt-monto-pendiente').textContent = "RD$ 0.00";
+                    document.getElementById('txt-visitas-exito').textContent = "0";
+                    document.getElementById('txt-modalidad-auditada').textContent = "-";
                     return;
                 }
 
-                container.innerHTML = "";
-                let totalCobrado = 0;
-                let visitadosConExito = recibosSimulados.length;
-                let totalRutaAsignada = 15; // Ejemplo estático de clientes en la ruta
-
-                recibosSimulados.forEach(recibo => {
-                    totalCobrado += parseFloat(recibo.monto);
-
-                    const card = document.createElement('div');
-                    card.className = 'receipt-card';
-                    card.innerHTML = `
-                        <div class="receipt-left">
-                            <h4>${recibo.cliente}</h4>
-                            <p>Recibo: <span>#${recibo.num_recibo}</span></p>
-                        </div>
-                        <div class="receipt-right">
-                            <div class="receipt-val">RD$ ${parseFloat(recibo.monto).toLocaleString('es-DO', {minimumFractionDigits: 2})}</div>
-                            <div class="receipt-time"><i class="bx bx-time"></i> ${recibo.hora}</div>
-                        </div>
-                    `;
-                    container.appendChild(card);
-                });
-
-                // Actualizar contadores superiores
+                container.innerHTML = htmlRecibos;
                 document.getElementById('txt-total-cobrado').textContent = `RD$ ${totalCobrado.toLocaleString('es-DO', {minimumFractionDigits: 2})}`;
-                document.getElementById('txt-visitas-exito').textContent = `${visitadosConExito} / ${totalRutaAsignada}`;
-                document.getElementById('txt-monto-pendiente').textContent = `RD$ ${(8500).toLocaleString('es-DO', {minimumFractionDigits: 2})}`; // Ejemplo simulado de mora restante
+                document.getElementById('txt-visitas-exito').textContent = cantidadCobros;
+                document.getElementById('txt-modalidad-auditada').textContent = "Activa";
 
-            }, 500);
+            } catch (err) {
+                console.error("Error al consultar ruta:", err);
+                container.innerHTML = '<div class="no-data" style="color: #e74c3c;">Error al consultar los datos en la nube.</div>';
+            }
         }
 
-        // Inicializar nombres al cargar la vista
+        document.getElementById('btn-consultar').addEventListener('click', consultarRuta);
+
+        // Inicializar al cargar
         cargarMensajeros();
     </script>
 </body>
