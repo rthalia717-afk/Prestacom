@@ -27,7 +27,7 @@
 
     <div class="app-container">
         <header>
-            <a href="index.html" class="back-btn">⬅</a>
+            <a href="clientes.html" class="back-btn">⬅</a>
             <h1>Nuevo Cliente</h1>
         </header>
 
@@ -70,7 +70,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDbmVXLBIsBzk-wE60yVtchZ8WI4NWnAW4",
@@ -83,8 +83,10 @@
 
         const db = getFirestore(initializeApp(firebaseConfig));
         
-        // Recuperar ID de empresa logueada
+        // Recuperar ID de empresa y datos del usuario logueado
         const idEmpresaLogueada = localStorage.getItem('id_empresa');
+        const nombreUsuarioActual = localStorage.getItem('nombre_usuario') || 'Administrador';
+
         if (!idEmpresaLogueada) {
             alert("Sesión no válida, serás redirigido al login.");
             window.location.href = "login.html";
@@ -113,15 +115,32 @@
             
             const btn = document.getElementById('btn-guardar');
             btn.disabled = true;
-            btn.innerText = "Guardando...";
+            btn.innerText = "Verificando y guardando...";
 
             try {
+                const cedulaIngresada = document.getElementById('cedula').value.trim();
+
+                // 🔍 PASO EXTRA: Validar si la cédula ya existe para esta empresa
+                const qCedula = query(
+                    collection(db, "clientes_prestamo"), 
+                    where("id_empresa", "==", idEmpresaLogueada),
+                    where("cedula", "==", cedulaIngresada)
+                );
+                const querySnapshot =- await getDocs(qCedula);
+
+                if (!querySnapshot.empty) {
+                    alert("⚠️ Esta cédula ya se encuentra registrada en el sistema para esta empresa.");
+                    btn.disabled = false;
+                    btn.innerText = "Guardar Cliente";
+                    return;
+                }
+
                 const numeroCliente = "CLI-" + Math.floor(100000 + Math.random() * 900000);
 
                 const nuevoCliente = {
-                    id_empresa: idEmpresaLogueada, // Se vincula con la empresa activa
+                    id_empresa: idEmpresaLogueada, 
                     numero_cliente: numeroCliente,
-                    cedula: document.getElementById('cedula').value.trim(),
+                    cedula: cedulaIngresada,
                     nombre: document.getElementById('nombre').value.trim(),
                     apodo: document.getElementById('apodo').value.trim(),
                     referido_por: document.getElementById('referido_por').value.trim(),
@@ -132,6 +151,7 @@
                     longitud: document.getElementById('longitud').value ? Number(document.getElementById('longitud').value) : null,
                     ingresos: Number(document.getElementById('ingresos').value),
                     ocupacion: document.getElementById('ocupacion').value.trim(),
+                    registrado_por: nombreUsuarioActual, // 👤 Queda registrado quién lo creó (Admin o Mensajero)
                     fecha_registro: new Date().toISOString()
                 };
 
