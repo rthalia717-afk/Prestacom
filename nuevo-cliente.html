@@ -120,15 +120,21 @@
             try {
                 const cedulaIngresada = document.getElementById('cedula').value.trim();
 
-                // 🔍 PASO EXTRA: Validar si la cédula ya existe para esta empresa
-                const qCedula = query(
+                // Validación local de duplicados por empresa para evitar errores de índices en Firestore
+                const qEmpresa = query(
                     collection(db, "clientes_prestamo"), 
-                    where("id_empresa", "==", idEmpresaLogueada),
-                    where("cedula", "==", cedulaIngresada)
+                    where("id_empresa", "==", idEmpresaLogueada)
                 );
-                const querySnapshot =- await getDocs(qCedula);
+                const querySnapshot = await getDocs(qEmpresa);
 
-                if (!querySnapshot.empty) {
+                let cedulaDuplicada = false;
+                querySnapshot.forEach((docSnap) => {
+                    if (docSnap.data().cedula === cedulaIngresada) {
+                        cedulaDuplicada = true;
+                    }
+                });
+
+                if (cedulaDuplicada) {
                     alert("⚠️ Esta cédula ya se encuentra registrada en el sistema para esta empresa.");
                     btn.disabled = false;
                     btn.innerText = "Guardar Cliente";
@@ -151,7 +157,7 @@
                     longitud: document.getElementById('longitud').value ? Number(document.getElementById('longitud').value) : null,
                     ingresos: Number(document.getElementById('ingresos').value),
                     ocupacion: document.getElementById('ocupacion').value.trim(),
-                    registrado_por: nombreUsuarioActual, // 👤 Queda registrado quién lo creó (Admin o Mensajero)
+                    registrado_por: nombreUsuarioActual,
                     fecha_registro: new Date().toISOString()
                 };
 
