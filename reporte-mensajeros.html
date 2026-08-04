@@ -302,23 +302,31 @@
         // Setear fecha de hoy por defecto
         document.getElementById('fecha-reporte').value = new Date().toISOString().split('T')[0];
 
-        // Cargar dinámicamente los mensajeros reales desde Firestore
+        // Cargar mensajeros extrayéndolos automáticamente de los pagos registrados
         async function cargarMensajeros() {
             const select = document.getElementById('select-mensajero');
             try {
-                const q = query(collection(db, "usuarios"), where("id_empresa", "==", idEmpresa));
+                const q = query(collection(db, "pagos"), where("id_empresa", "==", idEmpresa));
                 const snap = await getDocs(q);
                 
-                select.innerHTML = '<option value="">Seleccione un cobrador...</option>';
+                const mensajerosSet = new Set();
                 snap.forEach(docSnap => {
-                    const u = docSnap.data();
+                    const pago = docSnap.data();
+                    if (pago.registrado_por) {
+                        mensajerosSet.add(pago.registrado_por);
+                    }
+                });
+
+                select.innerHTML = '<option value="">Seleccione un cobrador...</option>';
+                mensajerosSet.forEach(nombre => {
                     const opt = document.createElement('option');
-                    opt.value = u.nombre; // Coincide exactamente con el registrado_por
-                    opt.textContent = u.nombre + (u.rol ? ` (${u.rol})` : '');
+                    opt.value = nombre;
+                    opt.textContent = nombre;
                     select.appendChild(opt);
                 });
+
             } catch (err) {
-                console.error("Error al cargar mensajeros:", err);
+                console.error("Error al cargar los nombres de los cobradores:", err);
             }
         }
 
@@ -345,7 +353,6 @@
                 querySnapshot.forEach((docSnap) => {
                     const pago = docSnap.data();
                     
-                    // Valida que sea el mensajero que realizó el cobro en la calle y coincida con la fecha
                     if (pago.registrado_por === nombreMensajero && pago.fecha && pago.fecha.startsWith(fechaSeleccionada)) {
                         totalCobrado += Number(pago.monto_pagado || 0);
                         cantidadCobros++;
@@ -392,24 +399,6 @@
         document.getElementById('btn-consultar').addEventListener('click', consultarRuta);
 
         cargarMensajeros();
-    </script>
-</body>
-</html>
-                html += `
-                    <a href="reporte-detalle-mensajero.html?id=${index}" class="mensajero-card">
-                        ${avatarHTML}
-                        <div class="m-details">
-                            <h4>${m.nombre}</h4>
-                            <p><i class='bx bx-map-pin'></i> ${m.direccion}</p>
-                        </div>
-                        <div class="btn-ir-reporte">
-                            <i class='bx bx-chevron-right'></i>
-                        </div>
-                    </a>
-                `;
-            });
-            contenedor.innerHTML = html;
-        }
     </script>
 </body>
 </html>
