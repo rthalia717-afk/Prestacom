@@ -37,7 +37,6 @@
             gap: 20px;
         }
 
-        /* Encabezado */
         .header-modulo {
             display: flex;
             align-items: center;
@@ -65,7 +64,6 @@
             font-weight: 700;
         }
 
-        /* Formulario Estilo Glass */
         .form-container {
             background: rgba(255, 255, 255, 0.8);
             backdrop-filter: blur(12px);
@@ -117,7 +115,6 @@
             flex: 1;
         }
 
-        /* 📸 Componente de Foto de Rostro */
         .foto-uploader-box {
             display: flex;
             flex-direction: column;
@@ -168,7 +165,6 @@
             gap: 4px;
         }
 
-        /* 🔘 Switch para Activar/Desactivar */
         .status-container {
             display: flex;
             align-items: center;
@@ -361,7 +357,7 @@
 
         let fotoBase64 = ""; 
         const urlParams = new URLSearchParams(window.location.search);
-        const editId = urlParams.get('id'); // ID del mensajero en Firestore si se va a editar
+        const editId = urlParams.get('id');
 
         window.addEventListener('DOMContentLoaded', async () => {
             if (editId) {
@@ -414,11 +410,7 @@
         window.cargarFotoDesdeArchivo = function(event) {
             const file = event.target.files[0];
             if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    mostrarPreviewFoto(e.target.result);
-                };
-                reader.readAsDataURL(file);
+                comprimirYConvertirImagen(file);
             }
         };
 
@@ -429,10 +421,51 @@
             inputCamara.capture = 'user'; 
             
             inputCamara.onchange = function(event) {
-                cargarFotoDesdeArchivo(event);
+                const file = event.target.files[0];
+                if (file) {
+                    comprimirYConvertirImagen(file);
+                }
             };
             inputCamara.click();
         };
+
+        // 🔧 Función para redimensionar y comprimir la imagen por debajo de los límites de Firebase
+        function comprimirYConvertirImagen(file) {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = function(event) {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 300; // Ancho máximo optimizado para un avatar circular
+                    const MAX_HEIGHT = 300;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > MAX_WIDTH) {
+                            height *= MAX_WIDTH / width;
+                            width = MAX_WIDTH;
+                        }
+                    } else {
+                        if (height > MAX_HEIGHT) {
+                            width *= MAX_HEIGHT / height;
+                            height = MAX_HEIGHT;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // Comprime la calidad al 70% en formato JPEG para asegurar que pese menos de 50KB
+                    const dataUrlComprimida = canvas.toDataURL('image/jpeg', 0.7);
+                    mostrarPreviewFoto(dataUrlComprimida);
+                }
+            };
+        }
 
         function mostrarPreviewFoto(srcData) {
             fotoBase64 = srcData;
@@ -440,7 +473,7 @@
             const img = document.getElementById('preview-foto');
             img.src = srcData;
             img.style.display = 'block';
-            document.getElementById('foto-text').textContent = "✓ Rostro capturado con éxito";
+            document.getElementById('foto-text').textContent = "✓ Rostro capturado y optimizado";
             document.getElementById('foto-text').style.color = "#22c55e";
         }
 
@@ -477,7 +510,6 @@
             };
 
             try {
-                // Guarda directamente en la colección 'mensajeros' en Firestore
                 await setDoc(doc(db, "mensajeros", idMensajero), datosMensajero);
                 alert(`Mensajero "${datosMensajero.nombre}" guardado exitosamente en la nube.`);
                 window.location.href = "mensajeros.html";
