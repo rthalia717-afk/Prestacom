@@ -12,7 +12,7 @@
         header a { color:#fff; text-decoration:none; font-size:20px; }
         form { padding:15px; display:flex; flex-direction:column; gap:15px; }
         .card { border:1px solid #e5e7eb; border-radius:10px; padding:12px; background:#f8fafc; }
-        .card-mora { border:1px solid #fed7aa; background:#fff7ed; } /* Estilo distintivo para reglas de mora */
+        .card-mora { border:1px solid #fed7aa; background:#fff7ed; }
         label { font-size:13px; display:block; margin-bottom:5px; font-weight:bold; }
         input, select { width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; font-size: 16px; margin-bottom: 10px; }
         input:last-child, select:last-child { margin-bottom: 0; }
@@ -53,7 +53,7 @@
             <label>Fecha inicio</label> <input type="date" id="fecha" required>
         </div>
 
-        <!-- ⚙️ CONFIGURACIÓN DE GRACIA Y MORA (Alta Gama) -->
+        <!-- ⚙️ CONFIGURACIÓN DE GRACIA Y MORA -->
         <div class="card card-mora">
             <label style="color: #c2410c;">⚙️ Configuración de Mora y Gracia</label>
             <label>Días de Gracia (Tolerancia)</label> 
@@ -93,6 +93,13 @@
 
     const db = getFirestore(initializeApp(firebaseConfig));
     const idEmpresa = localStorage.getItem("id_empresa");
+    const nombreUsuarioActual = localStorage.getItem("nombre_usuario") || "Administrador";
+
+    // Validar sesión activa
+    if (!idEmpresa) {
+        alert("Sesión no válida, serás redirigido al login.");
+        window.location.href = "login.html";
+    }
 
     document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
 
@@ -164,10 +171,12 @@
                 estado: "activo",
                 fecha_inicio: document.getElementById("fecha").value,
                 fecha_creacion: new Date().toISOString(),
-                // ⚙️ Nuevos parámetros de control de mora incorporados
+                // Configuración de mora
                 dias_gracia: parseInt(document.getElementById("dias_gracia").value) || 0,
                 mora_tipo: document.getElementById("mora_tipo").value,
-                mora_valor: parseFloat(document.getElementById("mora_valor").value) || 0
+                mora_valor: parseFloat(document.getElementById("mora_valor").value) || 0,
+                // Auditoría: Quién otorgó el préstamo detrás de bambalinas
+                registrado_por: nombreUsuarioActual
             });
             alert("Préstamo registrado con éxito.");
             window.location.href = "index.html";
