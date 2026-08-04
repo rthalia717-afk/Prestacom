@@ -259,7 +259,6 @@
     <div class="app-container">
         
         <div class="header-modulo">
-            <!-- Regresa a la lista -->
             <a href="mensajeros.html" class="btn-regresar"><i class='bx bx-left-arrow-alt'></i></a>
             <h2 id="titulo-modulo">Nuevo Mensajero</h2>
         </div>
@@ -346,47 +345,61 @@
 
     </div>
 
-    <script>
-        let fotoBase64 = ""; 
-        let listaMensajeros = JSON.parse(localStorage.getItem('prestacom_mensajeros')) || [];
-        
-        // 🔍 LEER PARÁMETRO URL (?edit=0, ?edit=1, etc.)
-        const urlParams = new URLSearchParams(window.location.search);
-        const editIndex = urlParams.get('edit'); 
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // Cuando la interfaz esté lista, verificamos si toca editar o registrar
-        window.addEventListener('DOMContentLoaded', () => {
-            if (editIndex !== null && listaMensajeros[editIndex]) {
-                llenarCamposParaEdicion(listaMensajeros[editIndex]);
+        const firebaseConfig = {
+            apiKey: "AIzaSyDbmVXLBIsBzk-wE60yVtchZ8WI4NWnAW4",
+            authDomain: "prestacom-sistema-a2830.firebaseapp.com",
+            projectId: "prestacom-sistema-a2830",
+            storageBucket: "prestacom-sistema-a2830.firebasestorage.app",
+            messagingSenderId: "500739174929",
+            appId: "1:500739174929:web:1694f07bf65714606f77b0"
+        };
+        const db = getFirestore(initializeApp(firebaseConfig));
+
+        let fotoBase64 = ""; 
+        const urlParams = new URLSearchParams(window.location.search);
+        const editId = urlParams.get('id'); // ID del mensajero en Firestore si se va a editar
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            if (editId) {
+                await cargarDatosParaEdicion(editId);
             }
         });
 
-        // 📝 FUNCIÓN CRÍTICA: Rellena los datos de forma exacta
-        function llenarCamposParaEdicion(mensajero) {
-            document.getElementById('titulo-modulo').textContent = "Editar Mensajero";
-            document.getElementById('btn-texto').textContent = "Guardar Cambios";
-            
-            // Asignación de valores existentes
-            document.getElementById('nombre').value = mensajero.nombre;
-            document.getElementById('cedula').value = mensajero.cedula || '';
-            document.getElementById('telefono').value = mensajero.telefono || '';
-            document.getElementById('direccion').value = mensajero.direccion;
-            document.getElementById('usuario_login').value = mensajero.usuario;
-            document.getElementById('password_login').value = mensajero.password || '';
-            document.getElementById('rol').value = mensajero.rol || 'Mensajero';
-            
-            // Estado activo/inactivo
-            const checkboxEstado = document.getElementById('estado-activo');
-            checkboxEstado.checked = mensajero.activo;
-            actualizarTextoEstado();
+        async function cargarDatosParaEdicion(id) {
+            try {
+                const docRef = doc(db, "mensajeros", id);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    const mensajero = docSnap.data();
+                    document.getElementById('titulo-modulo').textContent = "Editar Mensajero";
+                    document.getElementById('btn-texto').textContent = "Guardar Cambios";
+                    
+                    document.getElementById('nombre').value = mensajero.nombre;
+                    document.getElementById('cedula').value = mensajero.cedula || '';
+                    document.getElementById('telefono').value = mensajero.telefono || '';
+                    document.getElementById('direccion').value = mensajero.direccion;
+                    document.getElementById('usuario_login').value = mensajero.usuario;
+                    document.getElementById('password_login').value = mensajero.password || '';
+                    document.getElementById('rol').value = mensajero.rol || 'Mensajero';
+                    
+                    const checkboxEstado = document.getElementById('estado-activo');
+                    checkboxEstado.checked = mensajero.activo;
+                    actualizarTextoEstado();
 
-            // Cargar imagen en base64 si existe
-            if (mensajero.foto) {
-                mostrarPreviewFoto(mensajero.foto);
+                    if (mensajero.foto) {
+                        mostrarPreviewFoto(mensajero.foto);
+                    }
+                }
+            } catch (e) {
+                console.error("Error al cargar mensajero: ", e);
             }
         }
 
-        function actualizarTextoEstado() {
+        window.actualizarTextoEstado = function() {
             const checkbox = document.getElementById('estado-activo');
             const texto = document.getElementById('status-text');
             if (checkbox.checked) {
@@ -396,9 +409,9 @@
                 texto.textContent = "Acceso bloqueado (Inactivo)";
                 texto.style.color = "#dc2626";
             }
-        }
+        };
 
-        function cargarFotoDesdeArchivo(event) {
+        window.cargarFotoDesdeArchivo = function(event) {
             const file = event.target.files[0];
             if (file) {
                 const reader = new FileReader();
@@ -407,9 +420,9 @@
                 };
                 reader.readAsDataURL(file);
             }
-        }
+        };
 
-        function abrirCamaraDispositivo() {
+        window.abrirCamaraDispositivo = function() {
             const inputCamara = document.createElement('input');
             inputCamara.type = 'file';
             inputCamara.accept = 'image/*';
@@ -419,7 +432,7 @@
                 cargarFotoDesdeArchivo(event);
             };
             inputCamara.click();
-        }
+        };
 
         function mostrarPreviewFoto(srcData) {
             fotoBase64 = srcData;
@@ -431,10 +444,10 @@
             document.getElementById('foto-text').style.color = "#22c55e";
         }
 
-        function procesarFormulario(event) {
+        window.procesarFormulario = async function(event) {
             event.preventDefault();
 
-            if (!fotoBase64) {
+            if (!fotoBase64 && !editId) {
                 alert("Por favor, capture o suba una fotografía del rostro del mensajero.");
                 return;
             }
@@ -446,23 +459,12 @@
             }
 
             const nuevoUsuario = document.getElementById('usuario_login').value.trim().toLowerCase();
-
-            // Validar que el nombre de usuario no esté duplicado con otro mensajero
-            const usuarioDuplicado = listaMensajeros.some((m, idx) => {
-                if (editIndex !== null && String(idx) === String(editIndex)) return false; // Ignora su propia posición al editar
-                return m.usuario === nuevoUsuario;
-            });
-
-            if (usuarioDuplicado) {
-                alert("Este nombre de usuario ya está asignado a otro cobrador. Elige otro.");
-                return;
-            }
-
-            // Conservar el ID antiguo si se edita, o generar uno nuevo si se registra
-            let idMensajero = (editIndex !== null && listaMensajeros[editIndex].id) ? listaMensajeros[editIndex].id : 'M-' + Date.now();
+            const idEmpresa = localStorage.getItem('id_empresa');
+            let idMensajero = editId ? editId : 'M-' + Date.now();
 
             const datosMensajero = {
                 id: idMensajero,
+                id_empresa: idEmpresa,
                 nombre: document.getElementById('nombre').value.trim(),
                 cedula: document.getElementById('cedula').value.trim(),
                 telefono: document.getElementById('telefono').value.trim(),
@@ -471,21 +473,17 @@
                 password: passwordValue,
                 rol: document.getElementById('rol').value,
                 activo: document.getElementById('estado-activo').checked,
-                foto: fotoBase64
+                foto: fotoBase64 || document.getElementById('preview-foto').src
             };
 
-            if (editIndex !== null) {
-                // Actualiza exactamente la misma posición en la que estaba sin romper el array
-                listaMensajeros[editIndex] = datosMensajero;
-                alert(`Cambios aplicados correctamente al mensajero "${datosMensajero.nombre}".`);
-            } else {
-                // Añade uno nuevo
-                listaMensajeros.push(datosMensajero);
-                alert(`Mensajero "${datosMensajero.nombre}" registrado exitosamente.`);
+            try {
+                // Guarda directamente en la colección 'mensajeros' en Firestore
+                await setDoc(doc(db, "mensajeros", idMensajero), datosMensajero);
+                alert(`Mensajero "${datosMensajero.nombre}" guardado exitosamente en la nube.`);
+                window.location.href = "mensajeros.html";
+            } catch (e) {
+                alert("Error al guardar en Firebase: " + e.message);
             }
-
-            localStorage.setItem('prestacom_mensajeros', JSON.stringify(listaMensajeros));
-            window.location.href = "mensajeros.html";
         }
     </script>
 </body>
