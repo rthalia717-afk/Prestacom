@@ -64,7 +64,8 @@
                     <label>Monto Real a Cobrar</label>
                     <div class="input-wrapper"><span>$</span><input type="number" id="txt-monto-recibido" placeholder="0.00"></div>
                 </div>
-                <button class="btn-cobrar" onclick="prepararTransaccion()">REALIZAR PAGO E IMPRIMIR</button>
+
+                <button class="btn-cobrar" onclick="mostrarModalConfirmacion()">REALIZAR PAGO E IMPRIMIR</button>
             </div>
         </div>
     </div>
@@ -99,7 +100,7 @@
         let listaPrestamos = [];
         let montoPagadoGlobal = 0;
 
-        // Carga inicial
+        // Carga inicial de clientes activos
         const q = query(collection(db, "prestamos"), where("id_empresa", "==", localStorage.getItem('id_empresa')), where("status", "==", "Activo"));
         
         onSnapshot(q, (snapshot) => {
@@ -137,8 +138,8 @@
             }
         };
 
-        // Paso 1: Al hacer clic en el botón principal, validamos y mostramos el modal
-        window.prepararTransaccion = () => {
+        // PASO 1: Valida el monto y despliega el cuadro flotante (Modal)
+        window.mostrarModalConfirmacion = () => {
             if (!clienteSeleccionado) return;
             
             montoPagadoGlobal = parseFloat(document.getElementById('txt-monto-recibido').value) || 0;
@@ -148,19 +149,19 @@
                 return;
             }
 
-            // Inyectamos los datos en el texto del modal
+            // Inyecta el nombre y el monto en el texto del modal
             document.getElementById('modal-texto-detalle').innerHTML = `Cliente: <span>${clienteSeleccionado.nombre_cliente}</span><br>Monto: <span>$${montoPagadoGlobal.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>`;
             
-            // Mostramos el modal
+            // Muestra el modal cambiando su display a flex
             document.getElementById('modal-confirmacion').style.display = "flex";
         };
 
-        // Si el mensajero presiona "No"
+        // Si el mensajero hace clic en "No"
         window.cerrarModal = () => {
             document.getElementById('modal-confirmacion').style.display = "none";
         };
 
-        // Paso 2: Si el mensajero presiona "Sí", ejecutamos la base de datos
+        // PASO 2: Si el mensajero hace clic en "Sí", guarda en Firebase
         window.ejecutarTransaccionFinal = async () => {
             document.getElementById('modal-confirmacion').style.display = "none";
             
