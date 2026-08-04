@@ -45,56 +45,82 @@
                 <a href="index.html" class="btn-back"><i class='bx bx-left-arrow-alt'></i></a>
                 <h2>Mensajeros</h2>
             </div>
-            <!-- Redirección corregida a nuevo-mensajero.html -->
-            <a href="nuevo-mensajero.html" class="btn-add-m" id="btn-nuevo-disparador"><i class='bx bx-plus'></i> Nuevo</a>
+            <a href="nuevo-mensajero.html" class="btn-add-m"><i class='bx bx-plus'></i> Nuevo</a>
         </div>
 
-        <div class="list-container" id="contenedor-mensajeros"></div>
+        <div class="list-container" id="contenedor-mensajeros">
+            <p style="text-align: center; color: #64748b; padding: 20px;">Cargando mensajeros...</p>
+        </div>
     </div>
 
-    <script>
-        // Datos reales consolidados + Mock inicial adaptado si está vacío
-        let lista = JSON.parse(localStorage.getItem('prestacom_mensajeros')) || [
-            { nombre: "Carlos Mendoza", usuario: "carlos01", direccion: "Ruta 01 - Los Alcarrizos", activo: true, foto: "" },
-            { nombre: "José Alberto Gómez", usuario: "jose02", direccion: "Ruta 02 - Herrera / Las Caobas", activo: true, foto: "" },
-            { nombre: "Wilkin Rosario", usuario: "wilkin03", direccion: "Ruta 03 - Villa Mella", activo: false, foto: "" }
-        ];
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        const contenedor = document.getElementById('contenedor-mensajeros');
-        let html = "";
+        const firebaseConfig = {
+            apiKey: "AIzaSyDbmVXLBIsBzk-wE60yVtchZ8WI4NWnAW4",
+            authDomain: "prestacom-sistema-a2830.firebaseapp.com",
+            projectId: "prestacom-sistema-a2830",
+            storageBucket: "prestacom-sistema-a2830.firebasestorage.app",
+            messagingSenderId: "500739174929",
+            appId: "1:500739174929:web:1694f07bf65714606f77b0"
+        };
+        const db = getFirestore(initializeApp(firebaseConfig));
 
-        // Usamos el parámetro 'index' para identificar qué elemento se va a editar
-        lista.forEach((m, index) => {
-            // Evaluamos si tiene foto en base64 o si usamos el icono genérico
-            let avatarHTML = m.foto 
-                ? `<img src="${m.foto}" class="m-avatar">` 
-                : `<div class="m-avatar"><i class='bx bx-user'></i></div>`;
+        async function cargarMensajeros() {
+            const contenedor = document.getElementById('contenedor-mensajeros');
+            const idEmpresaActual = localStorage.getItem('id_empresa');
 
-            // Validar si el objeto guardado cuenta con la propiedad nueva 'usuario'
-            let usuarioHTML = m.usuario 
-                ? `<span class="user-tag"><i class='bx bx-at'></i>${m.usuario}</span>` 
-                : '';
+            try {
+                // Consultamos solo los mensajeros correspondientes a la empresa actual
+                const q = query(collection(db, "mensajeros"), where("id_empresa", "==", idEmpresaActual));
+                const querySnapshot = await getDocs(q);
 
-            html += `
-                <div class="mensajero-row">
-                    ${avatarHTML}
-                    <div class="m-details">
-                        <h4>${m.nombre}</h4>
-                        <p><i class='bx bx-map-pin'></i> ${m.direccion}</p>
-                        ${usuarioHTML}
-                    </div>
-                    <div class="m-actions">
-                        <!-- Botón de editar que envía el índice por la URL -->
-                        <a href="nuevo-mensajero.html?edit=${index}" class="btn-edit" title="Editar mensajero">
-                            <i class='bx bx-edit-alt'></i>
-                        </a>
-                        <div class="badge-status ${m.activo ? 'status-on' : 'status-off'}" title="${m.activo ? 'Activo en ruta' : 'Suspendido'}"></div>
-                    </div>
-                </div>
-            `;
-        });
+                if (querySnapshot.empty) {
+                    contenedor.innerHTML = `<p style="text-align: center; color: #64748b; padding: 20px;">No hay mensajeros registrados.</p>`;
+                    return;
+                }
 
-        contenedor.innerHTML = html;
+                let html = "";
+                querySnapshot.forEach((docSnap) => {
+                    let m = docSnap.data();
+                    let mId = docSnap.id;
+
+                    let avatarHTML = m.foto 
+                        ? `<img src="${m.foto}" class="m-avatar">` 
+                        : `<div class="m-avatar"><i class='bx bx-user'></i></div>`;
+
+                    let usuarioHTML = m.usuario 
+                        ? `<span class="user-tag"><i class='bx bx-at'></i>${m.usuario}</span>` 
+                        : '';
+
+                    html += `
+                        <div class="mensajero-row">
+                            ${avatarHTML}
+                            <div class="m-details">
+                                <h4>${m.nombre}</h4>
+                                <p><i class='bx bx-map-pin'></i> ${m.direccion || 'Sin dirección'}</p>
+                                ${usuarioHTML}
+                            </div>
+                            <div class="m-actions">
+                                <a href="nuevo-mensajero.html?id=${mId}" class="btn-edit" title="Editar mensajero">
+                                    <i class='bx bx-edit-alt'></i>
+                                </a>
+                                <div class="badge-status ${m.activo ? 'status-on' : 'status-off'}" title="${m.activo ? 'Activo en ruta' : 'Suspendido'}"></div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                contenedor.innerHTML = html;
+
+            } catch (e) {
+                console.error("Error al cargar mensajeros:", e);
+                contenedor.innerHTML = `<p style="text-align: center; color: #dc2626; padding: 20px;">Error al cargar los datos de la nube.</p>`;
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', cargarMensajeros);
     </script>
 </body>
 </html>
