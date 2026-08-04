@@ -115,7 +115,22 @@
 
         window.ejecutarTransaccionFinal = async () => {
             if (!clienteSeleccionado) return;
+            
             const montoPagado = parseFloat(document.getElementById('txt-monto-recibido').value) || 0;
+            
+            // Validación de seguridad para evitar montos vacíos o en cero por error
+            if (montoPagado <= 0) {
+                alert("Por favor, ingresa un monto válido a cobrar.");
+                return;
+            }
+
+            // >> PASO NUEVO: Cuadro de confirmación con los datos del cliente y monto <<
+            const confirmarCobro = confirm(`¿Deseas realizar este cobro?\n\nCliente: ${clienteSeleccionado.nombre_cliente}\nMonto: $${montoPagado.toLocaleString(undefined, {minimumFractionDigits: 2})}`);
+            
+            if (!confirmarCobro) {
+                return; // Si el mensajero presiona "Cancelar", se detiene todo aquí
+            }
+
             const balanceActual = parseFloat(clienteSeleccionado.balance_pendiente) || 0;
             const nuevoBalance = balanceActual - montoPagado;
             
